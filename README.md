@@ -1,4 +1,4 @@
-continuous_time_state_representations
-=====================================
+Curves
+=====
 
-A generic interface for continuous time state representations.
+A library for estimation using curves
