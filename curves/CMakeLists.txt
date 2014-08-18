@@ -4,6 +4,8 @@ project(curves)
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
+add_definitions(-std=c++0x)
+
 cs_add_library(${PROJECT_NAME} 
   src/CoefficientImplementation.cpp
   src/VectorSpaceCoefficientImplementation.cpp

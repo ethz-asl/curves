@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <curves/Coefficient.hpp>
 #include <curves/VectorSpaceCoefficientImplementation.hpp>
-#include "CheckFailedException.hpp"
 
 TEST(CurvesTestSuite, testCoefficientDefaultConstructor) {
   using namespace curves;
