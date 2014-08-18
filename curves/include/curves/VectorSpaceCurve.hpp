@@ -2,39 +2,31 @@
 #define CT_VECTOR_SPACE_CURVE_HPP
 
 #include "Curve.hpp"
-#include "VectorSpaceEvaluator.hpp"
+#include "TypedCurve.hpp"
+#include "VectorSpaceConfig.hpp"
 
 namespace curves {
 
-class VectorSpaceCurve : public Curve
+class VectorSpaceCurve : public TypedCurve<VectorSpaceConfig>
 {
  public:
-  VectorSpaceCurve();
+  typedef TypedCurve<VectorSpaceConfig> Parent;
+  typedef Parent::ValueType ValueType;
+  typedef Parent::DerivativeType DerivativeType;
+  typedef Parent::EvaluatorType EvaluatorType;
+  typedef Parent::EvaluatorTypePtr EvaluatorTypePtr;
+
+  VectorSpaceCurve(size_t dimension);
   virtual ~VectorSpaceCurve();
-  /// \name Methods to grow or shrink the curve.
-  ///@{
-  
-  /// Extend the curve into the future so that it can be evaluated
-  /// at the following times. The arguments are smoothing points.
-  virtual void extendFront(const std::vector<Time>& times,
-                           const std::vector<Eigen::VectorXd>& values) = 0;
 
-  /// Extend the curve into the past so that it can be evaluated
-  /// at these times. The times should be less than 
-  virtual void extendBack(const std::vector<Time>& times,
-                          const std::vector<Eigen::VectorXd>& values) = 0;
-
-  ///@}
-
-  /// \brief Fit the curve to these data points
-  ///
-  /// Underneath the curve should have some default policy for fitting
-  virtual void fitCurve(const std::vector<Time>& times,
-                        const std::vector<Eigen::VectorXd>& values) = 0;
-
+  /// \brief Get the dimension of this curve
+  virtual size_t dim() const;
+ 
   /// \brief Get an evaluator at this time
-  virtual VectorSpaceEvaluator::Ptr getEvaluator(Time time) = 0;
-
+  //virtual VectorSpaceEvaluator::Ptr getEvaluator(Time time) = 0;
+ private:
+  /// The dimension of the vector space.
+  size_t dimension_;
 };
 
 } // namespace curves

@@ -8,7 +8,13 @@ namespace curves {
 
 class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
  public:
-  LinearInterpolationVectorSpaceCurve();
+  typedef VectorSpaceCurve::ValueType ValueType;
+  typedef VectorSpaceCurve::DerivativeType DerivativeType;
+  typedef VectorSpaceCurve::EvaluatorType EvaluatorType;
+  typedef VectorSpaceCurve::EvaluatorTypePtr EvaluatorTypePtr;
+
+  /// \brief Initialize with the dimension of the vector space
+  LinearInterpolationVectorSpaceCurve(size_t dimension);
   virtual ~LinearInterpolationVectorSpaceCurve();
 
   /// Print the value of the coefficient, for debugging and unit tests
@@ -76,7 +82,6 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
   virtual void extendBack(const std::vector<int64_t>& times,
                           const std::vector<Eigen::VectorXd>& values);
 
-  ///@}
 
   /// \brief Fit the curve to these data points
   ///
@@ -84,6 +89,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
   virtual void fitCurve(const std::vector<int64_t>& times,
                         const std::vector<Eigen::VectorXd>& values);
 
+  ///@}
 
   /// \name Methods to evaluate the curve.
   ///@{
@@ -95,7 +101,9 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
   virtual Eigen::VectorXd evaluateDerivative(Time time, unsigned derivativeOrder);
 
   /// \brief Get an evaluator at this time
-  virtual VectorSpaceEvaluator::Ptr getEvaluator(Time time);
+  EvaluatorTypePtr getTypedEvaluator(Time time);
+
+  ///@}
 
  private:
   HermiteCoefficientManager manager_;

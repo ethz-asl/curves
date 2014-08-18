@@ -50,6 +50,7 @@ class Curve {
   ///@}
 
   /// \name Methods to grow or shrink the curve.
+  ///@{
 
   /// Extend the curve into the future so that it can be evaluated
   /// at this time.
@@ -69,16 +70,6 @@ class Curve {
 
   ///@}
 
-  /// \name Methods to evaluate the curve.
-  ///@{
-
-  /// Evaluate the ambient space of the curve.
-  virtual Eigen::VectorXd evaluateVector(Time time) = 0;
-  
-  /// Evaluate the curve derivatives.
-  virtual Eigen::VectorXd evaluateDerivative(Time time, unsigned derivativeOrder) = 0;
-
-  ///@}
   
   
 };

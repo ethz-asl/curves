@@ -2,7 +2,8 @@
 
 namespace curves {
 
-LinearInterpolationVectorSpaceCurve::LinearInterpolationVectorSpaceCurve() {}
+LinearInterpolationVectorSpaceCurve::LinearInterpolationVectorSpaceCurve(size_t dimension) :
+    VectorSpaceCurve(dimension) {}
 
 LinearInterpolationVectorSpaceCurve::~LinearInterpolationVectorSpaceCurve() {}
 
@@ -128,7 +129,7 @@ Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time tim
 }
 
 /// \brief Get an evaluator at this time
-VectorSpaceEvaluator::Ptr LinearInterpolationVectorSpaceCurve::getEvaluator(Time time) {
+LinearInterpolationVectorSpaceCurve::EvaluatorTypePtr LinearInterpolationVectorSpaceCurve::getTypedEvaluator(Time time) {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
