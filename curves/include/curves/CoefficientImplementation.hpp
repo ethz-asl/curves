@@ -1,6 +1,7 @@
 #ifndef CT_COEFFICIENT_IMPLEMENTATION_HPP
 #define CT_COEFFICIENT_IMPLEMENTATION_HPP
 
+#include <memory>
 #include <Eigen/Core>
 
 namespace curves {

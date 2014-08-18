@@ -2,7 +2,6 @@
 #define CURVES_COEFFICIENT_HPP
 
 #include <unordered_map>
-#include <memory>
 
 #include <glog/logging.h>
 
