@@ -23,8 +23,7 @@ cs_add_library(${PROJECT_NAME}
 catkin_add_gtest(${PROJECT_NAME}_tests 
   test/test_main.cpp
   test/test_HermiteCoefficientManager.cpp
-  ## TODO: REENABLE
-  #test/test_Coefficient.cpp
+  test/test_Coefficient.cpp
 )
 target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
 
