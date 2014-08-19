@@ -7,10 +7,10 @@
 
 namespace curves {
 
-class VectorSpaceCurve : public TypedCurve<VectorSpaceConfig>
+class VectorSpaceCurve : public Curve<VectorSpaceConfig>
 {
  public:
-  typedef TypedCurve<VectorSpaceConfig> Parent;
+  typedef Curve<VectorSpaceConfig> Parent;
   typedef Parent::ValueType ValueType;
   typedef Parent::DerivativeType DerivativeType;
   typedef Parent::EvaluatorType EvaluatorType;
@@ -22,8 +22,6 @@ class VectorSpaceCurve : public TypedCurve<VectorSpaceConfig>
   /// \brief Get the dimension of this curve
   virtual size_t dim() const;
  
-  /// \brief Get an evaluator at this time
-  //virtual VectorSpaceEvaluator::Ptr getEvaluator(Time time) = 0;
  private:
   /// The dimension of the vector space.
   size_t dimension_;

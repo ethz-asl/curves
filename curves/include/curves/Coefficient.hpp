@@ -1,7 +1,7 @@
 #ifndef CURVES_COEFFICIENT_HPP
 #define CURVES_COEFFICIENT_HPP
 
-#include <unordered_map>
+#include <boost/unordered_map.hpp>
 
 #include <glog/logging.h>
 
@@ -17,7 +17,7 @@ class Coefficient
 {
  public:
 
-  typedef std::unordered_map<size_t, Coefficient> Map;
+  typedef boost::unordered_map<size_t, Coefficient> Map;
 
   /// \brief The default constructor will make a zombie object that is not useful.
   Coefficient();
@@ -86,7 +86,7 @@ class Coefficient
   double operator[](size_t i) const;
  private:
   Eigen::VectorXd value_;
-  std::shared_ptr<CoefficientImplementation> impl_;
+  boost::shared_ptr<CoefficientImplementation> impl_;
 
 };
 

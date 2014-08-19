@@ -1,94 +1,62 @@
-#ifndef CURVES_CURVE_HPP
-#define CURVES_CURVE_HPP
+#ifndef CURVES_TYPED_CURVE_HPP
+#define CURVES_TYPED_CURVE_HPP
 
-#include "types.hpp"
-#include "Coefficient.hpp"
+#include "CurveBase.hpp"
+#include "Evaluator.hpp"
 
 namespace curves {
 
-class Curve {
+template<typename CurveConfig>
+class Curve : public CurveBase
+{
  public:
   
-  Curve();
-  virtual ~Curve();
+  /// The value type of the curve.
+  typedef typename CurveConfig::ValueType ValueType;
 
-  ///\defgroup Info 
-  ///\name Methods to get information about the curve.
-  ///@{
+  /// The curve's derivative type.
+  typedef typename CurveConfig::DerivativeType DerivativeType;
 
-  /// Print the value of the coefficient, for debugging and unit tests
-  virtual void print(const std::string& str = "") const = 0;
-
-  /// \brief The dimension of the underlying manifold
-  virtual size_t dim() const = 0;
-
-  ///@}
-
-  /// 
-  /// \defgroup GetSet 
-  /// \name Methods to get and set coefficients.
-  ///@{
-
-  /// \brief Get the coefficients that are active at a certain time.
-  virtual void getCoefficientsAt(Time time, 
-                                 Coefficient::Map& outCoefficients) const = 0;
-
-  /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
-  virtual void getCoefficientsInRange(Time startTime, 
-                                      Time endTime, 
-                                      Coefficient::Map& outCoefficients) const = 0;
-
-  /// \brief Get all of the curve's coefficients.
-  virtual void getCoefficients(Coefficient::Map& outCoefficients) const = 0;
+  typedef Evaluator<CurveConfig> EvaluatorType;
   
-  /// \brief Set a coefficient.
-  virtual void setCoefficient(Key key, const Coefficient& value) = 0;
+  typedef typename EvaluatorType::Ptr EvaluatorTypePtr;
 
-  /// \brief Set coefficients.
-  virtual void setCoefficients(Coefficient::Map& coefficients) = 0;
+  Curve() { }
+  virtual ~Curve() { }
 
-  ///@}
-
-
-  /// \defgroup Time 
-  /// \name Methods to deal with time.
+  /// \name Methods to evaluate the curve
   ///@{
 
-  /// The first valid time for the curve.
-  virtual Time getBackTime() const = 0;
+  /// Evaluate the ambient space of the curve.
+  virtual ValueType evaluateVector(Time time) = 0;
   
-  /// The one past the last valid time for the curve.
-  virtual Time getFrontTime() const = 0;
+  /// Evaluate the curve derivatives.
+  virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) = 0;
+
+  /// \brief Get an evaluator at this time.
+  virtual EvaluatorTypePtr getTypedEvaluator(Time time) = 0;
 
   ///@}
 
-  /// \defgroup GrowShrink 
-  /// \name Methods to grow or shrink the curve.
+  /// \name Methods to fit the curve based on data.
   ///@{
-
-  /// Extend the curve into the future so that it can be evaluated
-  /// at this time.
-  virtual void extendFront(Time time) = 0;
 
   /// Extend the curve into the past so that it can be evaluated
-  /// at this time.
-  virtual void extendBack(Time time) = 0;
+  /// at these times. The times should be less than 
+  virtual void extend(const std::vector<Time>& times,
+                      const std::vector<ValueType>& values) = 0;
 
-  /// Retract the curve in the front. The caller guarantees that
-  /// they will never try to evaluate this time or higher again.
-  virtual void retractFront(Time time) = 0;
-
-  /// Retract the curve in the back. The caller guarantees that
-  /// they will never try to evaluate this time or lower again.
-  virtual void retractBack(Time time) = 0;
+  /// \brief Fit a new curve to these data points
+  ///
+  /// Underneath the curve should have some default policy for fitting
+  virtual void fitCurve(const std::vector<Time>& times,
+                        const std::vector<ValueType>& values) = 0;
 
   ///@}
-
 
 };
 
 } // namespace curves
 
 
-
-#endif /* CURVES_CURVE_HPP */
+#endif /* CURVES_TYPED_CURVE_HPP */

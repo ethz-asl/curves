@@ -1,7 +1,7 @@
 #ifndef CT_COEFFICIENT_IMPLEMENTATION_HPP
 #define CT_COEFFICIENT_IMPLEMENTATION_HPP
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
 #include <Eigen/Core>
 
 namespace curves {
@@ -10,8 +10,8 @@ namespace curves {
 class CoefficientImplementation
 {
  public:
-  typedef std::shared_ptr<CoefficientImplementation> Ptr;
-  typedef std::shared_ptr<const CoefficientImplementation> ConstPtr;
+  typedef boost::shared_ptr<CoefficientImplementation> Ptr;
+  typedef boost::shared_ptr<const CoefficientImplementation> ConstPtr;
 
   CoefficientImplementation();
   virtual ~CoefficientImplementation();

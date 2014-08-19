@@ -13,7 +13,7 @@ bool HermiteCoefficientManager::equals(const HermiteCoefficientManager& other, d
   equal &= coefficients_.size() == other.coefficients_.size();
   equal &= timeToCoefficient_.size() == other.timeToCoefficient_.size();
   if(equal) {
-    std::unordered_map<Key, KeyCoefficientTime>::const_iterator it1, it2;
+    boost::unordered_map<Key, KeyCoefficientTime>::const_iterator it1, it2;
     it1 = coefficients_.begin();
     it2 = other.coefficients_.begin();
     for( ; it1 != coefficients_.end(); ++it1, ++it2) {
@@ -65,7 +65,7 @@ void HermiteCoefficientManager::print(const std::string& str) const {
 }
 
 Key HermiteCoefficientManager::insertCoefficient(Time time, const Coefficient& coefficient) {
-  typedef std::unordered_map<Key, KeyCoefficientTime>::iterator iterator;
+  typedef boost::unordered_map<Key, KeyCoefficientTime>::iterator iterator;
   Key key = KeyGenerator::getNextKey();
   std::pair<iterator, bool > success = 
       coefficients_.insert( 
@@ -92,7 +92,7 @@ bool HermiteCoefficientManager::hasCoefficientAtTime(Time time) const {
 
 /// \brief return true if there is a coefficient with this key
 bool HermiteCoefficientManager::hasCoefficientWithKey(Key key) const {
-  std::unordered_map<Key, KeyCoefficientTime>::const_iterator it = coefficients_.find(key);
+  boost::unordered_map<Key, KeyCoefficientTime>::const_iterator it = coefficients_.find(key);
   return it != coefficients_.end();
 }
 
@@ -101,7 +101,7 @@ bool HermiteCoefficientManager::hasCoefficientWithKey(Key key) const {
 /// This function fails if there is no coefficient associated
 /// with this key.
 void HermiteCoefficientManager::setCoefficientByKey(Key key, const Coefficient& coefficient) {
-  std::unordered_map<Key, KeyCoefficientTime>::iterator it = coefficients_.find(key);
+  boost::unordered_map<Key, KeyCoefficientTime>::iterator it = coefficients_.find(key);
   CHECK( it != coefficients_.end() ) << "Key " << key << " is not in the container.";
   it->second.coefficient = coefficient;
   
@@ -112,14 +112,14 @@ void HermiteCoefficientManager::setCoefficientByKey(Key key, const Coefficient& 
 /// This function fails if there is no coefficient associated
 /// with this key.
 void HermiteCoefficientManager::setCoefficientVectorByKey(Key key, const Eigen::VectorXd& vector) {
-  std::unordered_map<Key, KeyCoefficientTime>::iterator it = coefficients_.find(key);
+  boost::unordered_map<Key, KeyCoefficientTime>::iterator it = coefficients_.find(key);
   CHECK( it != coefficients_.end() ) << "Key " << key << " is not in the container.";
   it->second.coefficient.setVector(vector);
 }
 
 /// \brief get the coefficient associated with this key
 Coefficient HermiteCoefficientManager::getCoefficientByKey(Key key) const {
-  std::unordered_map<Key, KeyCoefficientTime>::const_iterator it = coefficients_.find(key);
+  boost::unordered_map<Key, KeyCoefficientTime>::const_iterator it = coefficients_.find(key);
   CHECK( it != coefficients_.end() ) << "Key " << key << " is not in the container.";
   return it->second.coefficient;
 }
@@ -219,7 +219,7 @@ void HermiteCoefficientManager::checkInternalConsistency(bool doExit) const {
     CHECK_NOTNULL(it->second);
     CHECK_EQ(it->first, it->second->time);
     Key key = it->second->key;
-    std::unordered_map<Key, KeyCoefficientTime>::const_iterator itc = coefficients_.find(key);
+    boost::unordered_map<Key, KeyCoefficientTime>::const_iterator itc = coefficients_.find(key);
     CHECK( itc != coefficients_.end() ) << "Key " << key << " is not in the map";
     // This is probably the important one.
     // Check that the it->second pointer

@@ -1,7 +1,7 @@
 #ifndef CT_HERMITE_COEFFICIENT_MANAGER_HPP
 #define CT_HERMITE_COEFFICIENT_MANAGER_HPP
 
-#include <unordered_map>
+#include <boost/unordered_map.hpp>
 #include <vector>
 #include <map>
 
@@ -119,7 +119,7 @@ class HermiteCoefficientManager {
   
  private:
   /// Key to coefficient mapping
-  std::unordered_map<Key, KeyCoefficientTime> coefficients_;
+  boost::unordered_map<Key, KeyCoefficientTime> coefficients_;
   
   /// Time to coefficient mapping
   std::map<Time, KeyCoefficientTime*> timeToCoefficient_;

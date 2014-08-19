@@ -4,18 +4,15 @@ project(curves)
 find_package(catkin_simple 0.1.0 REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
-add_definitions(-std=c++0x)
-
 cs_add_library(${PROJECT_NAME} 
   src/CoefficientImplementation.cpp
   src/VectorSpaceCoefficientImplementation.cpp
-  src/Curve.cpp
+  src/CurveBase.cpp
   src/Coefficient.cpp
   src/KeyGenerator.cpp
   src/HermiteCoefficientManager.cpp
   src/VectorSpaceCurve.cpp
-  src/Evaluator.cpp
-  src/VectorSpaceEvaluator.cpp
+  src/EvaluatorBase.cpp
   src/LinearInterpolationVectorSpaceCurve.cpp
 )
 
