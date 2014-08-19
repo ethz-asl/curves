@@ -6,7 +6,7 @@ namespace curves {
 size_t KeyGenerator::getNextKey() {
   static size_t key = 0;
   static boost::mutex mutex;
-  boost::mutex::scoped_lock lock(mutex);
+  boost::lock_guard<boost::mutex> guard(mutex);
   return ++key;
 }
 
