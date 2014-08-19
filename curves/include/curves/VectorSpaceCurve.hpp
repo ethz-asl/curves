@@ -2,7 +2,6 @@
 #define CT_VECTOR_SPACE_CURVE_HPP
 
 #include "Curve.hpp"
-#include "TypedCurve.hpp"
 #include "VectorSpaceConfig.hpp"
 
 namespace curves {
