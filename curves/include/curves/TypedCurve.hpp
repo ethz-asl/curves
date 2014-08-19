@@ -7,7 +7,7 @@
 namespace curves {
 
 template<typename CurveConfig>
-class TypedCurve
+class TypedCurve : public Curve
 {
  public:
   
