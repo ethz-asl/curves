@@ -28,13 +28,13 @@ class Curve : public CurveBase
   ///@{
 
   /// Evaluate the ambient space of the curve.
-  virtual ValueType evaluateVector(Time time) = 0;
+  virtual ValueType evaluate(Time time) const = 0;
   
   /// Evaluate the curve derivatives.
-  virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) = 0;
+  virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const = 0;
 
   /// \brief Get an evaluator at this time.
-  virtual EvaluatorTypePtr getTypedEvaluator(Time time) = 0;
+  virtual EvaluatorTypePtr getEvaluator(Time time) const = 0;
 
   ///@}
 

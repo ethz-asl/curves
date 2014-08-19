@@ -46,47 +46,15 @@ void LinearInterpolationVectorSpaceCurve::setCoefficients(Coefficient::Map& coef
 
 
 
-Time LinearInterpolationVectorSpaceCurve::getBackTime() const {
+Time LinearInterpolationVectorSpaceCurve::getMaxTime() const {
   return manager_.getBackTime();
 }
   
-Time LinearInterpolationVectorSpaceCurve::getFrontTime() const {
+Time LinearInterpolationVectorSpaceCurve::getMinTime() const {
   return manager_.getFrontTime();
 }
 
 
-
-void LinearInterpolationVectorSpaceCurve::extendFront(Time time) {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
-}
-
-void LinearInterpolationVectorSpaceCurve::extendBack(Time time) {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
-}
-
-void LinearInterpolationVectorSpaceCurve::retractFront(Time time) {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
-}
-
-void LinearInterpolationVectorSpaceCurve::retractBack(Time time) {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
-}
-
-void LinearInterpolationVectorSpaceCurve::extendFront(const std::vector<Time>& times,
-                                                      const std::vector<Eigen::VectorXd>& values) {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
-}
-
-void LinearInterpolationVectorSpaceCurve::extendBack(const std::vector<Time>& times,
-                                                     const std::vector<Eigen::VectorXd>& values) {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
-}
 
 
 void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
@@ -110,7 +78,7 @@ void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& time
 
 
 
-Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateVector(Time time) {
+Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluate(Time time) const {
   std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
   bool success = manager_.getCoefficientsAt(time, rval);
   CHECK(success) << "Unable to get the coefficients at time " << time;  
@@ -123,13 +91,13 @@ Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateVector(Time time) {
   return alpha * rval.first->coefficient.getValue() + (1.0 - alpha) * rval.second->coefficient.getValue();
 }
   
-Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time time, unsigned derivativeOrder) {
+Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time time, unsigned derivativeOrder) const {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";  
 }
 
 /// \brief Get an evaluator at this time
-LinearInterpolationVectorSpaceCurve::EvaluatorTypePtr LinearInterpolationVectorSpaceCurve::getTypedEvaluator(Time time) {
+LinearInterpolationVectorSpaceCurve::EvaluatorTypePtr LinearInterpolationVectorSpaceCurve::getEvaluator(Time time) const {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
