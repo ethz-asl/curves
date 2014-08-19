@@ -67,7 +67,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
   /// \brief Get an evaluator at this time
   EvaluatorTypePtr getEvaluator(Time time) const;
 
-  ///@}
+  virtual void setTimeRange(Time minTime, Time maxTime);
 
  private:
   HermiteCoefficientManager manager_;
