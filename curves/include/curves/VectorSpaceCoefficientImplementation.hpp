@@ -22,7 +22,7 @@ class VectorSpaceCoefficientImplementation : public CoefficientImplementation
 
   /// For a given manifold, make the coefficient representation unique.
   /// This version modifies the argument in place
-  virtual void makeUniqueInPlace(Eigen::VectorXd& thisCoeff) const;
+  virtual Eigen::VectorXd& makeUniqueInPlace(Eigen::VectorXd& thisCoeff) const;
 
   /// For a given manifold, make the coefficient representation unique.
   /// \param[in] thisCoeff The current value of the coefficient.

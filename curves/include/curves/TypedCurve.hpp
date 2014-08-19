@@ -24,10 +24,7 @@ class TypedCurve : public Curve
   TypedCurve() { }
   virtual ~TypedCurve() { }
 
-  /// \brief The dimension of the underlying manifold
-  virtual size_t dim() const = 0;
-
-  /// \name Methods to evaluate the curve.
+  /// \name Methods to evaluate the curve
   ///@{
 
   /// Evaluate the ambient space of the curve.
@@ -41,8 +38,7 @@ class TypedCurve : public Curve
 
   ///@}
 
-
-  /// \name Methods to grow or shrink the curve.
+  /// \name Methods to fit the curve based on data.
   ///@{
 
   /// Extend the curve into the past so that it can be evaluated
@@ -57,6 +53,7 @@ class TypedCurve : public Curve
                         const std::vector<ValueType>& values) = 0;
 
   ///@}
+
 };
 
 } // namespace curves

@@ -12,9 +12,20 @@ class Curve {
   Curve();
   virtual ~Curve();
 
+  ///\defgroup Info 
+  ///\name Methods to get information about the curve.
+  ///@{
+
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const = 0;
-  
+
+  /// \brief The dimension of the underlying manifold
+  virtual size_t dim() const = 0;
+
+  ///@}
+
+  /// 
+  /// \defgroup GetSet 
   /// \name Methods to get and set coefficients.
   ///@{
 
@@ -35,9 +46,11 @@ class Curve {
 
   /// \brief Set coefficients.
   virtual void setCoefficients(Coefficient::Map& coefficients) = 0;
+
   ///@}
 
 
+  /// \defgroup Time 
   /// \name Methods to deal with time.
   ///@{
 
@@ -49,6 +62,7 @@ class Curve {
 
   ///@}
 
+  /// \defgroup GrowShrink 
   /// \name Methods to grow or shrink the curve.
   ///@{
 
@@ -70,8 +84,7 @@ class Curve {
 
   ///@}
 
-  
-  
+
 };
 
 } // namespace curves

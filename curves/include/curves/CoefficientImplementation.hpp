@@ -25,13 +25,26 @@ class CoefficientImplementation
 
   /// For a given manifold, make the coefficient representation unique.
   /// This version modifies the argument in place
-  virtual void makeUniqueInPlace(Eigen::VectorXd& thisCoeff) const = 0;
+  virtual Eigen::VectorXd& makeUniqueInPlace(Eigen::VectorXd& thisCoeff) const = 0;
   
  
   /// For a given manifold, make the coefficient representation unique.
   /// \param[in] thisCoeff The current value of the coefficient.
   /// \param[out] outUniqueCoeff The unique value of the coefficient.
   virtual Eigen::VectorXd makeUniqueCopy(const Eigen::VectorXd& thisCoeff) const;
+
+  /// Project the coefficient back to the manifold. This is useful
+  /// for manifolds that have constraints. For example, this will
+  /// renormalize a unit-length quaternion coefficient that may have
+  /// become unnormalized through repeated updates.
+  //virtual Eigen::VectorXd projectToManifold(const Eigen::VectorXd& thisCoeff) const = 0;
+
+  /// Project the coefficient back to the manifold. This is useful
+  /// for manifolds that have constraints. For example, this will
+  /// renormalize a unit-length quaternion coefficient that may have
+  /// become unnormalized through repeated updates.
+  //virtual Eigen::VectorXd& projectToManifoldInPlace(Eigen::VectorXd& thisCoeff) const = 0;
+
 
   /// Compare this Coefficient with another for equality.
   virtual bool equals(const Eigen::VectorXd& thisCoeff, 

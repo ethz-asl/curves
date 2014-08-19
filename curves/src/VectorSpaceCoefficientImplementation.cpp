@@ -14,7 +14,7 @@ bool VectorSpaceCoefficientImplementation::equals(const Eigen::VectorXd& thisCoe
   return (thisCoeff - otherCoeff).array().abs().maxCoeff() < tol;
 }
 
-void VectorSpaceCoefficientImplementation::makeUniqueInPlace(Eigen::VectorXd& /* thisCoeff */ ) const{}
+Eigen::VectorXd& VectorSpaceCoefficientImplementation::makeUniqueInPlace(Eigen::VectorXd& thisCoeff ) const{ return thisCoeff;}
 
 void VectorSpaceCoefficientImplementation::makeUnique(const Eigen::VectorXd& thisCoeff,
                                                       Eigen::VectorXd& outUniqueCoeff) const {

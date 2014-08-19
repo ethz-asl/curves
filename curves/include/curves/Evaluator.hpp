@@ -11,9 +11,15 @@ class Evaluator {
   Evaluator();
   virtual ~Evaluator();
 
+  /// \brief Get keys for the coefficients that this evaluator uses.
+  ///
+  /// This function implies an ordering to the keys. For evaluators
+  /// defined downstream, they provide their Jacobians in this order.
+  /// This may be revisited as we work out the connection to GTSAM
   virtual void getKeys(std::vector<Key>& outKeys) = 0;
   
-  virtual void getCoefficients(std::vector<Key>& outCoefficients) = 0;
+  /// \brief Get the coefficients used by this evaluator.
+  virtual void getCoefficients(std::vector<Coefficient>& outCoefficients) = 0;
 
 };
 

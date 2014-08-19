@@ -36,7 +36,7 @@ From `NoiseModelFactor`
    */
   virtual Vector unwhitenedError(const Values& x, boost::optional< std::vector< Matrix > &> H = boost::none) const = 0;
 ```
-So, Values is an ordered, indexed list of Values. And the Jacobians are returned in an ordered list as well.
+So, Values is an key/Value map. The Factor decides the ordering that the Jacobians are returned.
 # Curve
 * `Curve::grow()` Needs to return a list of coefficients that are new
 * `Curve::shrink()` needs to return a list of coefficients removed
