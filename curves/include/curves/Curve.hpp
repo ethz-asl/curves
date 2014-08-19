@@ -41,14 +41,16 @@ class Curve : public CurveBase
   /// \name Methods to fit the curve based on data.
   ///@{
 
-  /// Extend the curve into the past so that it can be evaluated
-  /// at these times. The times should be less than 
+  /// Extend the curve so that it can be evaluated at these times.
+  /// Try to make the curve fit to the values.
+  /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
                       const std::vector<ValueType>& values) = 0;
 
-  /// \brief Fit a new curve to these data points
+  /// \brief Fit a new curve to these data points.
   ///
-  /// Underneath the curve should have some default policy for fitting
+  /// The existing curve will be cleared.
+  /// Underneath the curve should have some default policy for fitting.
   virtual void fitCurve(const std::vector<Time>& times,
                         const std::vector<ValueType>& values) = 0;
 

@@ -54,11 +54,11 @@ class CurveBase {
   /// \name Methods to deal with time.
   ///@{
 
-  /// The first valid time for the curve.
-  virtual Time getBackTime() const = 0;
+  /// The first valid time of the curve.
+  virtual Time getMinTime() const = 0;
   
   /// The one past the last valid time for the curve.
-  virtual Time getFrontTime() const = 0;
+  virtual Time getMaxTime() const = 0;
 
   ///@}
 
@@ -66,22 +66,9 @@ class CurveBase {
   /// \name Methods to grow or shrink the curve.
   ///@{
 
-  /// Extend the curve into the future so that it can be evaluated
-  /// at this time.
-  virtual void extendFront(Time time) = 0;
-
-  /// Extend the curve into the past so that it can be evaluated
-  /// at this time.
-  virtual void extendBack(Time time) = 0;
-
-  /// Retract the curve in the front. The caller guarantees that
-  /// they will never try to evaluate this time or higher again.
-  virtual void retractFront(Time time) = 0;
-
-  /// Retract the curve in the back. The caller guarantees that
-  /// they will never try to evaluate this time or lower again.
-  virtual void retractBack(Time time) = 0;
-
+  /// \brief extend or retract the curve to the specified range, \f$[t_s,t_e)\f$.
+  virtual void setTimeRange(Time minTime, Time maxTime);
+  
   ///@}
 
 
