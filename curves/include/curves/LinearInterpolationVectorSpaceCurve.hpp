@@ -74,12 +74,12 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
   /// Extend the curve into the future so that it can be evaluated
   /// at the following times. The arguments are smoothing points.
-  virtual void extendFront(const std::vector<int64_t>& times,
+  virtual void extendFront(const std::vector<Time>& times,
                            const std::vector<Eigen::VectorXd>& values);
 
   /// Extend the curve into the past so that it can be evaluated
   /// at these times. The times should be less than 
-  virtual void extendBack(const std::vector<int64_t>& times,
+  virtual void extendBack(const std::vector<Time>& times,
                           const std::vector<Eigen::VectorXd>& values);
 
 

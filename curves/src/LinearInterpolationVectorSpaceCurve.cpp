@@ -76,20 +76,20 @@ void LinearInterpolationVectorSpaceCurve::retractBack(Time time) {
   CHECK(false) << "Not implemented";
 }
 
-void LinearInterpolationVectorSpaceCurve::extendFront(const std::vector<int64_t>& times,
+void LinearInterpolationVectorSpaceCurve::extendFront(const std::vector<Time>& times,
                                                       const std::vector<Eigen::VectorXd>& values) {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
 
-void LinearInterpolationVectorSpaceCurve::extendBack(const std::vector<int64_t>& times,
+void LinearInterpolationVectorSpaceCurve::extendBack(const std::vector<Time>& times,
                                                      const std::vector<Eigen::VectorXd>& values) {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
 
 
-void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<int64_t>& times,
+void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
                                                    const std::vector<Eigen::VectorXd>& values) {
   CHECK_EQ(times.size(), values.size());
   
