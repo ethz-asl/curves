@@ -67,7 +67,7 @@ class CurveBase {
   ///@{
 
   /// \brief extend or retract the curve to the specified range, \f$[t_s,t_e)\f$.
-  virtual void setTimeRange(Time minTime, Time maxTime);
+  virtual void setTimeRange(Time minTime, Time maxTime) = 0;
   
   ///@}
 
