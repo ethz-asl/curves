@@ -16,8 +16,8 @@ cs_add_library(${PROJECT_NAME}
   src/LinearInterpolationVectorSpaceCurve.cpp
 )
 
-# find_package(Boost REQUIRED COMPONENTS system serialization filesystem)
-# target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+find_package(Boost REQUIRED COMPONENTS system thread)
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 catkin_add_gtest(${PROJECT_NAME}_tests 
   test/test_main.cpp
