@@ -102,5 +102,10 @@ LinearInterpolationVectorSpaceCurve::EvaluatorTypePtr LinearInterpolationVectorS
   CHECK(false) << "Not implemented";
 }
 
+void LinearInterpolationVectorSpaceCurve::setTimeRange(Time minTime, Time maxTime) {
+  // \todo Abel and Renaud
+  CHECK(false) << "Not implemented";
+}
+
 
 } // namespace curves
