@@ -49,14 +49,14 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
   /// Try to make the curve fit to the values.
   /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
-                      const std::vector<ValueType>& values) = 0;
+                      const std::vector<ValueType>& values);
 
   /// \brief Fit a new curve to these data points.
   ///
   /// The existing curve will be cleared.
   /// Underneath the curve should have some default policy for fitting.
   virtual void fitCurve(const std::vector<Time>& times,
-                        const std::vector<ValueType>& values) = 0;
+                        const std::vector<ValueType>& values);
 
   /// Evaluate the ambient space of the curve.
   virtual Eigen::VectorXd evaluate(Time time) const;

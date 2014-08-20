@@ -1,4 +1,5 @@
 #include <curves/LinearInterpolationVectorSpaceCurve.hpp>
+#include <iostream>
 
 namespace curves {
 
@@ -8,7 +9,25 @@ LinearInterpolationVectorSpaceCurve::LinearInterpolationVectorSpaceCurve(size_t 
 LinearInterpolationVectorSpaceCurve::~LinearInterpolationVectorSpaceCurve() {}
 
 void LinearInterpolationVectorSpaceCurve::print(const std::string& str) const {
-
+	std::cout <<"=========================================" <<std::endl;
+	std::cout << str << std::endl;
+	std::cout << "size : " << manager_.size() << std::endl;
+	std::cout << "dimension: " << dim() << std::endl;
+	std::stringstream ss;
+	std::vector<Key> keys;
+	std::vector<Time> times;
+	manager_.getTimes(times);
+	manager_.getKeys(keys);
+	std::cout << "curve defined between times: " << manager_.getBackTime() << " and " << manager_.getFrontTime() <<std::endl;
+	std::cout <<"=========================================" <<std::endl;
+	for (size_t i = 0; i < manager_.size(); i++) {
+		ss << "coefficient " << keys[i] << ": ";
+		manager_.getCoefficientByKey(keys[i]).print(ss.str());
+		std::cout << " | time: " << times[i];
+		std::cout << std::endl;
+		ss.str("");
+	}
+	std::cout <<"=========================================" <<std::endl;
 }
   
 
@@ -25,23 +44,19 @@ void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(Time time,
 void LinearInterpolationVectorSpaceCurve::getCoefficientsInRange(Time startTime, 
                                                                  Time endTime, 
                                                                  Coefficient::Map& outCoefficients) const {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
+	manager_.getCoefficientsInRange(startTime, endTime, outCoefficients);
 }
 
 void LinearInterpolationVectorSpaceCurve::getCoefficients(Coefficient::Map& outCoefficients) const {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
+	manager_.getCoefficients(outCoefficients);
 }
   
 void LinearInterpolationVectorSpaceCurve::setCoefficient(Key key, const Coefficient& value) {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
+	manager_.setCoefficientByKey(key, value);
 }
 
 void LinearInterpolationVectorSpaceCurve::setCoefficients(Coefficient::Map& coefficients) {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
+	manager_.setCoefficients(coefficients);
 }
 
 
@@ -76,6 +91,11 @@ void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& time
   }
 }
 
+void LinearInterpolationVectorSpaceCurve::extend(const std::vector<Time>& times,
+                      const std::vector<ValueType>& values) {
+	// \todo Abel and Renaud
+	  CHECK(false) << "Not implemented";
+}
 
 
 Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluate(Time time) const {
@@ -106,6 +126,5 @@ void LinearInterpolationVectorSpaceCurve::setTimeRange(Time minTime, Time maxTim
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
-
 
 } // namespace curves

@@ -157,15 +157,18 @@ bool HermiteCoefficientManager::getCoefficientsAt(Time time,
 void HermiteCoefficientManager::getCoefficientsInRange(Time startTime, 
                             Time endTime, 
                             Coefficient::Map& outCoefficients) const {
+	CHECK(startTime<endTime) << "start time " << startTime << " is greater than endTime " << endTime;
   std::map<Time, KeyCoefficientTime*>::const_iterator it;
-  it = timeToCoefficient_.lower_bound(startTime);
+  it = timeToCoefficient_.upper_bound(startTime);
+  it--;
+  CHECK(it != timeToCoefficient_.end() ) << "start time " << startTime << " is out of bounds.";
   for( ; it != timeToCoefficient_.end() && it->first < endTime; ++it) {
     outCoefficients[it->second->key] = it->second->coefficient;
   }
   if( it != timeToCoefficient_.end() ) {
     outCoefficients[it->second->key] = it->second->coefficient;
   }
-  
+  CHECK(it != timeToCoefficient_.end() ) << "end time " << endTime << " is out of bounds.";
 }
   
 /// \brief Get all of the curve's coefficients.
@@ -181,8 +184,12 @@ void HermiteCoefficientManager::getCoefficients(Coefficient::Map& outCoefficient
 ///
 /// If any of these coefficients doen't exist, there is an error
 void HermiteCoefficientManager::setCoefficients(Coefficient::Map& coefficients) {
-  // \todo Abel or Renaud
-  CHECK(false) << "Not implemented";
+	boost::unordered_map<Key, Coefficient>::const_iterator it;
+	it = coefficients.begin();
+	for (int i=0; i < coefficients.size(); i++){
+		this->setCoefficientByKey(it->first, it->second);
+		it++;
+	}
 }
 
 /// \brief return the number of coefficients
