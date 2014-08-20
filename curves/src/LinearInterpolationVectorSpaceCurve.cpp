@@ -18,7 +18,7 @@ void LinearInterpolationVectorSpaceCurve::print(const std::string& str) const {
 	std::vector<Time> times;
 	manager_.getTimes(times);
 	manager_.getKeys(keys);
-	std::cout << "curve defined between times: " << manager_.getBackTime() << " and " << manager_.getFrontTime() <<std::endl;
+	std::cout << "curve defined between times: " << manager_.getMinTime() << " and " << manager_.getMaxTime() <<std::endl;
 	std::cout <<"=========================================" <<std::endl;
 	for (size_t i = 0; i < manager_.size(); i++) {
 		ss << "coefficient " << keys[i] << ": ";
@@ -62,11 +62,11 @@ void LinearInterpolationVectorSpaceCurve::setCoefficients(Coefficient::Map& coef
 
 
 Time LinearInterpolationVectorSpaceCurve::getMaxTime() const {
-  return manager_.getBackTime();
+  return manager_.getMaxTime();
 }
   
 Time LinearInterpolationVectorSpaceCurve::getMinTime() const {
-  return manager_.getFrontTime();
+  return manager_.getMinTime();
 }
 
 
@@ -93,8 +93,13 @@ void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& time
 
 void LinearInterpolationVectorSpaceCurve::extend(const std::vector<Time>& times,
                       const std::vector<ValueType>& values) {
-	// \todo Abel and Renaud
-	  CHECK(false) << "Not implemented";
+	
+	CHECK_EQ(times.size(), values.size());
+	for (int i=0; i<times.size();i++){
+		if (this->getMinTime()>times[i] || this->getMaxTime()<times[i]) {
+			manager_.insertCoefficient(times[i], Coefficient(values[i]));
+		}
+	}
 }
 
 
@@ -112,8 +117,50 @@ Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluate(Time time) const {
 }
   
 Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time time, unsigned derivativeOrder) const {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";  
+	// the 4 cases
+	  // - time is out of bound									--> error
+
+	CHECK(this->getMinTime()<=time) << "curve is not defined at this time (time " << time << " is too small)";
+	CHECK(this->getMaxTime()>=time) << "curve is not defined at this time (time " << time << " is too high)";
+
+	Eigen::VectorXd dCoeff;
+	Time dt;
+	// check if we hit a coefficient
+	if (derivativeOrder == 1) {
+	std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
+	boost::unordered_map<Key, Coefficient>::iterator it;
+	bool on_a_coefficient = manager_.hasCoefficientAtTime(time);
+	// - time is between 2 coefficients --> take slope between the 2 coefficients
+	if (!on_a_coefficient) {
+		bool success = manager_.getCoefficientsAt(time, rval);
+		dCoeff = rval.second->coefficient.getValue() - rval.first->coefficient.getValue();
+		dt = rval.second->time - rval.first->time;
+	}
+	else {
+		// end coefficients of curve
+		//	if (this->getMinTime()==time || this->getMaxTime()==time) {
+		bool success = manager_.getCoefficientsAt(time, rval);
+		dCoeff = rval.second->coefficient.getValue() - rval.first->coefficient.getValue();
+		dt = rval.second->time - rval.first->time;
+//		}
+		// on coefficient between first and last coefficient in curve
+		// \todo Abel and Renaud
+//		else {
+//		}
+	}
+	return dCoeff/dt;
+	}
+
+	else {
+		std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
+		bool success = manager_.getCoefficientsAt(time, rval);
+		const int dimension = rval.first->coefficient.dim();
+		dCoeff = Eigen::VectorXd::Zero(dimension,1);
+
+		return dCoeff;
+	}
+
+
 }
 
 /// \brief Get an evaluator at this time

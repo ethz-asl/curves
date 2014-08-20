@@ -136,11 +136,11 @@ bool HermiteCoefficientManager::getCoefficientsAt(Time time,
 
   std::map<Time, KeyCoefficientTime*>::const_iterator it;
   it = timeToCoefficient_.upper_bound(time);
-  if(time == getFrontTime()) {
+  if(time == getMaxTime()) {
     --it;
   }
   if(it == timeToCoefficient_.begin() || it == timeToCoefficient_.end()) {
-    LOG(INFO) << "time, " << time << ", is out of bounds: [" << getBackTime() << ", " << getFrontTime() << "]";
+    LOG(INFO) << "time, " << time << ", is out of bounds: [" << getMinTime() << ", " << getMaxTime() << "]";
     return false;
   }
   --it;
@@ -204,14 +204,14 @@ void HermiteCoefficientManager::clear() {
 }
 
 
-Time HermiteCoefficientManager::getBackTime() const {
+Time HermiteCoefficientManager::getMinTime() const {
   if(timeToCoefficient_.empty()) {
     return 0;
   }
   return timeToCoefficient_.begin()->first;
 }
 
-Time HermiteCoefficientManager::getFrontTime() const {
+Time HermiteCoefficientManager::getMaxTime() const {
   if(timeToCoefficient_.empty()) {
     return 0;
   }
