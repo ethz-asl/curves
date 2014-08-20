@@ -50,14 +50,14 @@ size_t Coefficient::ambientDim() const {
 Coefficient Coefficient::retract(const Eigen::VectorXd& delta) const {
   CHECK_EQ(delta.size(), impl_->dim());
   Coefficient rval(impl_);
-  impl_->retract(value_, delta, rval.value_);
+  impl_->retract(value_, delta, &rval.value_);
   return rval;
 }
 
 Eigen::VectorXd Coefficient::localCoordinates(const Coefficient& value) const {
   CHECK_EQ(value.value_.size(), impl_->ambientDim());
   Eigen::VectorXd rval;
-  impl_->localCoordinates(value_, value.value_, rval);
+  impl_->localCoordinates(value_, value.value_, &rval);
   return rval;
 }
 

@@ -22,14 +22,14 @@ class HermiteCoefficientManager {
 
   /// Get all of the keys in this manager. This method clears the
   /// list of keys before filling it.
-  void getKeys(std::vector<Key>& outKeys) const;
+  void getKeys(std::vector<Key>* outKeys) const;
 
   /// Get all of the keys in this manager. The list is not cleared
   /// before pushing it to the container.
-  void appendKeys(std::vector<Key>& outKeys) const;
+  void appendKeys(std::vector<Key>* outKeys) const;
 
   /// Get a sorted list of coefficient times
-  void getTimes(std::vector<Time>& outTimes) const;
+  void getTimes(std::vector<Time>* outTimes) const;
   
   /// \brief insert a coefficient at a time and return
   ///        the key for the coefficient
@@ -43,7 +43,7 @@ class HermiteCoefficientManager {
   /// be appended to this vector.
   void insertCoefficients(const std::vector<Time>& times,
                           const std::vector<Coefficient>& values,
-                          std::vector<Key>& outKeys);
+                          std::vector<Key>* outKeys);
   
   /// \brief Remove the coefficient with this key.
   ///
@@ -84,21 +84,21 @@ class HermiteCoefficientManager {
   ///
   /// @returns true if it was successful
   bool getCoefficientsAt(Time time, 
-                         std::pair<KeyCoefficientTime*, KeyCoefficientTime*>& outCoefficients) const;
+                         std::pair<KeyCoefficientTime*, KeyCoefficientTime*>* outCoefficients) const;
 
   
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
   void getCoefficientsInRange(Time startTime, 
                               Time endTime, 
-                              Coefficient::Map& outCoefficients) const;
+                              Coefficient::Map* outCoefficients) const;
   
   /// \brief Get all of the curve's coefficients.
-  void getCoefficients(Coefficient::Map& outCoefficients) const;
+  void getCoefficients(Coefficient::Map* outCoefficients) const;
 
   /// \brief Set coefficients.
   ///
   /// If any of these coefficients doen't exist, there is an error
-  void setCoefficients(Coefficient::Map& coefficients);
+  void setCoefficients(const Coefficient::Map& coefficients);
 
   /// \brief return the number of coefficients
   Key size() const;

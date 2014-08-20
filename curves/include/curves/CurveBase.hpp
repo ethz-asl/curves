@@ -31,21 +31,21 @@ class CurveBase {
 
   /// \brief Get the coefficients that are active at a certain time.
   virtual void getCoefficientsAt(Time time, 
-                                 Coefficient::Map& outCoefficients) const = 0;
+                                 Coefficient::Map* outCoefficients) const = 0;
 
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
   virtual void getCoefficientsInRange(Time startTime, 
                                       Time endTime, 
-                                      Coefficient::Map& outCoefficients) const = 0;
+                                      Coefficient::Map* outCoefficients) const = 0;
 
   /// \brief Get all of the curve's coefficients.
-  virtual void getCoefficients(Coefficient::Map& outCoefficients) const = 0;
+  virtual void getCoefficients(Coefficient::Map* outCoefficients) const = 0;
   
   /// \brief Set a coefficient.
   virtual void setCoefficient(Key key, const Coefficient& value) = 0;
 
   /// \brief Set coefficients.
-  virtual void setCoefficients(Coefficient::Map& coefficients) = 0;
+  virtual void setCoefficients(Coefficient::Map* coefficients) = 0;
 
   ///@}
 

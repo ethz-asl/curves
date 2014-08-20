@@ -22,15 +22,15 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
   
   /// \brief Get the coefficients that are active at a certain time.
   virtual void getCoefficientsAt(Time time, 
-                                 Coefficient::Map& outCoefficients) const;
+                                 Coefficient::Map* outCoefficients) const;
 
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
   virtual void getCoefficientsInRange(Time startTime, 
                                       Time endTime, 
-                                      Coefficient::Map& outCoefficients) const;
+                                      Coefficient::Map* outCoefficients) const;
 
   /// \brief Get all of the curve's coefficients.
-  virtual void getCoefficients(Coefficient::Map& outCoefficients) const;
+  virtual void getCoefficients(Coefficient::Map* outCoefficients) const;
   
   /// \brief Set a coefficient.
   virtual void setCoefficient(Key key, const Coefficient& value);
