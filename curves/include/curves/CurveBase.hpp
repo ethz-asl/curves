@@ -45,7 +45,7 @@ class CurveBase {
   virtual void setCoefficient(Key key, const Coefficient& value) = 0;
 
   /// \brief Set coefficients.
-  virtual void setCoefficients(Coefficient::Map* coefficients) = 0;
+  virtual void setCoefficients(const Coefficient::Map& coefficients) = 0;
 
   ///@}
 

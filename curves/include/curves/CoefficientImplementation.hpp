@@ -25,7 +25,7 @@ class CoefficientImplementation
 
   /// For a given manifold, make the coefficient representation unique.
   /// This version modifies the argument in place
-  virtual Eigen::VectorXd* makeUniqueInPlace(Eigen::VectorXd* thisCoeff) const = 0;
+  virtual void makeUniqueInPlace(Eigen::VectorXd* thisCoeff) const = 0;
   
  
   /// For a given manifold, make the coefficient representation unique.

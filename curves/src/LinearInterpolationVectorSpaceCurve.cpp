@@ -42,7 +42,7 @@ void LinearInterpolationVectorSpaceCurve::setCoefficient(Key key, const Coeffici
   CHECK(false) << "Not implemented";
 }
 
-void LinearInterpolationVectorSpaceCurve::setCoefficients(Coefficient::Map& coefficients) {
+void LinearInterpolationVectorSpaceCurve::setCoefficients(const Coefficient::Map& coefficients) {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }

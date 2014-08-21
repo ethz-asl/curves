@@ -36,7 +36,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
   virtual void setCoefficient(Key key, const Coefficient& value);
 
   /// \brief Set coefficients.
-  virtual void setCoefficients(Coefficient::Map& coefficients);
+  virtual void setCoefficients(const Coefficient::Map& coefficients);
 
 
   /// The first valid time for the curve.
