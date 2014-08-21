@@ -13,7 +13,7 @@ class HermiteCoeffManagerTest : public ::testing::Test {
       times.push_back(i * 1000 - 3250);
       keys1.push_back( manager1.insertCoefficient(times[i], coefficients[i]) );
     }
-    manager2.insertCoefficients(times, coefficients, keys2);
+    manager2.insertCoefficients(times, coefficients, &keys2);
   
     ASSERT_EQ(N, manager1.size());
     ASSERT_EQ(N, manager2.size());
@@ -22,8 +22,8 @@ class HermiteCoeffManagerTest : public ::testing::Test {
     ASSERT_EQ(N, keys2.size());
   
 
-    manager1.getTimes(times1);
-    manager2.getTimes(times2);
+    manager1.getTimes(&times1);
+    manager2.getTimes(&times2);
   }
 
   // virtual void TearDown() {}
@@ -68,38 +68,38 @@ TEST_F(HermiteCoeffManagerTest, testTimes) {
   curves::Time etime;
   
   etime = times[0] - 1;
-  success = manager1.getCoefficientsAt(etime, bracket);
+  success = manager1.getCoefficientsAt(etime, &bracket);
   ASSERT_FALSE(success) << "Eval at time " << etime;
 
   etime = times[0] - 100;
-  success = manager1.getCoefficientsAt(etime, bracket);
+  success = manager1.getCoefficientsAt(etime, &bracket);
   ASSERT_FALSE(success) << "Eval at time " << etime;
 
   etime = times[N-1];
-  success = manager1.getCoefficientsAt(etime, bracket);
+  success = manager1.getCoefficientsAt(etime, &bracket);
   ASSERT_TRUE(success) << "Eval at time " << etime;
   ASSERT_EQ(times[N-2],bracket.first->time) << "index " << N-2 << ", time: " << etime;
   ASSERT_EQ(times[N-1],bracket.second->time) << "index " << N-1 << ", time: " << etime;
 
 
   etime = times[N-1] + 1;
-  success = manager1.getCoefficientsAt(etime, bracket);
+  success = manager1.getCoefficientsAt(etime, &bracket);
   ASSERT_FALSE(success) << "Eval at time " << etime;
 
   etime = times[N-1] + 100;
-  success = manager1.getCoefficientsAt(etime, bracket);
+  success = manager1.getCoefficientsAt(etime, &bracket);
   ASSERT_FALSE(success) << "Eval at time " << etime;
 
   for(size_t i = 1; i < times.size(); ++i) {
 
     etime = times[i-1];
-    success = manager1.getCoefficientsAt(etime, bracket);
+    success = manager1.getCoefficientsAt(etime, &bracket);
     ASSERT_TRUE(success) << "Eval at time " << etime;
     ASSERT_EQ(times[i-1],bracket.first->time) << "index " << i << ", time: " << etime;
     ASSERT_EQ(times[i],bracket.second->time) << "index " << i << ", time: " << etime;
     
     etime = (times[i-1] + times[i]) / 2;
-    success = manager1.getCoefficientsAt(etime, bracket);
+    success = manager1.getCoefficientsAt(etime, &bracket);
     ASSERT_TRUE(success) << "Eval at time " << etime;
     ASSERT_EQ(times[i-1],bracket.first->time) << "index " << i << ", time: " << etime;
     ASSERT_EQ(times[i],bracket.second->time) << "index " << i << ", time: " << etime;

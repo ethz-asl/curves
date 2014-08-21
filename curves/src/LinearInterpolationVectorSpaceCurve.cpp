@@ -13,24 +13,27 @@ void LinearInterpolationVectorSpaceCurve::print(const std::string& str) const {
   
 
 void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(Time time, 
-                                                            Coefficient::Map& outCoefficients) const {
+                                                            Coefficient::Map* outCoefficients) const {
+  CHECK_NOTNULL(outCoefficients);
   std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
-  bool success = manager_.getCoefficientsAt(time, rval);
+  bool success = manager_.getCoefficientsAt(time, &rval);
   CHECK(success) << "Unable to get the coefficients at time " << time;
-  outCoefficients[rval.first->key] = rval.first->coefficient;
-  outCoefficients[rval.second->key] = rval.second->coefficient;
+  (*outCoefficients)[rval.first->key] = rval.first->coefficient;
+  (*outCoefficients)[rval.second->key] = rval.second->coefficient;
                                             
 }
 
 void LinearInterpolationVectorSpaceCurve::getCoefficientsInRange(Time startTime, 
                                                                  Time endTime, 
-                                                                 Coefficient::Map& outCoefficients) const {
+                                                                 Coefficient::Map* outCoefficients) const {
   // \todo Abel and Renaud
+  CHECK_NOTNULL(outCoefficients);
   CHECK(false) << "Not implemented";
 }
 
-void LinearInterpolationVectorSpaceCurve::getCoefficients(Coefficient::Map& outCoefficients) const {
+void LinearInterpolationVectorSpaceCurve::getCoefficients(Coefficient::Map* outCoefficients) const {
   // \todo Abel and Renaud
+  CHECK_NOTNULL(outCoefficients);
   CHECK(false) << "Not implemented";
 }
   
@@ -39,7 +42,7 @@ void LinearInterpolationVectorSpaceCurve::setCoefficient(Key key, const Coeffici
   CHECK(false) << "Not implemented";
 }
 
-void LinearInterpolationVectorSpaceCurve::setCoefficients(Coefficient::Map& coefficients) {
+void LinearInterpolationVectorSpaceCurve::setCoefficients(const Coefficient::Map& coefficients) {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
@@ -72,7 +75,7 @@ void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& time
       CHECK_EQ(vsize, values[i].size()) << "The vectors must be uniform length.";
       coefficients.push_back(Coefficient(values[i]));
     }
-    manager_.insertCoefficients(times,coefficients,outKeys);
+    manager_.insertCoefficients(times,coefficients,&outKeys);
   }
 }
 
@@ -80,7 +83,7 @@ void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& time
 
 Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluate(Time time) const {
   std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
-  bool success = manager_.getCoefficientsAt(time, rval);
+  bool success = manager_.getCoefficientsAt(time, &rval);
   CHECK(success) << "Unable to get the coefficients at time " << time;  
   
   Time dt = rval.second->time - rval.first->time;

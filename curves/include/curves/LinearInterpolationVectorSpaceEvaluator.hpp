@@ -25,10 +25,10 @@ class LinearInterpolationVectorSpaceEvaluator {
   virtual Eigen::VectorXd evaluateDerivative(unsigned derivativeOrder, const std::vector<Coefficient>& coefficients);
 
   /// Evaluate the ambient space of the curve (functional form).
-  virtual Eigen::VectorXd evaluateVectorAndJacobian(const std::vector<Coefficient>& coefficients, std::vector<Eigen::MatrixXd>& outJacobian);
+  virtual Eigen::VectorXd evaluateVectorAndJacobian(const std::vector<Coefficient>& coefficients, std::vector<Eigen::MatrixXd>* outJacobian);
   
   /// Evaluate the curve derivatives (functional form).
-  virtual Eigen::VectorXd evaluateDerivativeAndJacobian(unsigned derivativeOrder, const std::vector<Coefficient>& coefficients, std::vector<Eigen::MatrixXd>& outJacobian);
+  virtual Eigen::VectorXd evaluateDerivativeAndJacobian(unsigned derivativeOrder, const std::vector<Coefficient>& coefficients, std::vector<Eigen::MatrixXd>* outJacobian);
 
 };
 

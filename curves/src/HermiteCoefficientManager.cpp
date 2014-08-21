@@ -37,26 +37,29 @@ bool HermiteCoefficientManager::equals(const HermiteCoefficientManager& other, d
   return equal;
 }
  
-void HermiteCoefficientManager::getKeys(std::vector<Key>& outKeys) const {
-  outKeys.clear();
+void HermiteCoefficientManager::getKeys(std::vector<Key>* outKeys) const {
+  CHECK_NOTNULL(outKeys);
+  outKeys->clear();
   appendKeys(outKeys);
 }
-void HermiteCoefficientManager::appendKeys(std::vector<Key>& outKeys) const {
-  outKeys.reserve(outKeys.size() + coefficients_.size());
+void HermiteCoefficientManager::appendKeys(std::vector<Key>* outKeys) const {
+  CHECK_NOTNULL(outKeys);
+  outKeys->reserve(outKeys->size() + coefficients_.size());
   std::map<Time, KeyCoefficientTime*>::const_iterator it;
   it = timeToCoefficient_.begin();
   for( ; it != timeToCoefficient_.end(); ++it) {
-    outKeys.push_back(it->second->key);
+    outKeys->push_back(it->second->key);
   }
 }
 
-void HermiteCoefficientManager::getTimes(std::vector<Time>& outTimes) const {
-  outTimes.clear();
-  outTimes.reserve(timeToCoefficient_.size());
+void HermiteCoefficientManager::getTimes(std::vector<Time>* outTimes) const {
+  CHECK_NOTNULL(outTimes);
+  outTimes->clear();
+  outTimes->reserve(timeToCoefficient_.size());
   std::map<Time, KeyCoefficientTime*>::const_iterator it;
   it = timeToCoefficient_.begin();
   for( ; it != timeToCoefficient_.end(); ++it) {
-    outTimes.push_back(it->first);
+    outTimes->push_back(it->first);
   }
 }
 
@@ -77,10 +80,11 @@ Key HermiteCoefficientManager::insertCoefficient(Time time, const Coefficient& c
 /// \brief insert coefficients. Returns the keys for these coefficients
 void HermiteCoefficientManager::insertCoefficients(const std::vector<Time>& times,
                         const std::vector<Coefficient>& values,
-                        std::vector<Key>& outKeys) {
+                        std::vector<Key>* outKeys) {
+  CHECK_NOTNULL(outKeys);
   CHECK_EQ(times.size(), values.size());
   for(Key i = 0; i < times.size(); ++i) {
-    outKeys.push_back(insertCoefficient(times[i], values[i]));
+    outKeys->push_back(insertCoefficient(times[i], values[i]));
   }
 }
   
@@ -127,8 +131,9 @@ Coefficient HermiteCoefficientManager::getCoefficientByKey(Key key) const {
 
 /// \brief Get the coefficients that are active at a certain time.
 bool HermiteCoefficientManager::getCoefficientsAt(Time time, 
-  std::pair<KeyCoefficientTime*, KeyCoefficientTime*>& outCoefficients) const {
+  std::pair<KeyCoefficientTime*, KeyCoefficientTime*>* outCoefficients) const {
   
+  CHECK_NOTNULL(outCoefficients);
   if( timeToCoefficient_.empty() ) {
     LOG(INFO) << "No coefficients";
     return false;
@@ -147,8 +152,8 @@ bool HermiteCoefficientManager::getCoefficientsAt(Time time,
 
   // Okay. Now we know that the time is bracketed by
   // it and it + 1.
-  outCoefficients.first = it->second;
-  outCoefficients.second = (++it)->second;
+  outCoefficients->first = it->second;
+  outCoefficients->second = (++it)->second;
   
   return true;
 }
@@ -156,31 +161,33 @@ bool HermiteCoefficientManager::getCoefficientsAt(Time time,
 /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
 void HermiteCoefficientManager::getCoefficientsInRange(Time startTime, 
                             Time endTime, 
-                            Coefficient::Map& outCoefficients) const {
+                            Coefficient::Map* outCoefficients) const {
+  CHECK_NOTNULL(outCoefficients);
   std::map<Time, KeyCoefficientTime*>::const_iterator it;
   it = timeToCoefficient_.lower_bound(startTime);
   for( ; it != timeToCoefficient_.end() && it->first < endTime; ++it) {
-    outCoefficients[it->second->key] = it->second->coefficient;
+    (*outCoefficients)[it->second->key] = it->second->coefficient;
   }
   if( it != timeToCoefficient_.end() ) {
-    outCoefficients[it->second->key] = it->second->coefficient;
+    (*outCoefficients)[it->second->key] = it->second->coefficient;
   }
   
 }
   
 /// \brief Get all of the curve's coefficients.
-void HermiteCoefficientManager::getCoefficients(Coefficient::Map& outCoefficients) const {
+void HermiteCoefficientManager::getCoefficients(Coefficient::Map* outCoefficients) const {
+  CHECK_NOTNULL(outCoefficients);
   std::map<Time, KeyCoefficientTime*>::const_iterator it;
   it = timeToCoefficient_.begin();
   for( ; it != timeToCoefficient_.end(); ++it) {
-    outCoefficients[it->second->key] = it->second->coefficient;
+    (*outCoefficients)[it->second->key] = it->second->coefficient;
   }
 }
 
 /// \brief Set coefficients.
 ///
 /// If any of these coefficients doen't exist, there is an error
-void HermiteCoefficientManager::setCoefficients(Coefficient::Map& coefficients) {
+void HermiteCoefficientManager::setCoefficients(const Coefficient::Map& coefficients) {
   // \todo Abel or Renaud
   CHECK(false) << "Not implemented";
 }

@@ -22,13 +22,13 @@ class VectorSpaceCoefficientImplementation : public CoefficientImplementation
 
   /// For a given manifold, make the coefficient representation unique.
   /// This version modifies the argument in place
-  virtual Eigen::VectorXd& makeUniqueInPlace(Eigen::VectorXd& thisCoeff) const;
+  virtual void makeUniqueInPlace(Eigen::VectorXd* thisCoeff) const;
 
   /// For a given manifold, make the coefficient representation unique.
   /// \param[in] thisCoeff The current value of the coefficient.
   /// \param[out] outUniqueCoeff The unique value of the coefficient.
   virtual void makeUnique(const Eigen::VectorXd& thisCoeff,
-                  Eigen::VectorXd& outUniqueCoeff) const;
+                  Eigen::VectorXd* outUniqueCoeff) const;
  
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const Eigen::VectorXd& thisCoeff, 
@@ -56,7 +56,7 @@ class VectorSpaceCoefficientImplementation : public CoefficientImplementation
   ///                      to the manifold
   virtual void retract(const Eigen::VectorXd& thisCoeff, 
                const Eigen::VectorXd& delta, 
-               Eigen::VectorXd& outIncrementedCoeff) const;
+               Eigen::VectorXd* outIncrementedCoeff) const;
 
   /// Compute the coordinates in the chart assigned to this coefficient that
   /// retract() would map to \c value.
@@ -64,7 +64,7 @@ class VectorSpaceCoefficientImplementation : public CoefficientImplementation
   /// coefficient's chosen chart of the value on which this function is called.
   virtual void localCoordinates(const Eigen::VectorXd& thisCoeff, 
                         const Eigen::VectorXd& otherCoeff, 
-                        Eigen::VectorXd& outLocalCoordinates) const;
+                        Eigen::VectorXd* outLocalCoordinates) const;
 
  private:
   size_t dimension_;

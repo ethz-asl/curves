@@ -14,7 +14,7 @@ bool CoefficientImplementation::equals(const Eigen::VectorXd& thisCoeff,
  
 Eigen::VectorXd CoefficientImplementation::makeUniqueCopy(const Eigen::VectorXd& thisCoeff) const {
   Eigen::VectorXd rval;
-  makeUnique(thisCoeff, rval);
+  makeUnique(thisCoeff, &rval);
   return rval;
 }
 
