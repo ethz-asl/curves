@@ -4,32 +4,33 @@
 namespace curves {
 
 LinearInterpolationVectorSpaceCurve::LinearInterpolationVectorSpaceCurve(size_t dimension) :
-    VectorSpaceCurve(dimension) {}
+                                    VectorSpaceCurve(dimension) {}
 
 LinearInterpolationVectorSpaceCurve::~LinearInterpolationVectorSpaceCurve() {}
 
 void LinearInterpolationVectorSpaceCurve::print(const std::string& str) const {
-	std::cout <<"=========================================" <<std::endl;
-	std::cout << str << std::endl;
-	std::cout << "size : " << manager_.size() << std::endl;
-	std::cout << "dimension: " << dim() << std::endl;
-	std::stringstream ss;
-	std::vector<Key> keys;
-	std::vector<Time> times;
-	manager_.getTimes(times);
-	manager_.getKeys(keys);
-	std::cout << "curve defined between times: " << manager_.getMinTime() << " and " << manager_.getMaxTime() <<std::endl;
-	std::cout <<"=========================================" <<std::endl;
-	for (size_t i = 0; i < manager_.size(); i++) {
-		ss << "coefficient " << keys[i] << ": ";
-		manager_.getCoefficientByKey(keys[i]).print(ss.str());
-		std::cout << " | time: " << times[i];
-		std::cout << std::endl;
-		ss.str("");
-	}
-	std::cout <<"=========================================" <<std::endl;
+  std::cout << "=========================================" << std::endl;
+  std::cout << "=======LINEAR INTERPOLATION CURVE========" << std::endl;
+  std::cout << str << std::endl;
+  std::cout << "num of coefficients: " << manager_.size() << std::endl;
+  std::cout << "dimension: " << dim() << std::endl;
+  std::stringstream ss;
+  std::vector<Key> keys;
+  std::vector<Time> times;
+  manager_.getTimes(times);
+  manager_.getKeys(keys);
+  std::cout << "curve defined between times: " << manager_.getMinTime() << " and " << manager_.getMaxTime() <<std::endl;
+  std::cout <<"=========================================" <<std::endl;
+  for (size_t i = 0; i < manager_.size(); i++) {
+    ss << "coefficient " << keys[i] << ": ";
+    manager_.getCoefficientByKey(keys[i]).print(ss.str());
+    std::cout << " | time: " << times[i];
+    std::cout << std::endl;
+    ss.str("");
+  }
+  std::cout <<"=========================================" <<std::endl;
 }
-  
+
 
 void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(Time time, 
                                                             Coefficient::Map& outCoefficients) const {
@@ -38,25 +39,25 @@ void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(Time time,
   CHECK(success) << "Unable to get the coefficients at time " << time;
   outCoefficients[rval.first->key] = rval.first->coefficient;
   outCoefficients[rval.second->key] = rval.second->coefficient;
-                                            
+
 }
 
 void LinearInterpolationVectorSpaceCurve::getCoefficientsInRange(Time startTime, 
                                                                  Time endTime, 
                                                                  Coefficient::Map& outCoefficients) const {
-	manager_.getCoefficientsInRange(startTime, endTime, outCoefficients);
+  manager_.getCoefficientsInRange(startTime, endTime, outCoefficients);
 }
 
 void LinearInterpolationVectorSpaceCurve::getCoefficients(Coefficient::Map& outCoefficients) const {
-	manager_.getCoefficients(outCoefficients);
+  manager_.getCoefficients(outCoefficients);
 }
-  
+
 void LinearInterpolationVectorSpaceCurve::setCoefficient(Key key, const Coefficient& value) {
-	manager_.setCoefficientByKey(key, value);
+  manager_.setCoefficientByKey(key, value);
 }
 
 void LinearInterpolationVectorSpaceCurve::setCoefficients(Coefficient::Map& coefficients) {
-	manager_.setCoefficients(coefficients);
+  manager_.setCoefficients(coefficients);
 }
 
 
@@ -64,7 +65,7 @@ void LinearInterpolationVectorSpaceCurve::setCoefficients(Coefficient::Map& coef
 Time LinearInterpolationVectorSpaceCurve::getMaxTime() const {
   return manager_.getMaxTime();
 }
-  
+
 Time LinearInterpolationVectorSpaceCurve::getMinTime() const {
   return manager_.getMinTime();
 }
@@ -75,7 +76,7 @@ Time LinearInterpolationVectorSpaceCurve::getMinTime() const {
 void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
                                                    const std::vector<Eigen::VectorXd>& values) {
   CHECK_EQ(times.size(), values.size());
-  
+
   if(times.size() > 0) {
     manager_.clear();
     std::vector<Key> outKeys;
@@ -92,73 +93,53 @@ void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& time
 }
 
 void LinearInterpolationVectorSpaceCurve::extend(const std::vector<Time>& times,
-                      const std::vector<ValueType>& values) {
-	
-	CHECK_EQ(times.size(), values.size());
-	for (int i=0; i<times.size();i++){
-		if (this->getMinTime()>times[i] || this->getMaxTime()<times[i]) {
-			manager_.insertCoefficient(times[i], Coefficient(values[i]));
-		}
-	}
-}
+                                                 const std::vector<ValueType>& values) {
 
+  CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
+  std::vector<Key> outKeys;
+  std::vector<Coefficient> coefficients(values.size());
+  for (int i = 0; i < values.size(); ++i) {
+    coefficients[i] = Coefficient(values[i]);
+  }
+  manager_.insertCoefficients(times, coefficients, outKeys);
+}
 
 Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluate(Time time) const {
   std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
   bool success = manager_.getCoefficientsAt(time, rval);
   CHECK(success) << "Unable to get the coefficients at time " << time;  
-  
+
   Time dt = rval.second->time - rval.first->time;
   Time t = rval.second->time - time;
   // Alpha goes from zero to one.
   double alpha = double(t)/double(dt);
-  
+
   return alpha * rval.first->coefficient.getValue() + (1.0 - alpha) * rval.second->coefficient.getValue();
 }
-  
+
 Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time time, unsigned derivativeOrder) const {
-	// the 4 cases
-	  // - time is out of bound									--> error
 
-	CHECK(this->getMinTime()<=time) << "curve is not defined at this time (time " << time << " is too small)";
-	CHECK(this->getMaxTime()>=time) << "curve is not defined at this time (time " << time << " is too high)";
+  // time is out of bound --> error
+  CHECK_GE(time, this->getMinTime()) << "Time out of bounds"; 
+  CHECK_LE(time, this->getMaxTime()) << "Time out of bounds";
 
-	Eigen::VectorXd dCoeff;
-	Time dt;
-	// check if we hit a coefficient
-	if (derivativeOrder == 1) {
-	std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
-	boost::unordered_map<Key, Coefficient>::iterator it;
-	bool on_a_coefficient = manager_.hasCoefficientAtTime(time);
-	// - time is between 2 coefficients --> take slope between the 2 coefficients
-	if (!on_a_coefficient) {
-		bool success = manager_.getCoefficientsAt(time, rval);
-		dCoeff = rval.second->coefficient.getValue() - rval.first->coefficient.getValue();
-		dt = rval.second->time - rval.first->time;
-	}
-	else {
-		// end coefficients of curve
-		//	if (this->getMinTime()==time || this->getMaxTime()==time) {
-		bool success = manager_.getCoefficientsAt(time, rval);
-		dCoeff = rval.second->coefficient.getValue() - rval.first->coefficient.getValue();
-		dt = rval.second->time - rval.first->time;
-//		}
-		// on coefficient between first and last coefficient in curve
-		// \todo Abel and Renaud
-//		else {
-//		}
-	}
-	return dCoeff/dt;
-	}
+  Eigen::VectorXd dCoeff;
+  Time dt;
+  std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
+  bool success = manager_.getCoefficientsAt(time, rval);
+  // first derivative
+  if (derivativeOrder == 1) {
+    dCoeff = rval.second->coefficient.getValue() - rval.first->coefficient.getValue();
+    dt = rval.second->time - rval.first->time;
 
-	else {
-		std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
-		bool success = manager_.getCoefficientsAt(time, rval);
-		const int dimension = rval.first->coefficient.dim();
-		dCoeff = Eigen::VectorXd::Zero(dimension,1);
+    return dCoeff/dt;
+  }
+  // order of derivative > 1 returns vector of zeros
+  else {
+    const int dimension = rval.first->coefficient.dim();
 
-		return dCoeff;
-	}
+    return Eigen::VectorXd::Zero(dimension,1);
+  }
 
 
 }

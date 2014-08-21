@@ -19,7 +19,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
-  
+
   /// \brief Get the coefficients that are active at a certain time.
   virtual void getCoefficientsAt(Time time, 
                                  Coefficient::Map& outCoefficients) const;
@@ -31,7 +31,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
   /// \brief Get all of the curve's coefficients.
   virtual void getCoefficients(Coefficient::Map& outCoefficients) const;
-  
+
   /// \brief Set a coefficient.
   virtual void setCoefficient(Key key, const Coefficient& value);
 
@@ -41,7 +41,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
   /// The first valid time for the curve.
   virtual Time getMinTime() const;
-  
+
   /// The one past the last valid time for the curve.
   virtual Time getMaxTime() const;
 
@@ -60,14 +60,14 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
   /// Evaluate the ambient space of the curve.
   virtual Eigen::VectorXd evaluate(Time time) const;
-  
+
   /// Evaluate the curve derivatives.
-  /// linear derivative considers 4 cases:
-  /// - time is out of bound									--> error
-  /// - time is between 2 coefficients							--> take slope between the 2 coefficients
-  /// - time is on coefficient (not first or last coefficient)	--> take slope between prev. and next coefficients
-  /// - time is on first coefficient		 					--> take slope between 1st and 2nd coefficient
-  /// - time is on last coefficient								--> take slope between last-1 and last coefficient
+  /// linear 1st derivative has following behaviour:
+  /// - time is out of bound --> error
+  /// - time is between 2 coefficients --> take slope between the 2 coefficients
+  /// - time is on coefficient (not last coefficient) --> take slope between coefficient and next coefficients
+  /// - time is on last coefficient --> take slope between last-1 and last coefficient
+  /// derivatives of order >1 equal 0
   virtual Eigen::VectorXd evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
   /// \brief Get an evaluator at this time
