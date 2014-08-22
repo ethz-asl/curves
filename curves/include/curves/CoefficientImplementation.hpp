@@ -20,12 +20,12 @@ class CoefficientImplementation
   /// \param[in] thisCoeff The current value of the coefficient.
   /// \param[out] outUniqueCoeff The unique value of the coefficient.
   virtual void makeUnique(const Eigen::VectorXd& thisCoeff,
-                          Eigen::VectorXd& outUniqueCoeff) const = 0;
+                          Eigen::VectorXd* outUniqueCoeff) const = 0;
  
 
   /// For a given manifold, make the coefficient representation unique.
   /// This version modifies the argument in place
-  virtual Eigen::VectorXd& makeUniqueInPlace(Eigen::VectorXd& thisCoeff) const = 0;
+  virtual void makeUniqueInPlace(Eigen::VectorXd* thisCoeff) const = 0;
   
  
   /// For a given manifold, make the coefficient representation unique.
@@ -43,7 +43,7 @@ class CoefficientImplementation
   /// for manifolds that have constraints. For example, this will
   /// renormalize a unit-length quaternion coefficient that may have
   /// become unnormalized through repeated updates.
-  //virtual Eigen::VectorXd& projectToManifoldInPlace(Eigen::VectorXd& thisCoeff) const = 0;
+  //virtual Eigen::VectorXd& projectToManifoldInPlace(Eigen::VectorXd* thisCoeff) const = 0;
 
 
   /// Compare this Coefficient with another for equality.
@@ -77,7 +77,7 @@ class CoefficientImplementation
   ///                      to the manifold
   virtual void retract(const Eigen::VectorXd& thisCoeff, 
                        const Eigen::VectorXd& delta, 
-                       Eigen::VectorXd& outIncrementedCoeff) const = 0;
+                       Eigen::VectorXd* outIncrementedCoeff) const = 0;
 
   /// Compute the coordinates in the chart assigned to this coefficient that
   /// retract() would map to \c value.
@@ -85,7 +85,7 @@ class CoefficientImplementation
   /// coefficient's chosen chart of the value on which this function is called.
   virtual void localCoordinates(const Eigen::VectorXd& thisCoeff, 
                                 const Eigen::VectorXd& otherCoeff, 
-                                Eigen::VectorXd& outLocalCoordinates) const = 0;
+                                Eigen::VectorXd* outLocalCoordinates) const = 0;
 };
 
 } // namespace curves

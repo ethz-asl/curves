@@ -17,8 +17,8 @@ void LinearInterpolationVectorSpaceCurve::print(const std::string& str) const {
   std::stringstream ss;
   std::vector<Key> keys;
   std::vector<Time> times;
-  manager_.getTimes(times);
-  manager_.getKeys(keys);
+  manager_.getTimes(&times);
+  manager_.getKeys(&keys);
   std::cout << "curve defined between times: " << manager_.getMinTime() << " and " << manager_.getMaxTime() <<std::endl;
   std::cout <<"=========================================" <<std::endl;
   for (size_t i = 0; i < manager_.size(); i++) {
@@ -33,22 +33,23 @@ void LinearInterpolationVectorSpaceCurve::print(const std::string& str) const {
 
 
 void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(Time time, 
-                                                            Coefficient::Map& outCoefficients) const {
+                                                            Coefficient::Map* outCoefficients) const {
+  CHECK_NOTNULL(outCoefficients);
   std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
-  bool success = manager_.getCoefficientsAt(time, rval);
+  bool success = manager_.getCoefficientsAt(time, &rval);
   CHECK(success) << "Unable to get the coefficients at time " << time;
-  outCoefficients[rval.first->key] = rval.first->coefficient;
-  outCoefficients[rval.second->key] = rval.second->coefficient;
-
+  (*outCoefficients)[rval.first->key] = rval.first->coefficient;
+  (*outCoefficients)[rval.second->key] = rval.second->coefficient;
+                                            
 }
 
 void LinearInterpolationVectorSpaceCurve::getCoefficientsInRange(Time startTime, 
                                                                  Time endTime, 
-                                                                 Coefficient::Map& outCoefficients) const {
+                                                                 Coefficient::Map* outCoefficients) const {
   manager_.getCoefficientsInRange(startTime, endTime, outCoefficients);
 }
 
-void LinearInterpolationVectorSpaceCurve::getCoefficients(Coefficient::Map& outCoefficients) const {
+void LinearInterpolationVectorSpaceCurve::getCoefficients(Coefficient::Map* outCoefficients) const {
   manager_.getCoefficients(outCoefficients);
 }
 
@@ -56,7 +57,7 @@ void LinearInterpolationVectorSpaceCurve::setCoefficient(Key key, const Coeffici
   manager_.setCoefficientByKey(key, value);
 }
 
-void LinearInterpolationVectorSpaceCurve::setCoefficients(Coefficient::Map& coefficients) {
+void LinearInterpolationVectorSpaceCurve::setCoefficients(const Coefficient::Map& coefficients) {
   manager_.setCoefficients(coefficients);
 }
 
@@ -88,7 +89,7 @@ void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& time
       CHECK_EQ(vsize, values[i].size()) << "The vectors must be uniform length.";
       coefficients.push_back(Coefficient(values[i]));
     }
-    manager_.insertCoefficients(times,coefficients,outKeys);
+    manager_.insertCoefficients(times,coefficients,&outKeys);
   }
 }
 
@@ -101,12 +102,12 @@ void LinearInterpolationVectorSpaceCurve::extend(const std::vector<Time>& times,
   for (size_t i = 0; i < values.size(); ++i) {
     coefficients[i] = Coefficient(values[i]);
   }
-  manager_.insertCoefficients(times, coefficients, outKeys);
+  manager_.insertCoefficients(times, coefficients, &outKeys);
 }
 
 Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluate(Time time) const {
   std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
-  bool success = manager_.getCoefficientsAt(time, rval);
+  bool success = manager_.getCoefficientsAt(time, &rval);
   CHECK(success) << "Unable to get the coefficients at time " << time;  
 
   Time dt = rval.second->time - rval.first->time;
@@ -126,7 +127,7 @@ Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time tim
   Eigen::VectorXd dCoeff;
   Time dt;
   std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
-  bool success = manager_.getCoefficientsAt(time, rval);
+  bool success = manager_.getCoefficientsAt(time, &rval);
   // first derivative
   if (derivativeOrder == 1) {
     dCoeff = rval.second->coefficient.getValue() - rval.first->coefficient.getValue();
@@ -148,5 +149,6 @@ void LinearInterpolationVectorSpaceCurve::setTimeRange(Time minTime, Time maxTim
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
+
 
 } // namespace curves

@@ -16,21 +16,21 @@ class HermiteCoefficientManager {
 
   /// Compare this Coeficient with another for equality.
   bool equals(const HermiteCoefficientManager& other, double tol = 1e-9) const;
-
+ 
   /// Print the value of the coefficient, for debugging and unit tests
   void print(const std::string& str = "") const;
 
   /// Get all of the keys in this manager. This method clears the
   /// list of keys before filling it.
-  void getKeys(std::vector<Key>& outKeys) const;
+  void getKeys(std::vector<Key>* outKeys) const;
 
   /// Get all of the keys in this manager. The list is not cleared
   /// before pushing it to the container.
-  void appendKeys(std::vector<Key>& outKeys) const;
+  void appendKeys(std::vector<Key>* outKeys) const;
 
   /// Get a sorted list of coefficient times
-  void getTimes(std::vector<Time>& outTimes) const;
-
+  void getTimes(std::vector<Time>* outTimes) const;
+  
   /// \brief insert a coefficient at a time and return
   ///        the key for the coefficient
   ///
@@ -43,8 +43,8 @@ class HermiteCoefficientManager {
   /// be appended to this vector.
   void insertCoefficients(const std::vector<Time>& times,
                           const std::vector<Coefficient>& values,
-                          std::vector<Key>& outKeys);
-
+                          std::vector<Key>* outKeys);
+  
   /// \brief Remove the coefficient with this key.
   ///
   /// It is an error if the key does not exist.
@@ -75,7 +75,7 @@ class HermiteCoefficientManager {
 
   /// \brief get the coefficient associated with this key
   Coefficient getCoefficientByKey(Key key) const;
-
+  
   /// \brief Get the coefficients that are active at a certain time.
   ///
   /// This method can fail if the time is out of bounds. If it
@@ -84,25 +84,25 @@ class HermiteCoefficientManager {
   ///
   /// @returns true if it was successful
   bool getCoefficientsAt(Time time, 
-                         std::pair<KeyCoefficientTime*, KeyCoefficientTime*>& outCoefficients) const;
+                         std::pair<KeyCoefficientTime*, KeyCoefficientTime*>* outCoefficients) const;
 
-
+  
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
   void getCoefficientsInRange(Time startTime, 
                               Time endTime, 
-                              Coefficient::Map& outCoefficients) const;
-
+                              Coefficient::Map* outCoefficients) const;
+  
   /// \brief Get all of the curve's coefficients.
-  void getCoefficients(Coefficient::Map& outCoefficients) const;
+  void getCoefficients(Coefficient::Map* outCoefficients) const;
 
   /// \brief Set coefficients.
   ///
   /// If any of these coefficients doen't exist, there is an error
-  void setCoefficients(Coefficient::Map& coefficients);
+  void setCoefficients(const Coefficient::Map& coefficients);
 
   /// \brief return the number of coefficients
   Key size() const;
-
+  
   /// \brief clear the coefficients
   void clear();
 
@@ -116,17 +116,15 @@ class HermiteCoefficientManager {
   /// If doExit is true, the function will call exit(0) at
   /// the end. This is useful for gtest death tests
   void checkInternalConsistency(bool doExit = false) const;
-
+  
  private:
   /// Key to coefficient mapping
   boost::unordered_map<Key, KeyCoefficientTime> coefficients_;
-
+  
   /// Time to coefficient mapping
   std::map<Time, KeyCoefficientTime*> timeToCoefficient_;
 
-  /// \brief return true if there is a coefficient at this time
   bool hasCoefficientAtTime(Time time, std::map<Time, KeyCoefficientTime*>::iterator *it);
-
 };
 
 } // namespace curves

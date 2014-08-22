@@ -1,5 +1,6 @@
 #include <curves/VectorSpaceCoefficientImplementation.hpp>
 #include <iostream>
+#include <glog/logging.h>
 
 namespace curves {
 
@@ -14,11 +15,14 @@ bool VectorSpaceCoefficientImplementation::equals(const Eigen::VectorXd& thisCoe
   return (thisCoeff - otherCoeff).array().abs().maxCoeff() < tol;
 }
 
-Eigen::VectorXd& VectorSpaceCoefficientImplementation::makeUniqueInPlace(Eigen::VectorXd& thisCoeff ) const{ return thisCoeff;}
+void VectorSpaceCoefficientImplementation::makeUniqueInPlace(Eigen::VectorXd* thisCoeff ) const { 
+  CHECK_NOTNULL(thisCoeff);
+}
 
 void VectorSpaceCoefficientImplementation::makeUnique(const Eigen::VectorXd& thisCoeff,
-                                                      Eigen::VectorXd& outUniqueCoeff) const {
-  outUniqueCoeff = thisCoeff;
+                                                      Eigen::VectorXd* outUniqueCoeff) const {
+  CHECK_NOTNULL(outUniqueCoeff);
+  *outUniqueCoeff = thisCoeff;
 }
  
 void VectorSpaceCoefficientImplementation::print(const Eigen::VectorXd& thisCoeff, 
@@ -36,16 +40,18 @@ size_t VectorSpaceCoefficientImplementation::ambientDim() const {
 
 void VectorSpaceCoefficientImplementation::retract(const Eigen::VectorXd& thisCoeff, 
                                                    const Eigen::VectorXd& delta, 
-                                                   Eigen::VectorXd& outIncrementedCoeff) const {
+                                                   Eigen::VectorXd* outIncrementedCoeff) const {
   // \todo PTF Add check for dimension.
-  outIncrementedCoeff = thisCoeff + delta;
+  CHECK_NOTNULL(outIncrementedCoeff);
+  *outIncrementedCoeff = thisCoeff + delta;
 }
 
 void VectorSpaceCoefficientImplementation::localCoordinates(const Eigen::VectorXd& thisCoeff, 
                                                             const Eigen::VectorXd& otherCoeff, 
-                                                            Eigen::VectorXd& outLocalCoordinates) const {
+                                                            Eigen::VectorXd* outLocalCoordinates) const {
   // \todo PTF Add check for dimension.
-  outLocalCoordinates = otherCoeff - thisCoeff;
+  CHECK_NOTNULL(outLocalCoordinates);
+  *outLocalCoordinates = otherCoeff - thisCoeff;
 }
 
 
