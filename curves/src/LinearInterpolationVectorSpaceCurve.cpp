@@ -4,7 +4,7 @@
 namespace curves {
 
 LinearInterpolationVectorSpaceCurve::LinearInterpolationVectorSpaceCurve(size_t dimension) :
-                                    VectorSpaceCurve(dimension) {}
+                                        VectorSpaceCurve(dimension) {}
 
 LinearInterpolationVectorSpaceCurve::~LinearInterpolationVectorSpaceCurve() {}
 
@@ -98,7 +98,7 @@ void LinearInterpolationVectorSpaceCurve::extend(const std::vector<Time>& times,
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
   std::vector<Key> outKeys;
   std::vector<Coefficient> coefficients(values.size());
-  for (int i = 0; i < values.size(); ++i) {
+  for (size_t i = 0; i < values.size(); ++i) {
     coefficients[i] = Coefficient(values[i]);
   }
   manager_.insertCoefficients(times, coefficients, outKeys);
@@ -131,17 +131,11 @@ Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time tim
   if (derivativeOrder == 1) {
     dCoeff = rval.second->coefficient.getValue() - rval.first->coefficient.getValue();
     dt = rval.second->time - rval.first->time;
-
     return dCoeff/dt;
-  }
-  // order of derivative > 1 returns vector of zeros
-  else {
+  } else { // order of derivative > 1 returns vector of zeros
     const int dimension = rval.first->coefficient.dim();
-
     return Eigen::VectorXd::Zero(dimension,1);
   }
-
-
 }
 
 /// \brief Get an evaluator at this time

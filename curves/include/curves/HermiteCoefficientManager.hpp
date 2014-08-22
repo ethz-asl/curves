@@ -123,6 +123,10 @@ class HermiteCoefficientManager {
 
   /// Time to coefficient mapping
   std::map<Time, KeyCoefficientTime*> timeToCoefficient_;
+
+  /// \brief return true if there is a coefficient at this time
+  bool hasCoefficientAtTime(Time time, std::map<Time, KeyCoefficientTime*>::iterator *it);
+
 };
 
 } // namespace curves
