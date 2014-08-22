@@ -49,19 +49,25 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
   /// Try to make the curve fit to the values.
   /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
-                      const std::vector<ValueType>& values) = 0;
+                      const std::vector<ValueType>& values);
 
   /// \brief Fit a new curve to these data points.
   ///
   /// The existing curve will be cleared.
   /// Underneath the curve should have some default policy for fitting.
   virtual void fitCurve(const std::vector<Time>& times,
-                        const std::vector<ValueType>& values) = 0;
+                        const std::vector<ValueType>& values);
 
   /// Evaluate the ambient space of the curve.
   virtual Eigen::VectorXd evaluate(Time time) const;
   
   /// Evaluate the curve derivatives.
+  /// linear 1st derivative has following behaviour:
+  /// - time is out of bound --> error
+  /// - time is between 2 coefficients --> take slope between the 2 coefficients
+  /// - time is on coefficient (not last coefficient) --> take slope between coefficient and next coefficients
+  /// - time is on last coefficient --> take slope between last-1 and last coefficient
+  /// derivatives of order >1 equal 0
   virtual Eigen::VectorXd evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
   /// \brief Get an evaluator at this time

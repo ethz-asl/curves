@@ -4,15 +4,18 @@
 
 namespace curves {
 
-HermiteCoefficientManager::HermiteCoefficientManager()  { }
-HermiteCoefficientManager::~HermiteCoefficientManager() { }
+HermiteCoefficientManager::HermiteCoefficientManager() {
+}
+HermiteCoefficientManager::~HermiteCoefficientManager() {
+}
 
 /// Compare this Coeficient with another for equality.
-bool HermiteCoefficientManager::equals(const HermiteCoefficientManager& other, double tol) const {
+bool HermiteCoefficientManager::equals(const HermiteCoefficientManager& other,
+                                       double tol) const {
   bool equal = true;
   equal &= coefficients_.size() == other.coefficients_.size();
   equal &= timeToCoefficient_.size() == other.timeToCoefficient_.size();
-  if(equal) {
+  if (equal) {
     boost::unordered_map<Key, KeyCoefficientTime>::const_iterator it1, it2;
     it1 = coefficients_.begin();
     it2 = other.coefficients_.begin();
@@ -26,7 +29,7 @@ bool HermiteCoefficientManager::equals(const HermiteCoefficientManager& other, d
     it4 = other.timeToCoefficient_.begin();
     for( ; it3 != timeToCoefficient_.end(); ++it3, ++it4) {
       equal &= it3->first == it4->first;
-      if(it3->second && it4->second) {
+      if (it3->second && it4->second) {
         equal &= it3->second->equals(*(it4->second));
       } else {
         equal &= it3->second == it4->second;
@@ -68,12 +71,18 @@ void HermiteCoefficientManager::print(const std::string& str) const {
 }
 
 Key HermiteCoefficientManager::insertCoefficient(Time time, const Coefficient& coefficient) {
-  typedef boost::unordered_map<Key, KeyCoefficientTime>::iterator iterator;
-  Key key = KeyGenerator::getNextKey();
-  std::pair<iterator, bool > success = 
-      coefficients_.insert( 
-          std::make_pair(key, KeyCoefficientTime(key, coefficient, time)));
-  timeToCoefficient_[time] = &(success.first->second);
+  std::map<Time, KeyCoefficientTime*>::iterator it;
+  Key key;
+  if (this->hasCoefficientAtTime(time, &it)) {
+    this->setCoefficientByKey(it->second->key, coefficient);
+    key = it->second->key;
+  } else {
+    typedef boost::unordered_map<Key, KeyCoefficientTime>::iterator iterator;
+    key = KeyGenerator::getNextKey();
+    std::pair<iterator, bool> success = coefficients_.insert(
+        std::make_pair(key, KeyCoefficientTime(key, coefficient, time)));
+    timeToCoefficient_[time] = &(success.first->second);
+  }
   return key;
 }
 
@@ -140,12 +149,15 @@ bool HermiteCoefficientManager::getCoefficientsAt(Time time,
   }
 
   std::map<Time, KeyCoefficientTime*>::const_iterator it;
-  it = timeToCoefficient_.upper_bound(time);
-  if(time == getFrontTime()) {
+
+  if(time == getMaxTime()) {
+    it = timeToCoefficient_.end();
     --it;
+  } else {
+    it = timeToCoefficient_.upper_bound(time);
   }
   if(it == timeToCoefficient_.begin() || it == timeToCoefficient_.end()) {
-    LOG(INFO) << "time, " << time << ", is out of bounds: [" << getBackTime() << ", " << getFrontTime() << "]";
+    LOG(INFO) << "time, " << time << ", is out of bounds: [" << getMinTime() << ", " << getMaxTime() << "]";
     return false;
   }
   --it;
@@ -159,19 +171,31 @@ bool HermiteCoefficientManager::getCoefficientsAt(Time time,
 }
   
 /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
-void HermiteCoefficientManager::getCoefficientsInRange(Time startTime, 
-                            Time endTime, 
-                            Coefficient::Map* outCoefficients) const {
-  CHECK_NOTNULL(outCoefficients);
-  std::map<Time, KeyCoefficientTime*>::const_iterator it;
-  it = timeToCoefficient_.lower_bound(startTime);
-  for( ; it != timeToCoefficient_.end() && it->first < endTime; ++it) {
-    (*outCoefficients)[it->second->key] = it->second->coefficient;
+void HermiteCoefficientManager::getCoefficientsInRange(
+    Time startTime, Time endTime, Coefficient::Map* outCoefficients) const {
+
+  if (startTime <= endTime && startTime <= this->getMaxTime()
+      && endTime >= this->getMinTime()) {
+    // be forgiving if start time is lower than definition of curve
+    if (startTime < this->getMinTime()) {
+      startTime = this->getMinTime();
+    }
+    // be forgiving if end time is greater than definition of curve
+    if (endTime > this->getMaxTime()) {
+      endTime = this->getMaxTime();
+    }
+    std::map<Time, KeyCoefficientTime*>::const_iterator it;
+    // set iterator to coefficient left or equal of start time
+    it = timeToCoefficient_.upper_bound(startTime);
+    it--;
+    // iterate through coefficients
+    for (; it != timeToCoefficient_.end() && it->first < endTime; ++it) {
+      (*outCoefficients)[it->second->key] = it->second->coefficient;
+    }
+    if (it != timeToCoefficient_.end()) {
+      (*outCoefficients)[it->second->key] = it->second->coefficient;
+    }
   }
-  if( it != timeToCoefficient_.end() ) {
-    (*outCoefficients)[it->second->key] = it->second->coefficient;
-  }
-  
 }
   
 /// \brief Get all of the curve's coefficients.
@@ -187,9 +211,13 @@ void HermiteCoefficientManager::getCoefficients(Coefficient::Map* outCoefficient
 /// \brief Set coefficients.
 ///
 /// If any of these coefficients doen't exist, there is an error
-void HermiteCoefficientManager::setCoefficients(const Coefficient::Map& coefficients) {
-  // \todo Abel or Renaud
-  CHECK(false) << "Not implemented";
+void HermiteCoefficientManager::setCoefficients(
+    const Coefficient::Map& coefficients) {
+  boost::unordered_map<Key, Coefficient>::const_iterator it;
+  it = coefficients.begin();
+  for (; it != coefficients.end(); ++it) {
+    this->setCoefficientByKey(it->first, it->second);
+  }
 }
 
 /// \brief return the number of coefficients
@@ -203,16 +231,15 @@ void HermiteCoefficientManager::clear() {
   timeToCoefficient_.clear();
 }
 
-
-Time HermiteCoefficientManager::getBackTime() const {
-  if(timeToCoefficient_.empty()) {
+Time HermiteCoefficientManager::getMinTime() const {
+  if (timeToCoefficient_.empty()) {
     return 0;
   }
   return timeToCoefficient_.begin()->first;
 }
 
-Time HermiteCoefficientManager::getFrontTime() const {
-  if(timeToCoefficient_.empty()) {
+Time HermiteCoefficientManager::getMaxTime() const {
+  if (timeToCoefficient_.empty()) {
     return 0;
   }
   return timeToCoefficient_.rbegin()->first;
@@ -234,9 +261,9 @@ void HermiteCoefficientManager::checkInternalConsistency(bool doExit) const {
     // It is supposedly guaranteed by the 
     // unordered map interface that these
     // pointers never get reallocated.
-    CHECK_EQ( &itc->second, it->second);
+    CHECK_EQ(&itc->second, it->second);
   }
-  if( doExit ) {
+  if (doExit) {
     exit(0);
   }
 }
@@ -251,6 +278,10 @@ void HermiteCoefficientManager::removeCoefficientAtTime(Time time) {
   // todo Abel and Renaud
 }
 
+bool HermiteCoefficientManager::hasCoefficientAtTime(Time time, std::map<Time, KeyCoefficientTime*>::iterator *it) {
+  *it = timeToCoefficient_.find(time);
+  return *it != timeToCoefficient_.end();
+}
 
 } // namespace curves
 
