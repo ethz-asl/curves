@@ -107,10 +107,10 @@ class HermiteCoefficientManager {
   void clear();
 
   /// The first valid time for the curve.
-  Time getBackTime() const;
-  
+  Time getMinTime() const;
+
   /// The one past the last valid time for the curve.
-  Time getFrontTime() const;
+  Time getMaxTime() const;
 
   /// Check the internal consistency of the data structure
   /// If doExit is true, the function will call exit(0) at
@@ -123,6 +123,8 @@ class HermiteCoefficientManager {
   
   /// Time to coefficient mapping
   std::map<Time, KeyCoefficientTime*> timeToCoefficient_;
+
+  bool hasCoefficientAtTime(Time time, std::map<Time, KeyCoefficientTime*>::iterator *it);
 };
 
 } // namespace curves
