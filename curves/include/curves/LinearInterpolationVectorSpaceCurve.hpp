@@ -3,6 +3,7 @@
 
 #include "VectorSpaceCurve.hpp"
 #include "HermiteCoefficientManager.hpp"
+#include "LinearInterpolationVectorSpaceEvaluator.hpp"
 
 namespace curves {
 

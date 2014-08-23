@@ -141,8 +141,9 @@ Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time tim
 
 /// \brief Get an evaluator at this time
 LinearInterpolationVectorSpaceCurve::EvaluatorTypePtr LinearInterpolationVectorSpaceCurve::getEvaluator(Time time) const {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
+  boost::shared_ptr< Evaluator<VectorSpaceConfig> > rval( new LinearInterpolationVectorSpaceEvaluator() );
+
+  return rval;
 }
 
 void LinearInterpolationVectorSpaceCurve::setTimeRange(Time minTime, Time maxTime) {
