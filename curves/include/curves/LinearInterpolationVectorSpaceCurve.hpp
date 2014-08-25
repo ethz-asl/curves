@@ -20,10 +20,14 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
-  
+
   /// \brief Get the coefficients that are active at a certain time.
-  virtual void getCoefficientsAt(Time time, 
+  virtual void getCoefficientsAt(const Time& time,
                                  Coefficient::Map* outCoefficients) const;
+
+  /// \brief Get the KeyCoefficientTimes that are active at a certain time.
+  void getCoefficientsAt(const Time& time,
+                         const std::vector<KeyCoefficientTime*>& outCoefficients) const;
 
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
   virtual void getCoefficientsInRange(Time startTime, 
@@ -32,7 +36,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
   /// \brief Get all of the curve's coefficients.
   virtual void getCoefficients(Coefficient::Map* outCoefficients) const;
-  
+
   /// \brief Set a coefficient.
   virtual void setCoefficient(Key key, const Coefficient& value);
 
@@ -42,7 +46,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
   /// The first valid time for the curve.
   virtual Time getMinTime() const;
-  
+
   /// The one past the last valid time for the curve.
   virtual Time getMaxTime() const;
 
@@ -61,7 +65,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
   /// Evaluate the ambient space of the curve.
   virtual Eigen::VectorXd evaluate(Time time) const;
-  
+
   /// Evaluate the curve derivatives.
   /// linear 1st derivative has following behaviour:
   /// - time is out of bound --> error
