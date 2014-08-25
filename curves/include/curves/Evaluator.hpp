@@ -24,14 +24,20 @@ class Evaluator : public EvaluatorBase
   Evaluator() { }
   virtual ~Evaluator() { }
 
-  /// Evaluate the ambient space of the curve (functional form).
+  /// Evaluate the ambient space of the curve (functional form) with initial coefficients.
+  virtual ValueType evaluate() const = 0;
+
+  /// Evaluate the ambient space of the curve (functional form) by specifying new coefficients.
   virtual ValueType evaluate(const std::vector<Coefficient>& coefficients) const = 0;
+
+  /// Evaluate the ambient space of the curve (functional form) with original coefficients.
+  virtual ValueType evaluateAndJacobians(std::vector<Eigen::MatrixXd>* outJacobian) const = 0;
   
+  /// Evaluate the ambient space of the curve (functional form) by specifying new coefficients.
+  virtual ValueType evaluateAndJacobians(const std::vector<Coefficient>& coefficients, std::vector<Eigen::MatrixXd>* outJacobians) const = 0;
+
   /// Evaluate the curve derivatives (functional form).
   virtual Eigen::VectorXd evaluateDerivative(unsigned derivativeOrder, const std::vector<Coefficient>& coefficients) const = 0;
-
-  /// Evaluate the ambient space of the curve (functional form).
-  virtual ValueType evaluateAndJacobian(const std::vector<Coefficient>& coefficients, std::vector<Eigen::MatrixXd>* outJacobian) const = 0;
   
   /// Evaluate the curve derivatives (functional form).
   virtual Eigen::VectorXd evaluateDerivativeAndJacobian(unsigned derivativeOrder, const std::vector<Coefficient>& coefficients, std::vector<Eigen::MatrixXd>* outJacobian) const = 0;

@@ -3,7 +3,8 @@
 
 #include "VectorSpaceCurve.hpp"
 #include "HermiteCoefficientManager.hpp"
-#include "LinearInterpolationVectorSpaceEvaluator.hpp"
+
+class LinearInterpolationVectorSpaceEvaluator; // Forward declaration
 
 namespace curves {
 
@@ -76,7 +77,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
   virtual Eigen::VectorXd evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
   /// \brief Get an evaluator at this time
-  EvaluatorTypePtr getEvaluator(Time time) const;
+  EvaluatorTypePtr getEvaluator(const Time& time) const;
 
   virtual void setTimeRange(Time minTime, Time maxTime);
 
@@ -86,5 +87,6 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
 } // namespace curves
 
+#include "LinearInterpolationVectorSpaceEvaluator.hpp"
 
 #endif /* CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_CURVE_HPP */

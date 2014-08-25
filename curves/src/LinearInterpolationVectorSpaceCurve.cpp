@@ -148,9 +148,8 @@ Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time tim
 }
 
 /// \brief Get an evaluator at this time
-LinearInterpolationVectorSpaceCurve::EvaluatorTypePtr LinearInterpolationVectorSpaceCurve::getEvaluator(Time time) const {
-  boost::shared_ptr< Evaluator<VectorSpaceConfig> > rval( new LinearInterpolationVectorSpaceEvaluator() );
-
+LinearInterpolationVectorSpaceCurve::EvaluatorTypePtr LinearInterpolationVectorSpaceCurve::getEvaluator(const Time& time) const {
+  boost::shared_ptr< Evaluator<VectorSpaceConfig> > rval( new LinearInterpolationVectorSpaceEvaluator((*this), time) );
   return rval;
 }
 

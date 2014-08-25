@@ -34,7 +34,7 @@ class Curve : public CurveBase
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const = 0;
 
   /// \brief Get an evaluator at this time.
-  virtual EvaluatorTypePtr getEvaluator(Time time) const = 0;
+  virtual EvaluatorTypePtr getEvaluator(const Time& time) const = 0;
 
   ///@}
 
