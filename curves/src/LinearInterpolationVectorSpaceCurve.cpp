@@ -47,6 +47,9 @@ void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(const Time& time,
   CHECK_NOTNULL(outCoefficients[0]);
   CHECK_NOTNULL(outCoefficients[1]);
   CHECK_EQ(outCoefficients.size(), 2);
+  if (time == this->getMaxTime()) {
+    std::cout <<"max time reached" <<std::endl;
+  }
   bool success = manager_.getCoefficientsAt(time, outCoefficients[0], outCoefficients[1]);
   CHECK(success) << "Unable to get the coefficients at time " << time;
 }
@@ -158,5 +161,8 @@ void LinearInterpolationVectorSpaceCurve::setTimeRange(Time minTime, Time maxTim
   CHECK(false) << "Not implemented";
 }
 
+boost::unordered_map<Key, KeyCoefficientTime> LinearInterpolationVectorSpaceCurve::getKeyCoefficientTime() const {
+  return manager_.getKeyCoefficientTime();
+}
 
 } // namespace curves
