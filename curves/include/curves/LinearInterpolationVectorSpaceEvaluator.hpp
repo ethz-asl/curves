@@ -8,17 +8,9 @@
 namespace curves {
 
 class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConfig> {
- private:
-
-  const LinearInterpolationVectorSpaceCurve& curve_;
-  std::vector<Key> keys_;
-  std::vector<Coefficient> coefficients_;
-  double alpha_;
-  double oneMinusAlpha_;
-  size_t dimension_;
-  std::vector<Eigen::MatrixXd> jacobians_;
 
  public:
+
   typedef Evaluator<VectorSpaceConfig> Parent;
   typedef Parent::DerivativeType DerivativeType;
   typedef Parent::ValueType ValueType;
@@ -28,7 +20,11 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
 
   virtual void getKeys(std::vector<Key> *outKeys) const;
 
+  void appendKeys(std::vector<Key> *outKeys) const;
+
   virtual void getCoefficients(std::vector<Coefficient>* outCoefficients) const;
+
+  void appendCoefficients(std::vector<Coefficient> *outCoefficients) const;
 
   /// Evaluate the ambient space of the curve (functional form) with original coefficients.
   virtual ValueType evaluate() const;
@@ -41,16 +37,10 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
 
   /// Evaluate the ambient space of the curve (functional form) by specifying new coefficients.
   virtual ValueType evaluateAndJacobians(const std::vector<Coefficient>& coefficients,
-                                        std::vector<Eigen::MatrixXd>* outJacobians) const;
-
-  /// Evaluate the ambient space of the curve.
-  virtual Eigen::VectorXd evaluateVector() const;
+                                         std::vector<Eigen::MatrixXd>* outJacobians) const;
 
   /// Evaluate the curve derivatives.
   virtual Eigen::VectorXd evaluateDerivative(unsigned derivativeOrder) const;
-
-  /// Evaluate the ambient space of the curve (functional form).
-  virtual Eigen::VectorXd evaluateVector(const std::vector<Coefficient>& coefficients) const;
 
   /// Evaluate the curve derivatives (functional form).
   virtual Eigen::VectorXd evaluateDerivative(unsigned derivativeOrder,
@@ -64,6 +54,16 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
   virtual Eigen::VectorXd evaluateDerivativeAndJacobian(unsigned derivativeOrder,
                                                         const std::vector<Coefficient>& coefficients,
                                                         std::vector<Eigen::MatrixXd>* outJacobian) const;
+
+ private:
+
+  const LinearInterpolationVectorSpaceCurve& curve_;
+  std::vector<Key> keys_;
+  std::vector<Coefficient> coefficients_;
+  double alpha_;
+  double oneMinusAlpha_;
+  size_t dimension_;
+  std::vector<Eigen::MatrixXd> jacobians_;
 
 };
 

@@ -6,19 +6,17 @@ namespace curves {
 
 LinearInterpolationVectorSpaceEvaluator::LinearInterpolationVectorSpaceEvaluator(const LinearInterpolationVectorSpaceCurve& curve,
                                                                                  const Time& time) : curve_(curve) {
-  vector<KeyCoefficientTime*> coefficients;
   KeyCoefficientTime coeff0, coeff1;
-  coefficients.push_back(&coeff0);
-  coefficients.push_back(&coeff1);
-  curve.getCoefficientsAt(time, coefficients);
-  keys_.push_back(coefficients[0]->key);
-  keys_.push_back(coefficients[1]->key);
-  coefficients_.push_back(coefficients[0]->coefficient);
-  coefficients_.push_back(coefficients[1]->coefficient);
+  curve.getCoefficientsAt(time, &coeff0, &coeff1);
+  keys_.push_back(coeff0.key);
+  keys_.push_back(coeff1.key);
+  coefficients_.push_back(coeff0.coefficient);
+  coefficients_.push_back(coeff1.coefficient);
 
   // Compute alpha_ and oneMinusAlpha_
-  Time dt = coefficients[1]->time - coefficients[0]->time;
-  Time t = time - coefficients[0]->time;
+  Time dt = coeff1.time - coeff0.time;
+  CHECK_NE(dt,0) << "requested division by 0";
+  Time t = time - coeff0.time;
   alpha_ = double(t)/double(dt);
   oneMinusAlpha_ = 1 - alpha_;
 
@@ -35,11 +33,23 @@ LinearInterpolationVectorSpaceEvaluator::LinearInterpolationVectorSpaceEvaluator
 LinearInterpolationVectorSpaceEvaluator::~LinearInterpolationVectorSpaceEvaluator() {}
 
 void LinearInterpolationVectorSpaceEvaluator::getKeys(std::vector<Key> *outKeys) const {
+  CHECK_NOTNULL(outKeys);
   *outKeys = keys_;
 }
 
+void LinearInterpolationVectorSpaceEvaluator::appendKeys(std::vector<Key> *outKeys) const {
+  CHECK_NOTNULL(outKeys);
+  outKeys->insert(outKeys->end(), keys_.begin(), keys_.end());
+}
+
 void LinearInterpolationVectorSpaceEvaluator::getCoefficients(std::vector<Coefficient> *outCoefficients) const {
+  CHECK_NOTNULL(outCoefficients);
   *outCoefficients = coefficients_;
+}
+
+void LinearInterpolationVectorSpaceEvaluator::appendCoefficients(std::vector<Coefficient> *outCoefficients) const {
+  CHECK_NOTNULL(outCoefficients);
+  outCoefficients->insert(outCoefficients->end(), coefficients_.begin(), coefficients_.end());
 }
 
 LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluate() const {
@@ -63,21 +73,9 @@ LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpac
   return evaluate(coefficients);
 }
 
-/// Evaluate the ambient space of the curve.
-Eigen::VectorXd LinearInterpolationVectorSpaceEvaluator::evaluateVector() const {
-  // \todo Abel and Renaud -- Needed?
-  CHECK(false) << "To be implemented by Abel and Renaud :-)";
-}
-
 /// Evaluate the curve derivatives.
 Eigen::VectorXd LinearInterpolationVectorSpaceEvaluator::evaluateDerivative(unsigned derivativeOrder) const {
   // \todo Abel and Renaud
-  CHECK(false) << "To be implemented by Abel and Renaud :-)";
-}
-
-/// Evaluate the ambient space of the curve (functional form).
-Eigen::VectorXd LinearInterpolationVectorSpaceEvaluator::evaluateVector(const std::vector<Coefficient>& coefficients) const {
-  // \todo Abel and Renaud -- Needed?
   CHECK(false) << "To be implemented by Abel and Renaud :-)";
 }
 

@@ -140,7 +140,8 @@ Coefficient HermiteCoefficientManager::getCoefficientByKey(Key key) const {
 
 /// \brief Get the coefficients that are active at a certain time.
 bool HermiteCoefficientManager::getCoefficientsAt(Time time, 
-                                                  KeyCoefficientTime* outCoefficient0, KeyCoefficientTime* outCoefficient1) const {
+                                                  KeyCoefficientTime* outCoefficient0,
+                                                  KeyCoefficientTime* outCoefficient1) const {
 
   CHECK_NOTNULL(outCoefficient0);
   CHECK_NOTNULL(outCoefficient1);
@@ -269,9 +270,9 @@ void HermiteCoefficientManager::checkInternalConsistency(bool doExit) const {
   }
 }
 
-  boost::unordered_map<Key, KeyCoefficientTime> HermiteCoefficientManager::getKeyCoefficientTime() const {
-    return coefficients_;
-  }
+boost::unordered_map<Key, KeyCoefficientTime> HermiteCoefficientManager::getKeyCoefficientTime() const {
+  return coefficients_;
+}
 
 void HermiteCoefficientManager::removeCoefficientWithKey(Key key) {
   CHECK(false) << "Not implemented";

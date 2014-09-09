@@ -28,7 +28,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
   /// \brief Get the KeyCoefficientTimes that are active at a certain time.
   void getCoefficientsAt(const Time& time,
-                         const std::vector<KeyCoefficientTime*>& outCoefficients) const;
+                         KeyCoefficientTime* outCoefficient0, KeyCoefficientTime* outCoefficient1) const;
 
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
   virtual void getCoefficientsInRange(Time startTime, 

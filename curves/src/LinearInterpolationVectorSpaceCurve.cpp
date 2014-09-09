@@ -43,14 +43,13 @@ void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(const Time& time,
 }
 
 void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(const Time& time,
-                                                            const std::vector<KeyCoefficientTime*>& outCoefficients) const {
-  CHECK_NOTNULL(outCoefficients[0]);
-  CHECK_NOTNULL(outCoefficients[1]);
-  CHECK_EQ(outCoefficients.size(), 2);
+                                                            KeyCoefficientTime* outCoefficient0, KeyCoefficientTime* outCoefficient1) const {
+  CHECK_NOTNULL(&outCoefficient0);
+  CHECK_NOTNULL(&outCoefficient1);
   if (time == this->getMaxTime()) {
     std::cout <<"max time reached" <<std::endl;
   }
-  bool success = manager_.getCoefficientsAt(time, outCoefficients[0], outCoefficients[1]);
+  bool success = manager_.getCoefficientsAt(time, outCoefficient0, outCoefficient1);
   CHECK(success) << "Unable to get the coefficients at time " << time;
 }
 
