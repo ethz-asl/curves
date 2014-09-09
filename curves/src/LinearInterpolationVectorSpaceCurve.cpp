@@ -4,7 +4,7 @@
 namespace curves {
 
 LinearInterpolationVectorSpaceCurve::LinearInterpolationVectorSpaceCurve(size_t dimension) :
-                                        VectorSpaceCurve(dimension) {}
+                                            VectorSpaceCurve(dimension) {}
 
 LinearInterpolationVectorSpaceCurve::~LinearInterpolationVectorSpaceCurve() {}
 
@@ -32,15 +32,25 @@ void LinearInterpolationVectorSpaceCurve::print(const std::string& str) const {
 }
 
 
-void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(Time time, 
+void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(const Time& time,
                                                             Coefficient::Map* outCoefficients) const {
   CHECK_NOTNULL(outCoefficients);
-  std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
-  bool success = manager_.getCoefficientsAt(time, &rval);
+  KeyCoefficientTime rval0, rval1;
+  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
   CHECK(success) << "Unable to get the coefficients at time " << time;
-  (*outCoefficients)[rval.first->key] = rval.first->coefficient;
-  (*outCoefficients)[rval.second->key] = rval.second->coefficient;
-                                            
+  (*outCoefficients)[rval0.key] = rval0.coefficient;
+  (*outCoefficients)[rval1.key] = rval1.coefficient;
+}
+
+void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(const Time& time,
+                                                            KeyCoefficientTime* outCoefficient0, KeyCoefficientTime* outCoefficient1) const {
+  CHECK_NOTNULL(&outCoefficient0);
+  CHECK_NOTNULL(&outCoefficient1);
+  if (time == this->getMaxTime()) {
+    std::cout <<"max time reached" <<std::endl;
+  }
+  bool success = manager_.getCoefficientsAt(time, outCoefficient0, outCoefficient1);
+  CHECK(success) << "Unable to get the coefficients at time " << time;
 }
 
 void LinearInterpolationVectorSpaceCurve::getCoefficientsInRange(Time startTime, 
@@ -106,16 +116,16 @@ void LinearInterpolationVectorSpaceCurve::extend(const std::vector<Time>& times,
 }
 
 Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluate(Time time) const {
-  std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
-  bool success = manager_.getCoefficientsAt(time, &rval);
+  KeyCoefficientTime rval0, rval1;
+  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
   CHECK(success) << "Unable to get the coefficients at time " << time;  
 
-  Time dt = rval.second->time - rval.first->time;
-  Time t = rval.second->time - time;
+  Time dt = rval1.time - rval0.time;
+  Time t = rval1.time - time;
   // Alpha goes from zero to one.
   double alpha = double(t)/double(dt);
 
-  return alpha * rval.first->coefficient.getValue() + (1.0 - alpha) * rval.second->coefficient.getValue();
+  return alpha * rval0.coefficient.getValue() + (1.0 - alpha) * rval1.coefficient.getValue();
 }
 
 Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time time, unsigned derivativeOrder) const {
@@ -126,23 +136,22 @@ Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time tim
 
   Eigen::VectorXd dCoeff;
   Time dt;
-  std::pair<KeyCoefficientTime*, KeyCoefficientTime*> rval;
-  bool success = manager_.getCoefficientsAt(time, &rval);
+  KeyCoefficientTime rval0, rval1;
+  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
   // first derivative
   if (derivativeOrder == 1) {
-    dCoeff = rval.second->coefficient.getValue() - rval.first->coefficient.getValue();
-    dt = rval.second->time - rval.first->time;
+    dCoeff = rval1.coefficient.getValue() - rval0.coefficient.getValue();
+    dt = rval1.time - rval0.time;
     return dCoeff/dt;
   } else { // order of derivative > 1 returns vector of zeros
-    const int dimension = rval.first->coefficient.dim();
+    const int dimension = rval0.coefficient.dim();
     return Eigen::VectorXd::Zero(dimension,1);
   }
 }
 
 /// \brief Get an evaluator at this time
-LinearInterpolationVectorSpaceCurve::EvaluatorTypePtr LinearInterpolationVectorSpaceCurve::getEvaluator(Time time) const {
-  boost::shared_ptr< Evaluator<VectorSpaceConfig> > rval( new LinearInterpolationVectorSpaceEvaluator() );
-
+LinearInterpolationVectorSpaceCurve::EvaluatorTypePtr LinearInterpolationVectorSpaceCurve::getEvaluator(const Time& time) const {
+  boost::shared_ptr< Evaluator<VectorSpaceConfig> > rval( new LinearInterpolationVectorSpaceEvaluator((*this), time) );
   return rval;
 }
 
@@ -151,5 +160,8 @@ void LinearInterpolationVectorSpaceCurve::setTimeRange(Time minTime, Time maxTim
   CHECK(false) << "Not implemented";
 }
 
+boost::unordered_map<Key, KeyCoefficientTime> LinearInterpolationVectorSpaceCurve::getKeyCoefficientTime() const {
+  return manager_.getKeyCoefficientTime();
+}
 
 } // namespace curves

@@ -17,6 +17,7 @@ struct KeyCoefficientTime {
   
   KeyCoefficientTime(Key key, const Coefficient& coefficient, Time time) :
       key(key), coefficient(coefficient), time(time) {}
+  KeyCoefficientTime() {};
   bool equals(const KeyCoefficientTime& other) const {
     return key == other.key && time == other.time &&
         coefficient.equals(other.coefficient);

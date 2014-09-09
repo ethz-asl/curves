@@ -30,7 +30,7 @@ class CurveBase {
   ///@{
 
   /// \brief Get the coefficients that are active at a certain time.
-  virtual void getCoefficientsAt(Time time, 
+  virtual void getCoefficientsAt(const Time& time,
                                  Coefficient::Map* outCoefficients) const = 0;
 
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.

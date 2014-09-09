@@ -35,11 +35,11 @@ bool HermiteCoefficientManager::equals(const HermiteCoefficientManager& other,
         equal &= it3->second == it4->second;
       }
     }
-    
+
   }
   return equal;
 }
- 
+
 void HermiteCoefficientManager::getKeys(std::vector<Key>* outKeys) const {
   CHECK_NOTNULL(outKeys);
   outKeys->clear();
@@ -88,15 +88,15 @@ Key HermiteCoefficientManager::insertCoefficient(Time time, const Coefficient& c
 
 /// \brief insert coefficients. Returns the keys for these coefficients
 void HermiteCoefficientManager::insertCoefficients(const std::vector<Time>& times,
-                        const std::vector<Coefficient>& values,
-                        std::vector<Key>* outKeys) {
+                                                   const std::vector<Coefficient>& values,
+                                                   std::vector<Key>* outKeys) {
   CHECK_NOTNULL(outKeys);
   CHECK_EQ(times.size(), values.size());
   for(Key i = 0; i < times.size(); ++i) {
     outKeys->push_back(insertCoefficient(times[i], values[i]));
   }
 }
-  
+
 /// \brief return true if there is a coefficient at this time
 bool HermiteCoefficientManager::hasCoefficientAtTime(Time time) const {
   std::map<Time, KeyCoefficientTime*>::const_iterator it = timeToCoefficient_.find(time);
@@ -117,7 +117,7 @@ void HermiteCoefficientManager::setCoefficientByKey(Key key, const Coefficient& 
   boost::unordered_map<Key, KeyCoefficientTime>::iterator it = coefficients_.find(key);
   CHECK( it != coefficients_.end() ) << "Key " << key << " is not in the container.";
   it->second.coefficient = coefficient;
-  
+
 }
 
 /// \brief set the coefficient associated with this key
@@ -136,13 +136,15 @@ Coefficient HermiteCoefficientManager::getCoefficientByKey(Key key) const {
   CHECK( it != coefficients_.end() ) << "Key " << key << " is not in the container.";
   return it->second.coefficient;
 }
-  
+
 
 /// \brief Get the coefficients that are active at a certain time.
 bool HermiteCoefficientManager::getCoefficientsAt(Time time, 
-  std::pair<KeyCoefficientTime*, KeyCoefficientTime*>* outCoefficients) const {
-  
-  CHECK_NOTNULL(outCoefficients);
+                                                  KeyCoefficientTime* outCoefficient0,
+                                                  KeyCoefficientTime* outCoefficient1) const {
+
+  CHECK_NOTNULL(outCoefficient0);
+  CHECK_NOTNULL(outCoefficient1);
   if( timeToCoefficient_.empty() ) {
     LOG(INFO) << "No coefficients";
     return false;
@@ -164,12 +166,12 @@ bool HermiteCoefficientManager::getCoefficientsAt(Time time,
 
   // Okay. Now we know that the time is bracketed by
   // it and it + 1.
-  outCoefficients->first = it->second;
-  outCoefficients->second = (++it)->second;
-  
+  *outCoefficient0 = *(it->second);
+  *outCoefficient1 = *((++it)->second);
+
   return true;
 }
-  
+
 /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
 void HermiteCoefficientManager::getCoefficientsInRange(
     Time startTime, Time endTime, Coefficient::Map* outCoefficients) const {
@@ -197,7 +199,7 @@ void HermiteCoefficientManager::getCoefficientsInRange(
     }
   }
 }
-  
+
 /// \brief Get all of the curve's coefficients.
 void HermiteCoefficientManager::getCoefficients(Coefficient::Map* outCoefficients) const {
   CHECK_NOTNULL(outCoefficients);
@@ -224,7 +226,7 @@ void HermiteCoefficientManager::setCoefficients(
 Key HermiteCoefficientManager::size() const {
   return coefficients_.size();
 }
-  
+
 /// \brief clear the coefficients
 void HermiteCoefficientManager::clear() {
   coefficients_.clear();
@@ -266,6 +268,10 @@ void HermiteCoefficientManager::checkInternalConsistency(bool doExit) const {
   if (doExit) {
     exit(0);
   }
+}
+
+boost::unordered_map<Key, KeyCoefficientTime> HermiteCoefficientManager::getKeyCoefficientTime() const {
+  return coefficients_;
 }
 
 void HermiteCoefficientManager::removeCoefficientWithKey(Key key) {
