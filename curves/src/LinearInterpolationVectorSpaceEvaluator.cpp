@@ -6,17 +6,17 @@ namespace curves {
 
 LinearInterpolationVectorSpaceEvaluator::LinearInterpolationVectorSpaceEvaluator(const LinearInterpolationVectorSpaceCurve& curve,
                                                                                  const Time& time) : curve_(curve) {
-  KeyCoefficientTime coeff0, coeff1;
+  KeyCoefficientTime *coeff0, *coeff1;
   curve.getCoefficientsAt(time, &coeff0, &coeff1);
-  keys_.push_back(coeff0.key);
-  keys_.push_back(coeff1.key);
-  coefficients_.push_back(coeff0.coefficient);
-  coefficients_.push_back(coeff1.coefficient);
+  keys_.push_back(coeff0->key);
+  keys_.push_back(coeff1->key);
+  coefficients_.push_back(coeff0->coefficient);
+  coefficients_.push_back(coeff1->coefficient);
 
   // Compute alpha_ and oneMinusAlpha_
-  Time dt = coeff1.time - coeff0.time;
+  Time dt = coeff1->time - coeff0->time;
   CHECK_NE(dt,0) << "requested division by 0";
-  Time t = time - coeff0.time;
+  Time t = time - coeff0->time;
   alpha_ = double(t)/double(dt);
   oneMinusAlpha_ = 1 - alpha_;
 

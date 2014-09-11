@@ -140,8 +140,8 @@ Coefficient HermiteCoefficientManager::getCoefficientByKey(Key key) const {
 
 /// \brief Get the coefficients that are active at a certain time.
 bool HermiteCoefficientManager::getCoefficientsAt(Time time, 
-                                                  KeyCoefficientTime* outCoefficient0,
-                                                  KeyCoefficientTime* outCoefficient1) const {
+                                                  KeyCoefficientTime** outCoefficient0,
+                                                  KeyCoefficientTime** outCoefficient1) const {
 
   CHECK_NOTNULL(outCoefficient0);
   CHECK_NOTNULL(outCoefficient1);
@@ -166,8 +166,8 @@ bool HermiteCoefficientManager::getCoefficientsAt(Time time,
 
   // Okay. Now we know that the time is bracketed by
   // it and it + 1.
-  *outCoefficient0 = *(it->second);
-  *outCoefficient1 = *((++it)->second);
+  *outCoefficient0 = it->second;
+  *outCoefficient1 = (++it)->second;
 
   return true;
 }

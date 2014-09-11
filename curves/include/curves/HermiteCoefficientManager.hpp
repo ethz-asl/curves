@@ -84,7 +84,7 @@ class HermiteCoefficientManager {
   ///
   /// @returns true if it was successful
   bool getCoefficientsAt(Time time, 
-                         KeyCoefficientTime* outCoefficient0, KeyCoefficientTime* outCoefficient1) const;
+                         KeyCoefficientTime** outCoefficient0, KeyCoefficientTime** outCoefficient1) const;
 
 
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.

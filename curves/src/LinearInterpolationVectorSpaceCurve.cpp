@@ -35,15 +35,15 @@ void LinearInterpolationVectorSpaceCurve::print(const std::string& str) const {
 void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(const Time& time,
                                                             Coefficient::Map* outCoefficients) const {
   CHECK_NOTNULL(outCoefficients);
-  KeyCoefficientTime rval0, rval1;
+  KeyCoefficientTime *rval0, *rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
   CHECK(success) << "Unable to get the coefficients at time " << time;
-  (*outCoefficients)[rval0.key] = rval0.coefficient;
-  (*outCoefficients)[rval1.key] = rval1.coefficient;
+  (*outCoefficients)[rval0->key] = rval0->coefficient;
+  (*outCoefficients)[rval1->key] = rval1->coefficient;
 }
 
 void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(const Time& time,
-                                                            KeyCoefficientTime* outCoefficient0, KeyCoefficientTime* outCoefficient1) const {
+                                                            KeyCoefficientTime** outCoefficient0, KeyCoefficientTime** outCoefficient1) const {
   CHECK_NOTNULL(&outCoefficient0);
   CHECK_NOTNULL(&outCoefficient1);
   if (time == this->getMaxTime()) {
@@ -116,16 +116,16 @@ void LinearInterpolationVectorSpaceCurve::extend(const std::vector<Time>& times,
 }
 
 Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluate(Time time) const {
-  KeyCoefficientTime rval0, rval1;
+  KeyCoefficientTime *rval0, *rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
   CHECK(success) << "Unable to get the coefficients at time " << time;  
 
-  Time dt = rval1.time - rval0.time;
-  Time t = rval1.time - time;
+  Time dt = rval1->time - rval0->time;
+  Time t = rval1->time - time;
   // Alpha goes from zero to one.
   double alpha = double(t)/double(dt);
 
-  return alpha * rval0.coefficient.getValue() + (1.0 - alpha) * rval1.coefficient.getValue();
+  return alpha * rval0->coefficient.getValue() + (1.0 - alpha) * rval1->coefficient.getValue();
 }
 
 Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time time, unsigned derivativeOrder) const {
@@ -136,15 +136,15 @@ Eigen::VectorXd LinearInterpolationVectorSpaceCurve::evaluateDerivative(Time tim
 
   Eigen::VectorXd dCoeff;
   Time dt;
-  KeyCoefficientTime rval0, rval1;
+  KeyCoefficientTime *rval0, *rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
   // first derivative
   if (derivativeOrder == 1) {
-    dCoeff = rval1.coefficient.getValue() - rval0.coefficient.getValue();
-    dt = rval1.time - rval0.time;
+    dCoeff = rval1->coefficient.getValue() - rval0->coefficient.getValue();
+    dt = rval1->time - rval0->time;
     return dCoeff/dt;
   } else { // order of derivative > 1 returns vector of zeros
-    const int dimension = rval0.coefficient.dim();
+    const int dimension = rval0->coefficient.dim();
     return Eigen::VectorXd::Zero(dimension,1);
   }
 }
