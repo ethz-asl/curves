@@ -43,7 +43,8 @@ void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(const Time& time,
 }
 
 void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(const Time& time,
-                                                            KeyCoefficientTime** outCoefficient0, KeyCoefficientTime** outCoefficient1) const {
+                                                            KeyCoefficientTime** outCoefficient0,
+                                                            KeyCoefficientTime** outCoefficient1) const {
   CHECK_NOTNULL(&outCoefficient0);
   CHECK_NOTNULL(&outCoefficient1);
   if (time == this->getMaxTime()) {
