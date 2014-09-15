@@ -73,6 +73,39 @@ LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpac
   return evaluate(coefficients);
 }
 
+LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluate(
+    const boost::unordered_map<Key, Coefficient>& keyCoefficient) const {
+
+  CHECK(!keyCoefficient.empty()) << "keyCoefficient unordered map is empty.";
+
+  boost::unordered_map<Key, Coefficient>::const_iterator it0 = keyCoefficient.find(keys_[0]);
+  boost::unordered_map<Key, Coefficient>::const_iterator it1 = keyCoefficient.find(keys_[1]);
+
+  CHECK(it0 != keyCoefficient.end()) << "Key " << keys_[0] << " was not in keyCoefficient.";
+  CHECK(it1 != keyCoefficient.end()) << "Key " << keys_[1] << " was not in keyCoefficient.";
+
+  return it0->second.getValue() * oneMinusAlpha_ + it1->second.getValue() * alpha_;
+}
+
+LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluateAndJacobians(
+    const boost::unordered_map<Key, Coefficient>& keyCoefficient,
+    const boost::unordered_map<Key, Eigen::MatrixXd*>& keyJacobian,
+    const int chainRule) const {
+
+  CHECK(!keyJacobian.empty()) << "keyJacobian unordered map is empty.";
+
+  boost::unordered_map<Key, Eigen::MatrixXd*>::const_iterator it0 = keyJacobian.find(keys_[0]);
+  boost::unordered_map<Key, Eigen::MatrixXd*>::const_iterator it1 = keyJacobian.find(keys_[1]);
+
+  CHECK(it0 != keyJacobian.end()) << "Key " << keys_[0] << " was not in keyJacobian.";
+  CHECK(it1 != keyJacobian.end()) << "Key " << keys_[1] << " was not in keyJacobian.";
+
+  *(it0->second) += chainRule*jacobians_[0];
+  *(it1->second) += chainRule*jacobians_[1];
+
+  return evaluate(keyCoefficient);
+}
+
 /// Evaluate the curve derivatives.
 Eigen::VectorXd LinearInterpolationVectorSpaceEvaluator::evaluateDerivative(unsigned derivativeOrder) const {
   // \todo Abel and Renaud

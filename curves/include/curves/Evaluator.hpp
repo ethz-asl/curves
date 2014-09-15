@@ -45,6 +45,11 @@ class Evaluator : public EvaluatorBase
   /// Get the maximum derivative order supported by this evaluator.
   size_t getMaximumDerivativeOrder() const;
 
+  virtual ValueType evaluate(const boost::unordered_map<Key, Coefficient>& keyCoefficient) const = 0;
+
+  virtual ValueType evaluateAndJacobians(const boost::unordered_map<Key, Coefficient>& keyCoefficient,
+                                         const boost::unordered_map<Key, Eigen::MatrixXd*>& keyJacobian,
+                                         const int chainRule) const = 0;
 };
 
 } // namespace 
