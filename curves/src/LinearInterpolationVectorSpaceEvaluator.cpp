@@ -90,7 +90,9 @@ LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpac
 LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluateAndJacobians(
     const boost::unordered_map<Key, Coefficient>& keyCoefficient,
     const boost::unordered_map<Key, Eigen::MatrixXd*>& keyJacobian,
-    const int chainRule) const {
+    const Eigen::MatrixXd& chainRule) const {
+
+  // \todo check matrices dimensions
 
   CHECK(!keyJacobian.empty()) << "keyJacobian unordered map is empty.";
 

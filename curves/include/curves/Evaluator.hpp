@@ -49,7 +49,7 @@ class Evaluator : public EvaluatorBase
 
   virtual ValueType evaluateAndJacobians(const boost::unordered_map<Key, Coefficient>& keyCoefficient,
                                          const boost::unordered_map<Key, Eigen::MatrixXd*>& keyJacobian,
-                                         const int chainRule) const = 0;
+                                         const Eigen::MatrixXd& chainRule) const = 0;
 };
 
 } // namespace 

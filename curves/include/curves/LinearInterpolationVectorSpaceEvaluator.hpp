@@ -59,7 +59,7 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
 
   virtual ValueType evaluateAndJacobians(const boost::unordered_map<Key, Coefficient>& keyCoefficient,
                                          const boost::unordered_map<Key, Eigen::MatrixXd*>& keyJacobian,
-                                         const int chainRule) const;
+                                         const Eigen::MatrixXd& chainRule) const;
 
 
  private:
