@@ -21,13 +21,6 @@ LinearInterpolationVectorSpaceEvaluator::LinearInterpolationVectorSpaceEvaluator
   oneMinusAlpha_ = 1 - alpha_;
 
   dimension_ = curve.dim();
-
-  // Compute the Jacobians
-  // In the linear case, the jacobians are independent of the coefficients value.
-  // J0 and J1 are diagonal matrices with elements equal to oneMinusAlpha_ and alpha_ respectively.
-  Eigen::MatrixXd I = Eigen::MatrixXd::Identity(dimension_,dimension_);
-  jacobians_.push_back(I*oneMinusAlpha_);
-  jacobians_.push_back(I*alpha_);
 }
 
 LinearInterpolationVectorSpaceEvaluator::~LinearInterpolationVectorSpaceEvaluator() {}
@@ -56,56 +49,33 @@ LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpac
   return coefficients_[0].getValue() * oneMinusAlpha_ + coefficients_[1].getValue() * alpha_;
 }
 
-LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluate(const std::vector<Coefficient>& coefficients) const {
+LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluate(
+    const std::vector<Coefficient>& coefficients) const {
+
   return coefficients[0].getValue() * oneMinusAlpha_ + coefficients[1].getValue() * alpha_;
 }
 
-LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluateAndJacobians(std::vector<Eigen::MatrixXd>* outJacobians) const {
-  CHECK_NOTNULL(outJacobians);
-  *outJacobians = jacobians_;
+LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluateAndJacobians(
+    const Eigen::MatrixXd& chainRule,
+    const std::vector<Eigen::MatrixXd*>& jacobians) const {
+
+  CHECK_NOTNULL(jacobians[0]);
+  CHECK_NOTNULL(jacobians[1]);
+  *(jacobians[0]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * oneMinusAlpha_;
+  *(jacobians[1]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * alpha_;
   return evaluate();
 }
 
-LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluateAndJacobians(const std::vector<Coefficient>& coefficients,
-                                                                                                                 std::vector<Eigen::MatrixXd>* outJacobians) const {
-  CHECK_NOTNULL(outJacobians);
-  *outJacobians = jacobians_;
-  return evaluate(coefficients);
-}
-
-LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluate(
-    const boost::unordered_map<Key, Coefficient>& keyCoefficient) const {
-
-  CHECK(!keyCoefficient.empty()) << "keyCoefficient unordered map is empty.";
-
-  boost::unordered_map<Key, Coefficient>::const_iterator it0 = keyCoefficient.find(keys_[0]);
-  boost::unordered_map<Key, Coefficient>::const_iterator it1 = keyCoefficient.find(keys_[1]);
-
-  CHECK(it0 != keyCoefficient.end()) << "Key " << keys_[0] << " was not in keyCoefficient.";
-  CHECK(it1 != keyCoefficient.end()) << "Key " << keys_[1] << " was not in keyCoefficient.";
-
-  return it0->second.getValue() * oneMinusAlpha_ + it1->second.getValue() * alpha_;
-}
-
 LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluateAndJacobians(
-    const boost::unordered_map<Key, Coefficient>& keyCoefficient,
-    const boost::unordered_map<Key, Eigen::MatrixXd*>& keyJacobian,
-    const Eigen::MatrixXd& chainRule) const {
+    const std::vector<Coefficient>& coefficients,
+    const Eigen::MatrixXd& chainRule,
+    const std::vector<Eigen::MatrixXd*>& jacobians) const {
 
-  // \todo check matrices dimensions
-
-  CHECK(!keyJacobian.empty()) << "keyJacobian unordered map is empty.";
-
-  boost::unordered_map<Key, Eigen::MatrixXd*>::const_iterator it0 = keyJacobian.find(keys_[0]);
-  boost::unordered_map<Key, Eigen::MatrixXd*>::const_iterator it1 = keyJacobian.find(keys_[1]);
-
-  CHECK(it0 != keyJacobian.end()) << "Key " << keys_[0] << " was not in keyJacobian.";
-  CHECK(it1 != keyJacobian.end()) << "Key " << keys_[1] << " was not in keyJacobian.";
-
-  *(it0->second) += chainRule*jacobians_[0];
-  *(it1->second) += chainRule*jacobians_[1];
-
-  return evaluate(keyCoefficient);
+  CHECK_NOTNULL(jacobians[0]);
+  CHECK_NOTNULL(jacobians[1]);
+  *(jacobians[0]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * oneMinusAlpha_;
+  *(jacobians[1]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * alpha_;
+  return evaluate(coefficients);
 }
 
 /// Evaluate the curve derivatives.

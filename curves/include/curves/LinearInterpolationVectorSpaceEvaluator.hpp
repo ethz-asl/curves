@@ -33,11 +33,12 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
   virtual ValueType evaluate(const std::vector<Coefficient>& coefficients) const;
 
   /// Evaluate the ambient space of the curve (functional form) with original coefficients.
-  virtual ValueType evaluateAndJacobians(std::vector<Eigen::MatrixXd>* outJacobians) const;
+  virtual ValueType evaluateAndJacobians(const Eigen::MatrixXd& chainRule,
+                                         const std::vector<Eigen::MatrixXd*>& jacobians) const;
 
-  /// Evaluate the ambient space of the curve (functional form) by specifying new coefficients.
   virtual ValueType evaluateAndJacobians(const std::vector<Coefficient>& coefficients,
-                                         std::vector<Eigen::MatrixXd>* outJacobians) const;
+                                         const Eigen::MatrixXd& chainRule,
+                                         const std::vector<Eigen::MatrixXd*>& jacobians) const;
 
   /// Evaluate the curve derivatives.
   virtual Eigen::VectorXd evaluateDerivative(unsigned derivativeOrder) const;
@@ -55,13 +56,6 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
                                                         const std::vector<Coefficient>& coefficients,
                                                         std::vector<Eigen::MatrixXd>* outJacobian) const;
 
-  virtual ValueType evaluate(const boost::unordered_map<Key, Coefficient>& keyCoefficient) const;
-
-  virtual ValueType evaluateAndJacobians(const boost::unordered_map<Key, Coefficient>& keyCoefficient,
-                                         const boost::unordered_map<Key, Eigen::MatrixXd*>& keyJacobian,
-                                         const Eigen::MatrixXd& chainRule) const;
-
-
  private:
 
   const LinearInterpolationVectorSpaceCurve& curve_;
@@ -70,7 +64,6 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
   double alpha_;
   double oneMinusAlpha_;
   size_t dimension_;
-  std::vector<Eigen::MatrixXd> jacobians_;
 
 };
 

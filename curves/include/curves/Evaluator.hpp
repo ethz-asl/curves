@@ -31,10 +31,12 @@ class Evaluator : public EvaluatorBase
   virtual ValueType evaluate(const std::vector<Coefficient>& coefficients) const = 0;
 
   /// Evaluate the ambient space of the curve (functional form) with original coefficients.
-  virtual ValueType evaluateAndJacobians(std::vector<Eigen::MatrixXd>* outJacobian) const = 0;
-  
-  /// Evaluate the ambient space of the curve (functional form) by specifying new coefficients.
-  virtual ValueType evaluateAndJacobians(const std::vector<Coefficient>& coefficients, std::vector<Eigen::MatrixXd>* outJacobians) const = 0;
+  virtual ValueType evaluateAndJacobians(const Eigen::MatrixXd& chainRule,
+                                         const std::vector<Eigen::MatrixXd*>& jacobians) const = 0;
+
+  virtual ValueType evaluateAndJacobians(const std::vector<Coefficient>& coefficients,
+                                         const Eigen::MatrixXd& chainRule,
+                                         const std::vector<Eigen::MatrixXd*>& jacobians) const = 0;
 
   /// Evaluate the curve derivatives (functional form).
   virtual Eigen::VectorXd evaluateDerivative(unsigned derivativeOrder, const std::vector<Coefficient>& coefficients) const = 0;
@@ -45,11 +47,6 @@ class Evaluator : public EvaluatorBase
   /// Get the maximum derivative order supported by this evaluator.
   size_t getMaximumDerivativeOrder() const;
 
-  virtual ValueType evaluate(const boost::unordered_map<Key, Coefficient>& keyCoefficient) const = 0;
-
-  virtual ValueType evaluateAndJacobians(const boost::unordered_map<Key, Coefficient>& keyCoefficient,
-                                         const boost::unordered_map<Key, Eigen::MatrixXd*>& keyJacobian,
-                                         const Eigen::MatrixXd& chainRule) const = 0;
 };
 
 } // namespace 
