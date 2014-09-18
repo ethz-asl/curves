@@ -21,3 +21,6 @@
 *.app
 *~
 .DS_Store
+.project
+.cproject
+.settings
