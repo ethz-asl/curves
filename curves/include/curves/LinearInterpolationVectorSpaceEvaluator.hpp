@@ -7,6 +7,8 @@
 
 namespace curves {
 
+class Coefficients;
+
 class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConfig> {
 
  public:
@@ -22,33 +24,15 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
 
   void appendKeys(std::vector<Key> *outKeys) const;
 
-  virtual void getCoefficients(std::vector<Coefficient>* outCoefficients) const;
-
-  void appendCoefficients(std::vector<Coefficient> *outCoefficients) const;
-
-  /// Evaluate the ambient space of the curve (functional form) with original coefficients.
-  virtual ValueType evaluate() const;
-
   /// Evaluate the ambient space of the curve (functional form) by specifying new coefficients.
   virtual ValueType evaluate(const std::vector<Coefficient>& coefficients) const;
-
-  /// Evaluate the ambient space of the curve (functional form) with original coefficients.
-  virtual ValueType evaluateAndJacobians(const Eigen::MatrixXd& chainRule,
-                                         const std::vector<Eigen::MatrixXd*>& jacobians) const;
-
-  virtual ValueType evaluateAndJacobians(const std::vector<Coefficient>& coefficients,
-                                         const Eigen::MatrixXd& chainRule,
-                                         const std::vector<Eigen::MatrixXd*>& jacobians) const;
-
-  /// Evaluate the curve derivatives.
-  virtual Eigen::VectorXd evaluateDerivative(unsigned derivativeOrder) const;
 
   /// Evaluate the curve derivatives (functional form).
   virtual Eigen::VectorXd evaluateDerivative(unsigned derivativeOrder,
                                              const std::vector<Coefficient>& coefficients) const;
 
   /// Evaluate the ambient space of the curve (functional form).
-  virtual Eigen::VectorXd evaluateVectorAndJacobian(const std::vector<Coefficient>& coefficients,
+  virtual Eigen::VectorXd evaluateAndJacobian(const std::vector<Coefficient>& coefficients,
                                                     std::vector<Eigen::MatrixXd>* outJacobian) const;
 
   /// Evaluate the curve derivatives (functional form).
@@ -56,13 +40,16 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
                                                         const std::vector<Coefficient>& coefficients,
                                                         std::vector<Eigen::MatrixXd>* outJacobian) const;
 
+  /// Get the curve Jacobians.
+  /// This is the main interface for GTSAM
+  virtual void getJacobians(unsigned derivativeOrder,
+                            const Coefficients& coefficients,
+                            const Eigen::MatrixXd& chainRule,
+                            const std::vector<Eigen::MatrixXd*>* jacobians) const;
  private:
 
-  const LinearInterpolationVectorSpaceCurve& curve_;
   std::vector<Key> keys_;
-  std::vector<Coefficient> coefficients_;
   double alpha_;
-  double oneMinusAlpha_;
   size_t dimension_;
 
 };

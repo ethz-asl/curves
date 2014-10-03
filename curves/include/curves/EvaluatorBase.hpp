@@ -17,9 +17,6 @@ class EvaluatorBase {
   /// defined downstream, they provide their Jacobians in this order.
   /// This may be revisited as we work out the connection to GTSAM
   virtual void getKeys(std::vector<Key>* outKeys) const = 0;
-  
-  /// \brief Get the coefficients used by this evaluator.
-  virtual void getCoefficients(std::vector<Coefficient>* outCoefficients) const = 0;
 
 };
 
