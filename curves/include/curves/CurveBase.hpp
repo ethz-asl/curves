@@ -1,5 +1,5 @@
-#ifndef CURVES_CURVE_HPP
-#define CURVES_CURVE_HPP
+#ifndef CURVES_CURVE_BASE_HPP
+#define CURVES_CURVE_BASE_HPP
 
 #include "types.hpp"
 #include "Coefficient.hpp"
@@ -78,4 +78,4 @@ class CurveBase {
 
 
 
-#endif /* CURVES_CURVE_HPP */
+#endif /* CURVES_CURVE_BASE_HPP */

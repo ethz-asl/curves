@@ -4,18 +4,43 @@ project(curves)
 find_package(catkin_simple 0.1.0 REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
-cs_add_library(${PROJECT_NAME} 
-  src/CoefficientImplementation.cpp
-  src/VectorSpaceCoefficientImplementation.cpp
-  src/CurveBase.cpp
+set(CURVE_SRC
+  include/curves/Coefficient.hpp
+  include/curves/CoefficientImplementation.hpp
+  include/curves/Curve.hpp
+  include/curves/CurveBase.hpp
+  include/curves/Evaluator.hpp
+  include/curves/EvaluatorBase.hpp
+  include/curves/GaussianProcessVectorSpaceCurve.hpp
+  include/curves/GaussianProcessVectorSpaceEvaluator.hpp
+  include/curves/GaussianProcessVectorSpacePrior.hpp
+  include/curves/HermiteCoefficientManager.hpp
+  include/curves/KeyCoefficientTime.hpp
+  include/curves/KeyGenerator.hpp
+  include/curves/LinearInterpolationVectorSpaceCurve.hpp
+  include/curves/LinearInterpolationVectorSpaceEvaluator.hpp
+  include/curves/LtiSdeGaussianProcessVectorSpacePrior.hpp
+  include/curves/ScalarCurveConfig.hpp
+  include/curves/types.hpp
+  include/curves/VectorSpaceCoefficientImplementation.hpp
+  include/curves/VectorSpaceConfig.hpp
+  include/curves/VectorSpaceCurve.hpp
   src/Coefficient.cpp
-  src/KeyGenerator.cpp
-  src/HermiteCoefficientManager.cpp
-  src/VectorSpaceCurve.cpp
+  src/CoefficientImplementation.cpp
+  src/CurveBase.cpp
   src/EvaluatorBase.cpp
+  src/GaussianProcessVectorSpaceCurve.cpp
+  src/GaussianProcessVectorSpaceEvaluator.cpp
+  src/HermiteCoefficientManager.cpp
+  src/KeyGenerator.cpp
   src/LinearInterpolationVectorSpaceCurve.cpp
   src/LinearInterpolationVectorSpaceEvaluator.cpp
+  src/LtiSdeGaussianProcessVectorSpacePrior.cpp
+  src/VectorSpaceCoefficientImplementation.cpp
+  src/VectorSpaceCurve.cpp
 )
+
+cs_add_library(${PROJECT_NAME} ${CURVE_SRC})
 
 find_package(Boost REQUIRED COMPONENTS system thread)
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})

@@ -1,5 +1,5 @@
-#ifndef CURVES_TYPED_CURVE_HPP
-#define CURVES_TYPED_CURVE_HPP
+#ifndef CURVES_CURVE_HPP
+#define CURVES_CURVE_HPP
 
 #include "CurveBase.hpp"
 #include "Evaluator.hpp"
@@ -61,4 +61,4 @@ class Curve : public CurveBase
 } // namespace curves
 
 
-#endif /* CURVES_TYPED_CURVE_HPP */
+#endif /* CURVES_CURVE_HPP */
