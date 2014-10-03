@@ -2,6 +2,7 @@
 #define SE3_CURVE_H_
 
 #include "SE3Config.hpp"
+#include "Curve.hpp"
 
 namespace curves {
 
@@ -20,14 +21,14 @@ public:
   typedef Curve<SE3Config> CurveConfig;
 
   /// The value type of the curve.
-  typedef typename CurveConfig::ValueType ValueType;
+  typedef CurveConfig::ValueType ValueType;
 
   /// The curve's derivative type.
-  typedef typename CurveConfig::DerivativeType DerivativeType;
+  typedef CurveConfig::DerivativeType DerivativeType;
 
   typedef Evaluator<CurveConfig> EvaluatorType;
 
-  typedef typename EvaluatorType::Ptr EvaluatorTypePtr;
+  typedef EvaluatorType::Ptr EvaluatorTypePtr;
 
   /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
   virtual Eigen::Vector3d evaluateAngularVelocityA(Time time) = 0;

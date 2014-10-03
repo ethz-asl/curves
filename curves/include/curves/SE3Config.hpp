@@ -1,6 +1,8 @@
 #ifndef SE3CONFIG_H_
 #define SE3CONFIG_H_
 
+#include <Eigen/Core>
+
 namespace curves {
 
 typedef Eigen::Matrix<double, 6, 1> Vector6d;
