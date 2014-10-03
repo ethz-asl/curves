@@ -22,7 +22,7 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
 
   virtual void getKeys(std::vector<Key> *outKeys) const;
 
-  void appendKeys(std::vector<Key> *outKeys) const;
+  virtual void appendKeys(std::vector<Key> *outKeys) const;
 
   /// Evaluate the ambient space of the curve (functional form) by specifying new coefficients.
   virtual ValueType evaluate(const std::vector<Coefficient>& coefficients) const;
@@ -49,6 +49,10 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
                             const Coefficients& coefficients,
                             const Eigen::MatrixXd& chainRule,
                             const std::vector<Eigen::MatrixXd*>* jacobians) const;
+
+  /// Evaluate the ambient space of the curve
+  virtual ValueType evaluateDerivative(unsigned derivativeOrder,
+                                       const Coefficients& coefficients) const;
  private:
 
   std::vector<Key> keys_;

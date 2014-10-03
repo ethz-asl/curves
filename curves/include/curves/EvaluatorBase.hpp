@@ -18,6 +18,10 @@ class EvaluatorBase {
   /// This may be revisited as we work out the connection to GTSAM
   virtual void getKeys(std::vector<Key>* outKeys) const = 0;
 
+  /// \brief Get keys for the coefficients that this evaluator uses.
+  ///        This method appends the keys to the vector
+  virtual void appendKeys(std::vector<Key> *outKeys) const = 0;
+
 };
 
 } // namespace curves

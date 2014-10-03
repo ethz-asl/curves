@@ -61,6 +61,13 @@ void LinearInterpolationVectorSpaceEvaluator::getJacobians(unsigned derivativeOr
   *((*jacobians)[1]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * alpha_;
 }
 
+/// Evaluate the ambient space of the curve
+Eigen::VectorXd LinearInterpolationVectorSpaceEvaluator::evaluateDerivative(unsigned derivativeOrder,
+                                                                            const Coefficients& coefficients) const {
+  // \todo Abel and Renaud
+  CHECK(false) << "To be implemented by Abel and Renaud :-)";
+}
+
 /// Evaluate the curve derivatives (functional form).
 Eigen::VectorXd LinearInterpolationVectorSpaceEvaluator::evaluateDerivative(unsigned derivativeOrder,
                                                                             const std::vector<Coefficient>& coefficients) const {
