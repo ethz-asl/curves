@@ -7,6 +7,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 set(CURVE_SRC
   include/curves/Coefficient.hpp
   include/curves/CoefficientImplementation.hpp
+  include/curves/Coefficients.hpp
   include/curves/Curve.hpp
   include/curves/CurveBase.hpp
   include/curves/Evaluator.hpp
@@ -26,6 +27,7 @@ set(CURVE_SRC
   include/curves/VectorSpaceConfig.hpp
   include/curves/VectorSpaceCurve.hpp
   src/Coefficient.cpp
+  src/Coefficients.cpp
   src/CoefficientImplementation.cpp
   src/CurveBase.cpp
   src/EvaluatorBase.cpp
@@ -54,7 +56,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
 message(glog_catkin_LIBRARIES: ${glog_catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
 
-add_doxygen(REQUIRED)
+add_doxygen(NOT_AUTOMATIC)
 
 cs_install()
 cs_export()

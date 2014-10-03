@@ -17,6 +17,7 @@ class Coefficient
 {
  public:
 
+  /// Key/Coefficient pairs
   typedef boost::unordered_map<size_t, Coefficient> Map;
 
   /// \brief The default constructor will make a zombie object that is not useful.
