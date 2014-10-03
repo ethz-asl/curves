@@ -13,7 +13,7 @@ LinearInterpolationVectorSpaceEvaluator::LinearInterpolationVectorSpaceEvaluator
   keys_.push_back(coeff0->key);
   keys_.push_back(coeff1->key);
 
-  // Compute alpha_ and (1.0 - alpha_)
+  // Compute alpha_
   Time dt = coeff1->time - coeff0->time;
   if(dt == 0) {
     alpha_ = 1.0;
