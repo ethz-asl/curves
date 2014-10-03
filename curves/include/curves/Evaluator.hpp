@@ -43,6 +43,9 @@ class Evaluator : public EvaluatorBase
                                                         const std::vector<Coefficient>& coefficients,
                                                         std::vector<Eigen::MatrixXd>* outJacobian) const = 0;
 
+  /// Evaluate the ambient space of the curve
+  virtual ValueType evaluate(const Coefficients& coefficients) const = 0;
+
   /// Get the curve Jacobians.
   /// This is the main interface for GTSAM
   virtual void getJacobians(unsigned derivativeOrder,

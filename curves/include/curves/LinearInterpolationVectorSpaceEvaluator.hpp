@@ -40,6 +40,9 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
                                                         const std::vector<Coefficient>& coefficients,
                                                         std::vector<Eigen::MatrixXd>* outJacobian) const;
 
+  /// Evaluate the ambient space of the curve
+  virtual ValueType evaluate(const Coefficients& coefficients) const;
+
   /// Get the curve Jacobians.
   /// This is the main interface for GTSAM
   virtual void getJacobians(unsigned derivativeOrder,

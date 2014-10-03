@@ -42,6 +42,12 @@ LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpac
   return coefficients[0].getValue() * (1.0 - alpha_) + coefficients[1].getValue() * alpha_;
 }
 
+LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluate(
+    const Coefficients& coefficients) const {
+
+  return coefficients.get(keys_[0]).getValue() * (1.0 - alpha_) + coefficients.get(keys_[1]).getValue() * alpha_;
+}
+
 void LinearInterpolationVectorSpaceEvaluator::getJacobians(unsigned derivativeOrder,
                                                            const Coefficients& /* coefficients */,
                                                            const Eigen::MatrixXd& chainRule,
