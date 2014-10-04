@@ -35,6 +35,7 @@ class LtiSdeGaussianProcessVectorSpacePrior : public LinearSdeGaussianProcessVec
   /// \todo needs better name
   /// \todo this level could implement numerical integration
   virtual Eigen::MatrixXd calculateLiftedCovarianceMatrix(Time time1, Time time2) const = 0;
+  virtual Eigen::MatrixXd calculateInverseLiftedCovarianceMatrix(Time time1, Time time2) const = 0;
 
  private:
 

@@ -13,6 +13,7 @@ class GaussianProcessVectorSpacePrior : public VectorSpaceCurve
   typedef Parent::DerivativeType DerivativeType;
   typedef Parent::EvaluatorType EvaluatorType;
   typedef Parent::EvaluatorTypePtr EvaluatorTypePtr;
+  /// \todo create base N-local-support coefficient manager
   // typedef CoefficientManager CurveCoefficientManagerType;
 
   GaussianProcessVectorSpacePrior(size_t dimension) : VectorSpaceCurve(dimension) { }

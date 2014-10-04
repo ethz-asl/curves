@@ -82,11 +82,11 @@ class GaussianProcessVectorSpaceCurve : public VectorSpaceCurve {
   boost::unordered_map<Key, KeyCoefficientTime> getKeyCoefficientTime() const;
 
  private:
-  // Shared pointer to the prior, which determines the type of iterpolation and available sparsity
+  /// Shared pointer to the prior, which determines the type of iterpolation and available sparsity
   boost::shared_ptr<GaussianProcessVectorSpacePrior> prior_;
 
-  // The manager type is determined by the prior, as the prior determines the local support of the curve
-  // \todo change this to be a pointer to a base class of manager...
+  /// The manager type is determined by the prior, as the prior determines the local support of the curve
+  /// \todo change this to be a shared pointer to a base class of manager... it is created based on the typdef in the prior
   HermiteCoefficientManager manager_;
 
 };

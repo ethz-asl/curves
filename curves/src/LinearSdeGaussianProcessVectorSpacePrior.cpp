@@ -1,4 +1,5 @@
 #include <curves/LinearSdeGaussianProcessVectorSpacePrior.hpp>
+#include <boost/make_shared.hpp>
 #include <iostream>
 
 namespace curves {
@@ -16,33 +17,21 @@ void LinearSdeGaussianProcessVectorSpacePrior::print(const std::string& str) con
   std::cout << "=========================================" <<std::endl;
 }
 
-
-void LinearSdeGaussianProcessVectorSpacePrior::getCoefficientsAt(const Time& time,
-                                                            Coefficient::Map* outCoefficients) const {
-  CHECK_NOTNULL(outCoefficients);
-  KeyCoefficientTime *rval0, *rval1;
-  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
-  CHECK(success) << "Unable to get the coefficients at time " << time;
-  (*outCoefficients)[rval0->key] = rval0->coefficient;
-  (*outCoefficients)[rval1->key] = rval1->coefficient;
-}
-
-void LinearSdeGaussianProcessVectorSpacePrior::getCoefficientsInRange(Time startTime,
-                                                                 Time endTime, 
-                                                                 Coefficient::Map* outCoefficients) const {
-  manager_.getCoefficientsInRange(startTime, endTime, outCoefficients);
-}
-
-void LinearSdeGaussianProcessVectorSpacePrior::getCoefficients(Coefficient::Map* outCoefficients) const {
-  manager_.getCoefficients(outCoefficients);
-}
-
 Time LinearSdeGaussianProcessVectorSpacePrior::getMaxTime() const {
-  return manager_.getMaxTime();
+  CHECK(false) << "Not implemented, todo Sean";
+  // return largest key time?
 }
 
 Time LinearSdeGaussianProcessVectorSpacePrior::getMinTime() const {
-  return manager_.getMinTime();
+  return initialTime_;
+}
+
+void LinearSdeGaussianProcessVectorSpacePrior::initialize(Time initialTime, Eigen::VectorXd initialMean,
+                                                          Eigen::MatrixXd initialInverseCovariance) {
+  initialTime_ = initialTime;
+  initialInverseCovariance_ = initialInverseCovariance;
+  boost::shared_ptr<Eigen::VectorXd> sharedInitialMean(new Eigen::VectorXd(initialMean));
+  keytimeToMeanEvaluation_.insert(keytimeToMeanEvaluation_.begin(), std::pair<Time, boost::shared_ptr<Eigen::VectorXd> >(initialTime, sharedInitialMean));
 }
 
 /// Append an exogenous input.
@@ -59,22 +48,55 @@ void LinearSdeGaussianProcessVectorSpacePrior::setExogenousInputs(const std::vec
 }
 
 void LinearSdeGaussianProcessVectorSpacePrior::addKeyTime(const Time& time) {
-  Coefficient coefficient;
-  // integrate
-  Key outKey = manager_.insertCoefficient(time, coefficient);
+  CHECK(!keytimeToMeanEvaluation_.empty()) << "Prior has not yet been initialized.";
+  CHECK_GT(time, initialTime_) << "New key time is less than or equal to the initial prior time.";
+
+  // find insertion spot for time into keytimeToMeanEvaluation_
+  std::map<Time, boost::shared_ptr<Eigen::VectorXd> >::const_iterator it = keytimeToMeanEvaluation_.upper_bound(time);
+  CHECK(it != keytimeToMeanEvaluation_.begin()) << "Tried to insert keytime before initial time.";
+
+  if(it == keytimeToMeanEvaluation_.end()) // insert new keytime at end
+  {
+    --it; // decrement iterator to last keytime entry
+
+    // Evaluate state transition matrix and integrated exogenous inputs
+    boost::shared_ptr<Eigen::MatrixXd> stateTransition = boost::make_shared<Eigen::MatrixXd> (calculateStateTransitionMatrix(time, it->first));
+    boost::shared_ptr<Eigen::VectorXd> liftedExoInput = boost::make_shared<Eigen::VectorXd> (calculateLiftedExogenousInput(it->first, time));
+
+    // Evaluate mean function at new keytime
+    Eigen::VectorXd asdf = (*stateTransition) * (*it->second) + (*liftedExoInput);
+    boost::shared_ptr<Eigen::VectorXd> meanEval = boost::make_shared<Eigen::VectorXd> ( asdf );
+
+    // Evaluate inverse of lifted covariance matrix
+    boost::shared_ptr<Eigen::MatrixXd> invLiftedCov = boost::make_shared<Eigen::MatrixXd> (calculateInverseLiftedCovarianceMatrix(it->first, time));
+
+    // Create pair key
+    std::pair<Time,Time> keytimePair(it->first, time);
+
+    // Insert into maps
+    keytimeToMeanEvaluation_.insert(keytimeToMeanEvaluation_.end(), std::pair<Time,boost::shared_ptr<Eigen::VectorXd> >(time, meanEval));
+    keytimesToLiftedExogenousInput_.insert(std::pair<std::pair<Time,Time>, boost::shared_ptr<Eigen::VectorXd> >(keytimePair, liftedExoInput));
+    keytimesToStateTransitionMatrix_.insert(std::pair<std::pair<Time,Time>, boost::shared_ptr<Eigen::MatrixXd> >(keytimePair, stateTransition));
+    keytimesToInverseLiftedCovarianceMatrix_.insert(std::pair<std::pair<Time,Time>, boost::shared_ptr<Eigen::MatrixXd> >(keytimePair, invLiftedCov));
+
+  } else { // insert new keytime into middle
+
+    CHECK(false) << "to be implemented.. lets try not to do this for now";
+
+  }
 }
 
 void LinearSdeGaussianProcessVectorSpacePrior::addKeyTimes(const std::vector<Time>& times) {
-  std::vector<Key> outKeys;
-  std::vector<Coefficient> coefficients(times.size());
   for (size_t i = 0; i < times.size(); ++i) {
-    // integrate
+    this->addKeyTime(times.at(i));
   }
-  manager_.insertCoefficients(times, coefficients, &outKeys);
 }
 
 Eigen::VectorXd LinearSdeGaussianProcessVectorSpacePrior::evaluate(Time time) const {
-  return Eigen::VectorXd::Zero(this->dim(),1);
+  std::map<Time, boost::shared_ptr<Eigen::VectorXd> >::const_iterator it = keytimeToMeanEvaluation_.upper_bound(time);
+  CHECK(it != keytimeToMeanEvaluation_.begin()) << "Tried to insert keytime before initial time.";
+  --it;
+  return calculateStateTransitionMatrix(time, it->first)*(*it->second) + calculateLiftedExogenousInput(it->first, time);
 }
 
 Eigen::VectorXd LinearSdeGaussianProcessVectorSpacePrior::evaluateDerivative(Time time, unsigned derivativeOrder) const {
@@ -84,28 +106,33 @@ Eigen::VectorXd LinearSdeGaussianProcessVectorSpacePrior::evaluateDerivative(Tim
 
 /// Evaluate the curve and interpolation matrices K(t)K^{-1}.
 Eigen::VectorXd LinearSdeGaussianProcessVectorSpacePrior::evaluateAndInterpMatrices(Time time, const std::vector<Time>& keyTimes,
-                                                                                 const std::vector<Eigen::VectorXd*>& outEvalAtKeyTimes,
-                                                                                 const std::vector<Eigen::MatrixXd*>& outInterpMatrices) const {
+                                                                                    const std::vector<Eigen::VectorXd*>& outEvalAtKeyTimes,
+                                                                                    const std::vector<Eigen::MatrixXd*>& outInterpMatrices) const {
   CHECK_EQ(keyTimes.size(), 2)                        << "Expected number of interpolation key times is not 2";
   CHECK_EQ(outEvalAtKeyTimes.size(), keyTimes.size()) << "Output vector is not initialized to have the correct number of entries";
   CHECK_EQ(outInterpMatrices.size(), keyTimes.size()) << "Output vector is not initialized to have the correct number of entries";
 
+  /// \todo should check that keyTimes exist... but log(n) search is a little slow...
+
   CHECK_NOTNULL(outEvalAtKeyTimes[0]);
   CHECK_NOTNULL(outEvalAtKeyTimes[1]);
-  *(outEvalAtKeyTimes[0]) = Eigen::VectorXd::Zero(this->dim(),1);
-  *(outEvalAtKeyTimes[1]) = Eigen::VectorXd::Zero(this->dim(),1);
+  *(outEvalAtKeyTimes[0]) = *keytimeToMeanEvaluation_.at(keyTimes[0]);
+  *(outEvalAtKeyTimes[1]) = *keytimeToMeanEvaluation_.at(keyTimes[1]);
 
   CHECK_NOTNULL(outInterpMatrices[0]);
   CHECK_NOTNULL(outInterpMatrices[1]);
-  *(outInterpMatrices[0]) = Eigen::MatrixXd::Identity(this->dim(),this->dim()) * 1.0;
-  *(outInterpMatrices[1]) = Eigen::MatrixXd::Identity(this->dim(),this->dim()) * 0.0;
+  std::pair<Time,Time> keytimePair(keyTimes[0],keyTimes[1]);
+  *(outInterpMatrices[1]) = calculateLiftedCovarianceMatrix(keyTimes[0],time) *
+                            calculateStateTransitionMatrix(keyTimes[1], time).transpose() *
+                            (*keytimesToInverseLiftedCovarianceMatrix_.at(keytimePair));
+  *(outInterpMatrices[0]) = calculateStateTransitionMatrix(time, keyTimes[0]) - (*(outInterpMatrices[1])) * (*keytimesToStateTransitionMatrix_.at(keytimePair));
 
   return evaluate(time);
 }
 
 Eigen::VectorXd LinearSdeGaussianProcessVectorSpacePrior::evaluateDerivativeAndInterpMatrices(Time time, unsigned derivativeOrder, const std::vector<Time>& keyTimes,
-                                                                                           const std::vector<Eigen::VectorXd*>& outEvalAtKeyTimes,
-                                                                                           const std::vector<Eigen::MatrixXd*>& outInterpMatrices) const {
+                                                                                              const std::vector<Eigen::VectorXd*>& outEvalAtKeyTimes,
+                                                                                              const std::vector<Eigen::MatrixXd*>& outInterpMatrices) const {
   CHECK(false) << "Not implemented, todo Sean";
   return Eigen::VectorXd::Zero(this->dim(),1);
 }
@@ -120,10 +147,6 @@ LinearSdeGaussianProcessVectorSpacePrior::EvaluatorTypePtr LinearSdeGaussianProc
 void LinearSdeGaussianProcessVectorSpacePrior::setTimeRange(Time minTime, Time maxTime) {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
-}
-
-boost::unordered_map<Key, KeyCoefficientTime> LinearSdeGaussianProcessVectorSpacePrior::getKeyCoefficientTime() const {
-  return manager_.getKeyCoefficientTime();
 }
 
 } // namespace curves
