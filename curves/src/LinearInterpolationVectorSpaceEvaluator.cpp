@@ -36,6 +36,15 @@ void LinearInterpolationVectorSpaceEvaluator::appendKeys(std::vector<Key> *outKe
   outKeys->insert(outKeys->end(), keys_.begin(), keys_.end());
 }
 
+std::vector<Key>::const_iterator LinearInterpolationVectorSpaceEvaluator::keyBegin() const {
+  return keys_.begin();
+}
+
+std::vector<Key>::const_iterator LinearInterpolationVectorSpaceEvaluator::keyEnd() const {
+  return keys_.end();
+}
+
+
 LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpaceEvaluator::evaluate(
     const std::vector<Coefficient>& coefficients) const {
 
@@ -51,14 +60,14 @@ LinearInterpolationVectorSpaceEvaluator::ValueType LinearInterpolationVectorSpac
 void LinearInterpolationVectorSpaceEvaluator::getJacobians(unsigned derivativeOrder,
                                                            const Coefficients& /* coefficients */,
                                                            const Eigen::MatrixXd& chainRule,
-                                                           const std::vector<Eigen::MatrixXd*>* jacobians) const {
+                                                           const std::vector<Eigen::MatrixXd*>& jacobians) const {
   // TODO(Abel and Renaud) implement velocity
   CHECK_EQ(derivativeOrder, 0);
-  CHECK_NOTNULL(jacobians);
-  CHECK_NOTNULL((*jacobians)[0]);
-  CHECK_NOTNULL((*jacobians)[1]);
-  *((*jacobians)[0]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * (1.0 - alpha_);
-  *((*jacobians)[1]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * alpha_;
+  CHECK_NOTNULL(jacobians[0]);
+  CHECK_NOTNULL(jacobians[1]);
+  //TODO check matrix sizes should be chainRule.rows() x coefficient.ndim()
+  *(jacobians[0]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * (1.0 - alpha_);
+  *(jacobians[1]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * alpha_;
 }
 
 /// Evaluate the ambient space of the curve
