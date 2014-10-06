@@ -1,11 +1,12 @@
 #include <curves/LinearSdeGaussianProcessVectorSpacePrior.hpp>
 #include <boost/make_shared.hpp>
 #include <iostream>
+#include <Eigen/Dense>
 
 namespace curves {
 
 LinearSdeGaussianProcessVectorSpacePrior::LinearSdeGaussianProcessVectorSpacePrior(size_t dimension, Eigen::MatrixXd stationaryPowerSpectralDensity) :
-    GaussianProcessVectorSpacePrior(dimension), stationaryPowerSpectralDensity_(stationaryPowerSpectralDensity) {
+    GaussianProcessVectorSpacePrior(dimension), stationaryPowerSpectralDensity_(stationaryPowerSpectralDensity), invStationaryPowerSpectralDensity_(stationaryPowerSpectralDensity.inverse()) {
   CHECK_EQ(stationaryPowerSpectralDensity.rows(), stationaryPowerSpectralDensity.cols()) << "Stationary power spectral density matrix is not square.";
 }
 
@@ -37,7 +38,33 @@ void LinearSdeGaussianProcessVectorSpacePrior::initialize(Time initialTime, Eige
 /// Append an exogenous input.
 /// Exogenous inputs create a step function that is assumed to hold constant from last known value.
 void LinearSdeGaussianProcessVectorSpacePrior::addExogenousInput(Time time, const ValueType& value) {
-  CHECK(false) << "Not implemented, todo Sean";
+  CHECK(!keytimeToMeanEvaluation_.empty()) << "Prior has not yet been initialized.";
+  CHECK_GE(time, initialTime_) << "New input time is less than or equal to the initial prior time.";
+
+  // find insertion spot for time into timeToExogenousInputValue_
+  timeToExogenousInputValue_.insert(std::pair<Time,Eigen::VectorXd>(time, value));
+
+  // find all keytimes after this input, and update them
+  std::map<Time, boost::shared_ptr<Eigen::VectorXd> >::const_iterator it = keytimeToMeanEvaluation_.upper_bound(time);
+  for(; it != keytimeToMeanEvaluation_.end(); ++it)
+  {
+    // Get iterator to previous keyframe
+    std::map<Time, boost::shared_ptr<Eigen::VectorXd> >::const_iterator prevIt = it; --prevIt;
+
+    // Create pair key
+    std::pair<Time,Time> keytimePair(prevIt->first, it->first);
+
+    // Get pointers
+    boost::shared_ptr<Eigen::VectorXd> meanEval        = keytimeToMeanEvaluation_.at(it->first);
+    boost::shared_ptr<Eigen::VectorXd> liftedExoInput  = keytimesToLiftedExogenousInput_.at(keytimePair);
+    boost::shared_ptr<const Eigen::MatrixXd> stateTransition = keytimesToStateTransitionMatrix_.at(keytimePair);
+    // Evaluate integrated exogenous inputs
+    *liftedExoInput = calculateLiftedExogenousInput(prevIt->first, it->first);
+
+    // Evaluate mean function at new keytime
+    *meanEval = (*stateTransition) * (*prevIt->second) + (*liftedExoInput);
+  }
+
 }
 
 /// Set the discrete time exogenous inputs.
@@ -64,8 +91,7 @@ void LinearSdeGaussianProcessVectorSpacePrior::addKeyTime(const Time& time) {
     boost::shared_ptr<Eigen::VectorXd> liftedExoInput = boost::make_shared<Eigen::VectorXd> (calculateLiftedExogenousInput(it->first, time));
 
     // Evaluate mean function at new keytime
-    Eigen::VectorXd asdf = (*stateTransition) * (*it->second) + (*liftedExoInput);
-    boost::shared_ptr<Eigen::VectorXd> meanEval = boost::make_shared<Eigen::VectorXd> ( asdf );
+    boost::shared_ptr<Eigen::VectorXd> meanEval = boost::make_shared<Eigen::VectorXd> ( (*stateTransition) * (*it->second) + (*liftedExoInput) );
 
     // Evaluate inverse of lifted covariance matrix
     boost::shared_ptr<Eigen::MatrixXd> invLiftedCov = boost::make_shared<Eigen::MatrixXd> (calculateInverseLiftedCovarianceMatrix(it->first, time));
@@ -80,9 +106,7 @@ void LinearSdeGaussianProcessVectorSpacePrior::addKeyTime(const Time& time) {
     keytimesToInverseLiftedCovarianceMatrix_.insert(std::pair<std::pair<Time,Time>, boost::shared_ptr<Eigen::MatrixXd> >(keytimePair, invLiftedCov));
 
   } else { // insert new keytime into middle
-
     CHECK(false) << "to be implemented.. lets try not to do this for now";
-
   }
 }
 
@@ -112,12 +136,13 @@ Eigen::VectorXd LinearSdeGaussianProcessVectorSpacePrior::evaluateAndInterpMatri
   CHECK_EQ(outEvalAtKeyTimes.size(), keyTimes.size()) << "Output vector is not initialized to have the correct number of entries";
   CHECK_EQ(outInterpMatrices.size(), keyTimes.size()) << "Output vector is not initialized to have the correct number of entries";
 
-  /// \todo should check that keyTimes exist... but log(n) search is a little slow...
-
   CHECK_NOTNULL(outEvalAtKeyTimes[0]);
   CHECK_NOTNULL(outEvalAtKeyTimes[1]);
-  *(outEvalAtKeyTimes[0]) = *keytimeToMeanEvaluation_.at(keyTimes[0]);
-  *(outEvalAtKeyTimes[1]) = *keytimeToMeanEvaluation_.at(keyTimes[1]);
+  std::map<Time, boost::shared_ptr<Eigen::VectorXd> >::const_iterator it;
+  CHECK((it = keytimeToMeanEvaluation_.find(keyTimes[0])) != keytimeToMeanEvaluation_.end()) << "Keytime did not exist in map";
+  *(outEvalAtKeyTimes[0]) = *(it->second);
+  CHECK((it = keytimeToMeanEvaluation_.find(keyTimes[1])) != keytimeToMeanEvaluation_.end()) << "Keytime did not exist in map";
+  *(outEvalAtKeyTimes[1]) = *(it->second);
 
   CHECK_NOTNULL(outInterpMatrices[0]);
   CHECK_NOTNULL(outInterpMatrices[1]);

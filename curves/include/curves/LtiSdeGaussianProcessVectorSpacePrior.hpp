@@ -2,7 +2,6 @@
 #define CURVES_LTI_SDE_GAUSSIAN_PROCESS_VECTOR_SPACE_PRIOR_HPP
 
 #include "LinearSdeGaussianProcessVectorSpacePrior.hpp"
-#include "HermiteCoefficientManager.hpp"
 
 namespace curves {
 

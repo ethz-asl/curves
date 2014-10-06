@@ -48,11 +48,7 @@ class LinearSdeGaussianProcessVectorSpacePrior : public GaussianProcessVectorSpa
   virtual Eigen::VectorXd evaluate(Time time) const;
 
   /// Evaluate the curve derivatives.
-  /// linear 1st derivative has following behaviour:
-  /// - time is out of bound --> error
-  /// - time is between 2 coefficients --> take slope between the 2 coefficients
-  /// - time is on coefficient (not last coefficient) --> take slope between coefficient and next coefficients
-  /// - time is on last coefficient --> take slope between last-1 and last coefficient
+  /// returns error if time is out of bounds
   /// derivatives of order >1 equal 0
   virtual Eigen::VectorXd evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
@@ -119,11 +115,15 @@ class LinearSdeGaussianProcessVectorSpacePrior : public GaussianProcessVectorSpa
 
   ///@}
 
+  const Eigen::MatrixXd& getPowerSpectralDensityMatrix() const {return stationaryPowerSpectralDensity_;}
+  const Eigen::MatrixXd& getInversePowerSpectralDensityMatrix() const {return invStationaryPowerSpectralDensity_;}
+
  private:
 
   /// Stationary power spectral density matrix belonging to the zero-mean white noise process in the lienar SDE
   /// --- see Q_C in equation X, Anderson et al. (TBD)
   const Eigen::MatrixXd stationaryPowerSpectralDensity_;
+  const Eigen::MatrixXd invStationaryPowerSpectralDensity_;
 
   /// Initial Conditions
   Time initialTime_;
