@@ -15,6 +15,18 @@ class LinearSdeGaussianProcessVectorSpacePrior : public GaussianProcessVectorSpa
   typedef Parent::EvaluatorTypePtr EvaluatorTypePtr;
   typedef HermiteCoefficientManager CurveCoefficientManagerType;
 
+  struct LinearSdeCoefficient {
+    // Instantaneous Information
+    Time time;
+    Eigen::VectorXd mean;
+
+    // Relative information
+    Time prevTime;
+    Eigen::VectorXd liftedExogenousInput;
+    Eigen::MatrixXd stateTransitionMatrix;
+    Eigen::MatrixXd inverseLiftedCovarianceMatrix;
+  };
+
   /// \brief Initialize with the dimension of the vector space
   LinearSdeGaussianProcessVectorSpacePrior(size_t dimension, Eigen::MatrixXd stationaryPowerSpectralDensity);
   virtual ~LinearSdeGaussianProcessVectorSpacePrior();
@@ -30,6 +42,7 @@ class LinearSdeGaussianProcessVectorSpacePrior : public GaussianProcessVectorSpa
 
   /// Initialize the prior
   virtual void initialize(Time initialTime, Eigen::VectorXd initialMean, Eigen::MatrixXd initialInverseCovariance);
+  virtual bool isInitialized() const;
 
   /// Append an exogenous input.
   /// Exogenous inputs create a step function that is assumed to hold constant from last known value.
@@ -40,9 +53,9 @@ class LinearSdeGaussianProcessVectorSpacePrior : public GaussianProcessVectorSpa
   virtual void setExogenousInputs(const std::vector<Time>& times,
                                   const std::vector<ValueType>& values);
 
-  virtual void addKeyTime(const Time& time);
+  /// Get the number of keytimes.
+  virtual unsigned getNumKeyTimes() const;
 
-  virtual void addKeyTimes(const std::vector<Time>& times);
 
   /// Evaluate the ambient space of the curve.
   virtual Eigen::VectorXd evaluate(Time time) const;
@@ -120,25 +133,35 @@ class LinearSdeGaussianProcessVectorSpacePrior : public GaussianProcessVectorSpa
 
  private:
 
-  /// Stationary power spectral density matrix belonging to the zero-mean white noise process in the lienar SDE
+  /// Stationary power spectral density matrix belonging to the zero-mean white noise process in the linear SDE
   /// --- see Q_C in equation X, Anderson et al. (TBD)
   const Eigen::MatrixXd stationaryPowerSpectralDensity_;
   const Eigen::MatrixXd invStationaryPowerSpectralDensity_;
 
   /// Initial Conditions
+  bool initialized_;
   Time initialTime_;
-  Eigen::MatrixXd initialInverseCovariance_;
+  Eigen::VectorXd initialMean_;
+  Eigen::MatrixXd initialCovariance_;
 
   /// Exogenous Inputs
   std::map<Time, Eigen::VectorXd> timeToExogenousInputValue_;
 
-  /// Evaluation of the prior mean function at `keytimes'
-  std::map<Time, boost::shared_ptr<Eigen::VectorXd> > keytimeToMeanEvaluation_;
+  /// Coefficient maps (ordered and unordered for use cases)
+  std::map<Time, boost::shared_ptr<LinearSdeCoefficient> > keytimeToMeanSorted_;
+  boost::unordered_map<Time, boost::shared_ptr<LinearSdeCoefficient> > keytimeToMean_;
 
-  /// Evaluations of other commonly required vectors/matrices based on the drift/diffusion of the prior
-  boost::unordered_map<std::pair<Time,Time>, boost::shared_ptr<Eigen::VectorXd> > keytimesToLiftedExogenousInput_;
-  boost::unordered_map<std::pair<Time,Time>, boost::shared_ptr<Eigen::MatrixXd> > keytimesToStateTransitionMatrix_;
-  boost::unordered_map<std::pair<Time,Time>, boost::shared_ptr<Eigen::MatrixXd> > keytimesToInverseLiftedCovarianceMatrix_;
+  void updateFromExogenousInputChange(Time time);
+  void addExogenousInput(Time time, const ValueType& value, bool updateMean);
+
+  /// Add a keytime to the prior
+  virtual void addKeyTime(const Time& time);
+
+  /// Add a keytimes to the prior
+  virtual void addKeyTimes(const std::vector<Time>& times);
+
+  /// Clear the keytimes in the prior
+  virtual void clearKeyTimes();
 
 };
 

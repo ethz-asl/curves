@@ -3,18 +3,24 @@
 
 namespace curves {
 
-LtiCvGaussianProcessVectorSpacePrior::LtiCvGaussianProcessVectorSpacePrior(unsigned poseDimension, Eigen::MatrixXd stationaryPowerSpectralDensity) :
-    LtiSdeGaussianProcessVectorSpacePrior((Eigen::MatrixXd(2*poseDimension,2*poseDimension) << Eigen::MatrixXd::Zero(poseDimension,poseDimension), Eigen::MatrixXd::Identity(poseDimension,poseDimension),
-                                                                                               Eigen::MatrixXd::Zero(poseDimension,poseDimension), Eigen::MatrixXd::Zero(poseDimension,poseDimension)).finished(),
-                                          (Eigen::MatrixXd(2*poseDimension,poseDimension) << Eigen::MatrixXd::Identity(poseDimension,poseDimension), Eigen::MatrixXd::Zero(poseDimension,poseDimension)).finished(),
+LtiCvGaussianProcessVectorSpacePrior::LtiCvGaussianProcessVectorSpacePrior(Eigen::MatrixXd stationaryPowerSpectralDensity) :
+    LtiSdeGaussianProcessVectorSpacePrior((Eigen::MatrixXd(2*stationaryPowerSpectralDensity.rows(),2*stationaryPowerSpectralDensity.rows()) <<
+                                            Eigen::MatrixXd::Zero(stationaryPowerSpectralDensity.rows(),stationaryPowerSpectralDensity.rows()),
+                                            Eigen::MatrixXd::Identity(stationaryPowerSpectralDensity.rows(),stationaryPowerSpectralDensity.rows()),
+                                            Eigen::MatrixXd::Zero(stationaryPowerSpectralDensity.rows(),stationaryPowerSpectralDensity.rows()),
+                                            Eigen::MatrixXd::Zero(stationaryPowerSpectralDensity.rows(),stationaryPowerSpectralDensity.rows())).finished(),
+                                          (Eigen::MatrixXd(2*stationaryPowerSpectralDensity.rows(),stationaryPowerSpectralDensity.rows()) <<
+                                            Eigen::MatrixXd::Zero(stationaryPowerSpectralDensity.rows(),stationaryPowerSpectralDensity.rows()),
+                                            Eigen::MatrixXd::Identity(stationaryPowerSpectralDensity.rows(),stationaryPowerSpectralDensity.rows())).finished(),
                                           stationaryPowerSpectralDensity) {}
 
 LtiCvGaussianProcessVectorSpacePrior::~LtiCvGaussianProcessVectorSpacePrior() {}
 
 void LtiCvGaussianProcessVectorSpacePrior::print(const std::string& str) const {
-  std::cout << "=========================================" << std::endl;
-  std::cout << "=======LIN CV GAUSSIAN PROCESS PRIOR========" << std::endl;
-  std::cout << "=========================================" <<std::endl;
+  std::cout << "====================================" << std::endl;
+  std::cout << "======= LIN CV VEL GP PRIOR ========" << std::endl;
+  std::cout << str << std::endl;
+  LtiSdeGaussianProcessVectorSpacePrior::print("=> EXTENDED BY LIN CV VEL GP PRIOR");
 }
 
 /// To be implemented by SDE-form-specific class

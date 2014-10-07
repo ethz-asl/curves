@@ -32,7 +32,7 @@ void GaussianProcessVectorSpaceCurve::print(const std::string& str) const {
 }
 
 void GaussianProcessVectorSpaceCurve::getCoefficientsAt(const Time& time,
-                                                            Coefficient::Map* outCoefficients) const {
+                                                        Coefficient::Map* outCoefficients) const {
   CHECK_NOTNULL(outCoefficients);
   KeyCoefficientTime *rval0, *rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
@@ -42,8 +42,8 @@ void GaussianProcessVectorSpaceCurve::getCoefficientsAt(const Time& time,
 }
 
 void GaussianProcessVectorSpaceCurve::getCoefficientsInRange(Time startTime,
-                                                                 Time endTime, 
-                                                                 Coefficient::Map* outCoefficients) const {
+                                                             Time endTime,
+                                                             Coefficient::Map* outCoefficients) const {
   manager_.getCoefficientsInRange(startTime, endTime, outCoefficients);
 }
 
@@ -68,7 +68,7 @@ Time GaussianProcessVectorSpaceCurve::getMinTime() const {
 }
 
 void GaussianProcessVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
-                                                   const std::vector<Eigen::VectorXd>& values) {
+                                               const std::vector<Eigen::VectorXd>& values) {
   CHECK_EQ(times.size(), values.size());
 
   if(times.size() > 0) {
@@ -83,11 +83,13 @@ void GaussianProcessVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
       coefficients.push_back(Coefficient(values[i]));
     }
     manager_.insertCoefficients(times,coefficients,&outKeys);
+    prior_->clearKeyTimes();
+    prior_->addKeyTimes(times);
   }
 }
 
 void GaussianProcessVectorSpaceCurve::extend(const std::vector<Time>& times,
-                                                 const std::vector<ValueType>& values) {
+                                             const std::vector<ValueType>& values) {
 
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
   std::vector<Key> outKeys;
@@ -96,6 +98,7 @@ void GaussianProcessVectorSpaceCurve::extend(const std::vector<Time>& times,
     coefficients[i] = Coefficient(values[i]);
   }
   manager_.insertCoefficients(times, coefficients, &outKeys);
+  prior_->addKeyTimes(times);
 }
 
 Eigen::VectorXd GaussianProcessVectorSpaceCurve::evaluate(Time time) const {
@@ -124,7 +127,7 @@ Eigen::VectorXd GaussianProcessVectorSpaceCurve::evaluate(Time time) const {
   // Calculate the interpolation
   Eigen::VectorXd result = mean;
   for (unsigned int i = 0; i < interpCoefficients.size(); i++) {
-    result = result + (*outKtKinvMats.at(i))*(interpCoefficients.at(i)->coefficient.getValue() - *(outMeanAtKeyTimes.at(i)));
+    result = result + (*outKtKinvMats.at(i)) * (interpCoefficients.at(i)->coefficient.getValue() - *(outMeanAtKeyTimes.at(i)));
   }
   return result;
 }

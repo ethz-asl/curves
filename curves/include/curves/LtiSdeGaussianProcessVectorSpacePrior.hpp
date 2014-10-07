@@ -15,7 +15,7 @@ class LtiSdeGaussianProcessVectorSpacePrior : public LinearSdeGaussianProcessVec
   typedef Parent::CurveCoefficientManagerType CurveCoefficientManagerType;
 
   /// \brief Initialize with the dimension of the vector space
-  LtiSdeGaussianProcessVectorSpacePrior(Eigen::MatrixXd ltiDriftMatrix_, Eigen::MatrixXd ltiDiffusionMatrix_, Eigen::MatrixXd stationaryPowerSpectralDensity);
+  LtiSdeGaussianProcessVectorSpacePrior(Eigen::MatrixXd ltiDriftMatrix, Eigen::MatrixXd ltiDiffusionMatrix, Eigen::MatrixXd stationaryPowerSpectralDensity);
   virtual ~LtiSdeGaussianProcessVectorSpacePrior();
 
   /// Print the value of the coefficient, for debugging and unit tests
@@ -36,15 +36,18 @@ class LtiSdeGaussianProcessVectorSpacePrior : public LinearSdeGaussianProcessVec
   virtual Eigen::MatrixXd calculateLiftedCovarianceMatrix(Time time1, Time time2) const = 0;
   virtual Eigen::MatrixXd calculateInverseLiftedCovarianceMatrix(Time time1, Time time2) const = 0;
 
+  const Eigen::MatrixXd& getDriftMatrix() const {return ltiDriftMatrix_;}
+  const Eigen::MatrixXd& getDiffusionMatrix() const {return ltiDiffusionMatrix_;}
+
  private:
 
   /// Linear time-invariant drift matrix
   ///   --- see F in equation X, Anderson et al. (TBD)
-  const Eigen::MatrixXd ltiDriftMatrix__;
+  const Eigen::MatrixXd ltiDriftMatrix_;
 
   /// Linear time-invariant diffusion matrix
   ///   --- see L in equation X, Anderson et al. (TBD)
-  const Eigen::MatrixXd ltiDiffusionMatrix__;
+  const Eigen::MatrixXd ltiDiffusionMatrix_;
 
 };
 

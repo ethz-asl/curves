@@ -27,6 +27,21 @@ class GaussianProcessVectorSpacePrior : public VectorSpaceCurve
                                                     const std::vector<Eigen::VectorXd*>& outEvalAtKeyTimes,
                                                     const std::vector<Eigen::MatrixXd*>& outInterpMatrices) const = 0;
 
+  virtual unsigned getNumKeyTimes() const = 0;
+
+ private:
+
+  /// Add a keytime to the prior
+  virtual void addKeyTime(const Time& time) = 0;
+
+  /// Add a keytimes to the prior
+  virtual void addKeyTimes(const std::vector<Time>& times) = 0;
+
+  /// Clear the keytimes in the prior
+  virtual void clearKeyTimes() = 0;
+
+  /// The GP Curve is a friend class so that it can manipulate the keytimes to mirror it's own internal coefficient times
+  friend class GaussianProcessVectorSpaceCurve;
 
 };
 

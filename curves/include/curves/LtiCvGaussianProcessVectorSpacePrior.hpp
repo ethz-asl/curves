@@ -15,7 +15,7 @@ class LtiCvGaussianProcessVectorSpacePrior : public LtiSdeGaussianProcessVectorS
   typedef Parent::CurveCoefficientManagerType CurveCoefficientManagerType;
 
   /// \brief Initialize with the dimension of the vector space
-  LtiCvGaussianProcessVectorSpacePrior(unsigned poseDimension, Eigen::MatrixXd stationaryPowerSpectralDensity);
+  LtiCvGaussianProcessVectorSpacePrior(Eigen::MatrixXd stationaryPowerSpectralDensity);
   virtual ~LtiCvGaussianProcessVectorSpacePrior();
 
   /// Print the value of the coefficient, for debugging and unit tests
