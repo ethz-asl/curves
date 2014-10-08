@@ -82,9 +82,6 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
   virtual void setTimeRange(Time minTime, Time maxTime);
 
-  /// Returns the Key-Coefficient-Time-relationship
-  boost::unordered_map<Key, KeyCoefficientTime> getKeyCoefficientTime() const;
-
  private:
   HermiteCoefficientManager manager_;
 };

@@ -161,8 +161,4 @@ void LinearInterpolationVectorSpaceCurve::setTimeRange(Time minTime, Time maxTim
   CHECK(false) << "Not implemented";
 }
 
-boost::unordered_map<Key, KeyCoefficientTime> LinearInterpolationVectorSpaceCurve::getKeyCoefficientTime() const {
-  return manager_.getKeyCoefficientTime();
-}
-
 } // namespace curves
