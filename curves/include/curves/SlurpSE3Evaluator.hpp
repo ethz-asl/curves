@@ -1,24 +1,24 @@
-#ifndef CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_EVALUATOR_HPP
-#define CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_EVALUATOR_HPP
+#ifndef CURVES_SLURP_SE3_EVALUATOR_HPP
+#define CURVES_SLURP_SE3_EVALUATOR_HPP
 
 #include "Evaluator.hpp"
-#include "VectorSpaceConfig.hpp"
-#include "LinearInterpolationVectorSpaceCurve.hpp"
+#include "SE3Config.hpp"
+#include "SlurpSE3Curve.hpp"
 
 namespace curves {
 
 class Coefficients;
 
-class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConfig> {
+class SlurpSE3Evaluator : public Evaluator<SE3Config> {
 
  public:
 
-  typedef Evaluator<VectorSpaceConfig> Parent;
+  typedef Evaluator<SE3Config> Parent;
   typedef Parent::DerivativeType DerivativeType;
   typedef Parent::ValueType ValueType;
 
-  LinearInterpolationVectorSpaceEvaluator(const LinearInterpolationVectorSpaceCurve& curve, const Time& time);
-  virtual ~LinearInterpolationVectorSpaceEvaluator();
+  SlurpSE3Evaluator(const SlurpSE3Curve& curve, const Time& time);
+  virtual ~SlurpSE3Evaluator();
 
   virtual void getKeys(std::vector<Key> *outKeys) const;
 
@@ -68,4 +68,4 @@ class LinearInterpolationVectorSpaceEvaluator : public Evaluator<VectorSpaceConf
 } // namespace curves
 
 
-#endif /* CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_EVALUATOR_HPP */
+#endif /* CURVES_SLURP_SE3_EVALUATOR_HPP */

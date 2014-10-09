@@ -18,7 +18,7 @@ public:
   SE3Curve();
   virtual ~SE3Curve();
 
-  typedef Curve<SE3Config> CurveConfig;
+ /* typedef Curve<SE3Config> CurveConfig;
 
   /// The value type of the curve.
   typedef CurveConfig::ValueType ValueType;
@@ -28,7 +28,15 @@ public:
 
   typedef Evaluator<CurveConfig> EvaluatorType;
 
-  typedef EvaluatorType::Ptr EvaluatorTypePtr;
+  typedef EvaluatorType::Ptr EvaluatorTypePtr;*/
+
+
+  typedef Curve<SE3Config> Parent;
+  typedef Parent::ValueType ValueType;
+  typedef Parent::DerivativeType DerivativeType;
+  typedef Parent::EvaluatorType EvaluatorType;
+  typedef Parent::EvaluatorTypePtr EvaluatorTypePtr;
+
 
   /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
   virtual Eigen::Vector3d evaluateAngularVelocityA(Time time) = 0;
