@@ -17,8 +17,9 @@ cs_add_library(${PROJECT_NAME}
   src/LinearInterpolationVectorSpaceEvaluator.cpp
   src/Coefficients.cpp
   src/SE3Curve.cpp
-  src/SlurpSE3Curve.cpp
-  src/SlurpSE3Evaluator.cpp
+  src/SlerpSE3Curve.cpp
+  src/SlerpSE3Evaluator.cpp
+  src/SE3CoefficientImplementation.cpp
 )
 
 find_package(Boost REQUIRED COMPONENTS system thread)

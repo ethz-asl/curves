@@ -1,15 +1,15 @@
-#ifndef CURVES_SLURP_SE3_EVALUATOR_HPP
-#define CURVES_SLURP_SE3_EVALUATOR_HPP
+#ifndef CURVES_SLERP_SE3_EVALUATOR_HPP
+#define CURVES_SLERP_SE3_EVALUATOR_HPP
 
 #include "Evaluator.hpp"
 #include "SE3Config.hpp"
-#include "SlurpSE3Curve.hpp"
+#include "SlerpSE3Curve.hpp"
 
 namespace curves {
 
 class Coefficients;
 
-class SlurpSE3Evaluator : public Evaluator<SE3Config> {
+class SlerpSE3Evaluator : public Evaluator<SE3Config> {
 
  public:
 
@@ -17,8 +17,8 @@ class SlurpSE3Evaluator : public Evaluator<SE3Config> {
   typedef Parent::DerivativeType DerivativeType;
   typedef Parent::ValueType ValueType;
 
-  SlurpSE3Evaluator(const SlurpSE3Curve& curve, const Time& time);
-  virtual ~SlurpSE3Evaluator();
+  SlerpSE3Evaluator(const SlerpSE3Curve& curve, const Time& time);
+  virtual ~SlerpSE3Evaluator();
 
   virtual void getKeys(std::vector<Key> *outKeys) const;
 
@@ -68,4 +68,4 @@ class SlurpSE3Evaluator : public Evaluator<SE3Config> {
 } // namespace curves
 
 
-#endif /* CURVES_SLURP_SE3_EVALUATOR_HPP */
+#endif /* CURVES_SLERP_SE3_EVALUATOR_HPP */

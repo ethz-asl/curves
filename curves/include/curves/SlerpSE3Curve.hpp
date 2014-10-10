@@ -1,22 +1,22 @@
-#ifndef CURVES_SLURP_SE3_CURVE_HPP
-#define CURVES_SLURP_SE3_CURVE_HPP
+#ifndef CURVES_SLERP_SE3_CURVE_HPP
+#define CURVES_SLERP_SE3_CURVE_HPP
 
 #include "SE3Curve.hpp"
 #include "HermiteCoefficientManager.hpp"
 
-class SlurpSE3Evaluator; // Forward declaration
+class SlerpSE3Evaluator; // Forward declaration
 
 namespace curves {
 
-class SlurpSE3Curve : public SE3Curve {
+class SlerpSE3Curve : public SE3Curve {
  public:
   typedef SE3Curve::ValueType ValueType;
   typedef SE3Curve::DerivativeType DerivativeType;
   typedef SE3Curve::EvaluatorType EvaluatorType;
   typedef SE3Curve::EvaluatorTypePtr EvaluatorTypePtr;
 
-  SlurpSE3Curve();
-  virtual ~SlurpSE3Curve();
+  SlerpSE3Curve();
+  virtual ~SlerpSE3Curve();
 
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
@@ -140,6 +140,6 @@ class SlurpSE3Curve : public SE3Curve {
 
 } // namespace curves
 
-#include "SlurpSE3Evaluator.hpp"
+#include "SlerpSE3Evaluator.hpp"
 
-#endif /* CURVES_SLURP_SE3_CURVE_HPP */
+#endif /* CURVES_SLERP_SE3_CURVE_HPP */
