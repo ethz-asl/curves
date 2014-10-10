@@ -69,6 +69,9 @@ class Coefficient
   /// @return The coordinates of \c value in the chart.
   Eigen::VectorXd localCoordinates(const Coefficient& value) const;
 
+  // todo: wouldn't something like this be more efficient?:
+  //void localCoordinates(const Coefficient& value, Eigen::VectorXd* local) const;
+
   /// Get the value of the underlying coefficient
   const Eigen::VectorXd& getValue() const;
 

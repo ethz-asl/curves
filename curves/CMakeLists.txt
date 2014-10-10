@@ -29,6 +29,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
   test/test_main.cpp
   test/test_HermiteCoefficientManager.cpp
   test/test_Coefficient.cpp
+  test/test_SE3Coefficient.cpp
 )
 
 message(glog_catkin_LIBRARIES: ${glog_catkin_LIBRARIES})

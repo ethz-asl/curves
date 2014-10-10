@@ -10,11 +10,12 @@ class SE3CoefficientImplementation : public CoefficientImplementation
  public:
   /// \brief Initialize this with the dimension of
   ///        the vector space.
-  SE3CoefficientImplementation(unsigned dimension);
+  SE3CoefficientImplementation();
 
   virtual ~SE3CoefficientImplementation();
 
-
+  void makeValue(const Eigen::Matrix4d& matrix, Eigen::VectorXd *outValue) const;
+  
   /// Compare this Coeficient with another for equality.
   virtual bool equals(const Eigen::VectorXd& thisCoeff, 
                       const Eigen::VectorXd& otherCoeff,
@@ -38,12 +39,12 @@ class SE3CoefficientImplementation : public CoefficientImplementation
   /// the dimensionality of \c delta passed into retract() and of the vector
   /// returned by localCoordinates().
   /// @return The dimension of the chart
-  virtual size_t dim() const;
+  virtual size_t dim() const { return 6u; }
 
   /// Return the dimensionality of the ambient space for this coefficient.  
   /// This is the dimensionality the actual coefficient vector.
   /// @return The dimension of the ambient space
-  virtual size_t ambientDim() const;
+  virtual size_t ambientDim() const { return 7u; }
 
   /// Increment the value, by mapping from the vector delta in the
   /// chart of the coefficient back to the manifold to produce a new,
@@ -65,9 +66,6 @@ class SE3CoefficientImplementation : public CoefficientImplementation
   virtual void localCoordinates(const Eigen::VectorXd& thisCoeff, 
                                 const Eigen::VectorXd& otherCoeff,
                                 Eigen::VectorXd* outLocalCoordinates) const;
-
- private:
-  size_t dimension_;
 };
 
 
