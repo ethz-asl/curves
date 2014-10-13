@@ -1,10 +1,15 @@
 #include <curves/SlerpSE3Evaluator.hpp>
 #include <curves/Coefficients.hpp>
 #include <iostream>
+#include "kindr/minimal/quat-transformation.h"
 
 using namespace std;
 
 namespace curves {
+
+typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
+typedef SE3::Rotation SO3;
+
 
 SlerpSE3Evaluator::SlerpSE3Evaluator(const SlerpSE3Curve& curve, const Time& time){
   KeyCoefficientTime *coeff0, *coeff1;
@@ -20,7 +25,6 @@ SlerpSE3Evaluator::SlerpSE3Evaluator(const SlerpSE3Curve& curve, const Time& tim
     Time t = time - coeff0->time;
     alpha_ = double(t)/double(dt);
   }
-  dimension_ = curve.dim();
 }
 
 SlerpSE3Evaluator::~SlerpSE3Evaluator() {}
@@ -46,14 +50,35 @@ std::vector<Key>::const_iterator SlerpSE3Evaluator::keyEnd() const {
 
 SlerpSE3Evaluator::ValueType SlerpSE3Evaluator::evaluate(
     const std::vector<Coefficient>& coefficients) const {
-
-//  return coefficients[0].getValue() * (1.0 - alpha_) + coefficients[1].getValue() * alpha_;
+//  const Eigen::VectorXd& coeffA = coefficients[0].getValue();
+//  const Eigen::VectorXd& coeffB = coefficients[1].getValue();
+//
+//  SE3 w_T_a(SO3(SO3::Vector4(coeffA.segment<4>(3))),coeffA.head<3>());
+//  SE3 w_T_b(SO3(SO3::Vector4(coeffB.segment<4>(3))),coeffB.head<3>());
+//
+//  SE3 a_T_b = w_T_a.inverted()*w_T_b;
+//  SE3::Vector6 delta = a_T_b.log()*alpha_;
+//
+//  SE3 a_T_i = SE3(delta);
+//
+//  return (w_T_a*a_T_i).getTransformationMatrix();
+  CHECK(false) << "Implement this if necessary.";
 }
 
 SlerpSE3Evaluator::ValueType SlerpSE3Evaluator::evaluate(
     const Coefficients& coefficients) const {
+  const Eigen::VectorXd& coeffA = coefficients.get(keys_[0]).getValue();
+  const Eigen::VectorXd& coeffB = coefficients.get(keys_[1]).getValue();
 
-//  return coefficients.get(keys_[0]).getValue() * (1.0 - alpha_) + coefficients.get(keys_[1]).getValue() * alpha_;
+  SE3 w_T_a(SO3(SO3::Vector4(coeffA.segment<4>(3))),coeffA.head<3>());
+  SE3 w_T_b(SO3(SO3::Vector4(coeffB.segment<4>(3))),coeffB.head<3>());
+
+  SE3 a_T_b = w_T_a.inverted()*w_T_b;
+  SE3::Vector6 delta = a_T_b.log()*alpha_;
+
+  SE3 a_T_i = SE3(delta);
+
+  return (w_T_a*a_T_i).getTransformationMatrix();
 }
 
 void SlerpSE3Evaluator::getJacobians(unsigned derivativeOrder,
@@ -64,9 +89,12 @@ void SlerpSE3Evaluator::getJacobians(unsigned derivativeOrder,
   CHECK_EQ(derivativeOrder, 0);
   CHECK_NOTNULL(jacobians[0]);
   CHECK_NOTNULL(jacobians[1]);
+  CHECK_EQ(6,chainRule.rows());
+  CHECK_EQ(6,chainRule.cols());
+
   //TODO check matrix sizes should be chainRule.rows() x coefficient.ndim()
-  *(jacobians[0]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * (1.0 - alpha_);
-  *(jacobians[1]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * alpha_;
+  *(jacobians[0]) += chainRule * Eigen::MatrixXd::Identity(6,6) * (1.0 - alpha_);
+  *(jacobians[1]) += chainRule * Eigen::MatrixXd::Identity(6,6) * alpha_;
 }
 
 /// Evaluate the ambient space of the curve

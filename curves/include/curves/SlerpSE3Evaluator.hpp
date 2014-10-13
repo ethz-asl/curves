@@ -61,7 +61,6 @@ class SlerpSE3Evaluator : public Evaluator<SE3Config> {
 
   std::vector<Key> keys_;
   double alpha_;
-  size_t dimension_;
 
 };
 
