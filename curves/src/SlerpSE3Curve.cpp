@@ -1,4 +1,5 @@
 #include <curves/SlerpSE3Curve.hpp>
+#include <curves/SE3CoefficientImplementation.hpp>
 #include <iostream>
 
 namespace curves {
@@ -81,21 +82,25 @@ Time SlerpSE3Curve::getMinTime() const {
 
 void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
                                                    const std::vector<SlerpSE3Curve::ValueType>& values) {
-//  CHECK_EQ(times.size(), values.size());
-//
-//  if(times.size() > 0) {
-//    manager_.clear();
-//    std::vector<Key> outKeys;
-//    outKeys.reserve(times.size());
-//    std::vector<Coefficient> coefficients;
-//    coefficients.reserve(times.size());
-//    size_t vsize = values[0].size();
-//    for(size_t i = 0; i < values.size(); ++i) {
-//      CHECK_EQ(vsize, values[i].size()) << "The vectors must be uniform length.";
-//      coefficients.push_back(Coefficient(values[i]));
-//    }
-//    manager_.insertCoefficients(times,coefficients,&outKeys);
-//  }
+  CHECK_EQ(times.size(), values.size());
+
+  if(times.size() > 0) {
+    Eigen::VectorXd val(7);
+    manager_.clear();
+    std::vector<Key> outKeys;
+    outKeys.reserve(times.size());
+    std::vector<Coefficient> coefficients;
+    coefficients.reserve(times.size());
+    size_t vsize = values[0].size();
+    for(size_t i = 0; i < values.size(); ++i) {
+      CHECK_EQ(vsize, values[i].size()) << "The vectors must be uniform length.";
+      CoefficientImplementation::Ptr impl(new SE3CoefficientImplementation);
+      boost::dynamic_pointer_cast<SE3CoefficientImplementation>(impl)->makeValue(values[i],&val);
+      Coefficient c1(impl,val);
+      coefficients.push_back(c1);
+    }
+    manager_.insertCoefficients(times,coefficients,&outKeys);
+  }
 }
 
 void SlerpSE3Curve::extend(const std::vector<Time>& times,

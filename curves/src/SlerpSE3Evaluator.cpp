@@ -69,15 +69,11 @@ SlerpSE3Evaluator::ValueType SlerpSE3Evaluator::evaluate(
     const Coefficients& coefficients) const {
   const Eigen::VectorXd& coeffA = coefficients.get(keys_[0]).getValue();
   const Eigen::VectorXd& coeffB = coefficients.get(keys_[1]).getValue();
-
   SE3 w_T_a(SO3(SO3::Vector4(coeffA.segment<4>(3))),coeffA.head<3>());
   SE3 w_T_b(SO3(SO3::Vector4(coeffB.segment<4>(3))),coeffB.head<3>());
-
   SE3 a_T_b = w_T_a.inverted()*w_T_b;
   SE3::Vector6 delta = a_T_b.log()*alpha_;
-
   SE3 a_T_i = SE3(delta);
-
   return (w_T_a*a_T_i).getTransformationMatrix();
 }
 
@@ -85,6 +81,8 @@ void SlerpSE3Evaluator::getJacobians(unsigned derivativeOrder,
                                                            const Coefficients& /* coefficients */,
                                                            const Eigen::MatrixXd& chainRule,
                                                            const std::vector<Eigen::MatrixXd*>& jacobians) const {
+
+  std::cout << __FILE__ << " : " << __LINE__ << std::endl;
   // TODO(Abel and Renaud) implement velocity
   CHECK_EQ(derivativeOrder, 0);
   CHECK_NOTNULL(jacobians[0]);
@@ -92,6 +90,7 @@ void SlerpSE3Evaluator::getJacobians(unsigned derivativeOrder,
   CHECK_EQ(6,chainRule.rows());
   CHECK_EQ(6,chainRule.cols());
 
+  std::cout << __FILE__ << " : " << __LINE__ << std::endl;
   //TODO check matrix sizes should be chainRule.rows() x coefficient.ndim()
   *(jacobians[0]) += chainRule * Eigen::MatrixXd::Identity(6,6) * (1.0 - alpha_);
   *(jacobians[1]) += chainRule * Eigen::MatrixXd::Identity(6,6) * alpha_;

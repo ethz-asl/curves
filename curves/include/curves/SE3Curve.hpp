@@ -14,11 +14,11 @@ namespace curves {
 // points from Frame b to Frame a.
 //
 class SE3Curve : public Curve<SE3Config> {
-public:
+ public:
   SE3Curve();
   virtual ~SE3Curve();
 
- /* typedef Curve<SE3Config> CurveConfig;
+  /* typedef Curve<SE3Config> CurveConfig;
 
   /// The value type of the curve.
   typedef CurveConfig::ValueType ValueType;
@@ -81,8 +81,11 @@ public:
   ///        expressed in Frame b. The return value has the linear velocity (0,1,2),
   ///        and the angular velocity (3,4,5).
   virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time) = 0;
+
+  /// \brief Get the dimension of this curve
+  virtual size_t dim() const;
   ///@}
-private:
+ private:
 };
 
 }  // namespace curves
