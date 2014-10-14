@@ -54,7 +54,7 @@ class Evaluator : public EvaluatorBase
   virtual void getJacobians(unsigned derivativeOrder,
                             const Coefficients& coefficients,
                             const Eigen::MatrixXd& chainRule,
-                            const std::vector<Eigen::MatrixXd*>* jacobians) const = 0;
+                            const std::vector<Eigen::MatrixXd*>& jacobians) const = 0;
 
   /// Get the maximum derivative order supported by this evaluator.
   size_t getMaximumDerivativeOrder() const;
