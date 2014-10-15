@@ -24,6 +24,10 @@ class GaussianProcessVectorSpaceCurve : public VectorSpaceCurve {
   virtual void print(const std::string& str = "") const;
 
   /// \brief Get the coefficients that are active at a certain time.
+  /// \todo this should be removed in lieu of something that returns a vector
+  virtual void appendCoefficientsAt(const Time& time, std::vector<KeyCoefficientTime*>* outCoefficients) const;
+
+  /// \brief Get the coefficients that are active at a certain time.
   virtual void getCoefficientsAt(const Time& time,
                                  Coefficient::Map* outCoefficients) const;
 
@@ -78,8 +82,7 @@ class GaussianProcessVectorSpaceCurve : public VectorSpaceCurve {
 
   virtual void setTimeRange(Time minTime, Time maxTime);
 
-  /// Returns the Key-Coefficient-Time-relationship
-  boost::unordered_map<Key, KeyCoefficientTime> getKeyCoefficientTime() const;
+  boost::shared_ptr<GaussianProcessVectorSpacePrior> getPrior() const { return prior_; }
 
  private:
   /// Shared pointer to the prior, which determines the type of iterpolation and available sparsity

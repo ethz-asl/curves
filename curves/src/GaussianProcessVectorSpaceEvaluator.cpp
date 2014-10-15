@@ -1,32 +1,21 @@
 #include <curves/GaussianProcessVectorSpaceEvaluator.hpp>
 #include <curves/Coefficients.hpp>
 #include <iostream>
+
 using namespace std;
 
 namespace curves {
 
 GaussianProcessVectorSpaceEvaluator::GaussianProcessVectorSpaceEvaluator(const GaussianProcessVectorSpaceCurve& curve,
-                                                                         const Time& time) {
-  KeyCoefficientTime *coeff0, *coeff1;
-  //curve.getCoefficientsAt(time, &coeff0, &coeff1);
-  keys_.push_back(coeff0->key);
-  keys_.push_back(coeff1->key);
+                                                                         const Time& time) : prior_(curve.getPrior()), queryTime_(time) {
+  std::vector<KeyCoefficientTime*> coeffs;
+  curve.appendCoefficientsAt(queryTime_, &coeffs);
 
-  // for each key, get the coefficients?
-  //std::vector<Coefficient> priorMeanCoefficients_;
-  //ValueType priorMeanEval_;
-  //std::vector<Eigen::MatrixXd> interpMatEvals_;
-
-  // Compute alpha_
-  Time dt = coeff1->time - coeff0->time;
-  if(dt == 0) {
-    //alpha_ = 1.0;
-  } else {
-    Time t = time - coeff0->time;
-    //alpha_ = double(t)/double(dt);
+  for (std::vector<KeyCoefficientTime*>::const_iterator it = coeffs.begin(); it != coeffs.end(); ++it) {
+    keys_.push_back((*it)->key);
+    keyTimes_.push_back((*it)->time);
   }
 
-  dimension_ = curve.dim();
 }
 
 GaussianProcessVectorSpaceEvaluator::~GaussianProcessVectorSpaceEvaluator() {}
@@ -41,28 +30,87 @@ void GaussianProcessVectorSpaceEvaluator::appendKeys(std::vector<Key> *outKeys) 
   outKeys->insert(outKeys->end(), keys_.begin(), keys_.end());
 }
 
+std::vector<Key>::const_iterator GaussianProcessVectorSpaceEvaluator::keyBegin() const {
+  return keys_.begin();
+}
+
+std::vector<Key>::const_iterator GaussianProcessVectorSpaceEvaluator::keyEnd() const {
+  return keys_.end();
+}
+
 GaussianProcessVectorSpaceEvaluator::ValueType GaussianProcessVectorSpaceEvaluator::evaluate(
     const std::vector<Coefficient>& coefficients) const {
+  CHECK_EQ(coefficients.size(), keys_.size()) << "coefficients and keys do not have matching size.";
 
-  return coefficients[0].getValue() * 0.5 + coefficients[1].getValue() * 0.5;
+  // Allocate memory for outputs
+  std::vector<Eigen::VectorXd*> outMeanAtKeyTimes;
+  std::vector<Eigen::MatrixXd*> outKtKinvMats;
+  for (unsigned int i = 0; i < keys_.size(); i++) {
+    outMeanAtKeyTimes.push_back( new Eigen::VectorXd(prior_->dim()) );
+    outKtKinvMats.push_back( new Eigen::MatrixXd(prior_->dim(),prior_->dim()) );
+  }
+
+  // Get interpolation information from prior
+  Eigen::VectorXd mean = prior_->evaluateAndInterpMatrices(queryTime_, keyTimes_, outMeanAtKeyTimes, outKtKinvMats);
+
+  // Calculate the interpolation
+  GaussianProcessVectorSpaceEvaluator::ValueType result = mean;
+  for (unsigned int i = 0; i < keys_.size(); i++) {
+    result = result + (*outKtKinvMats.at(i)) * (coefficients.at(i).getValue() - *(outMeanAtKeyTimes.at(i)));
+  }
+  return result;
+
 }
 
 GaussianProcessVectorSpaceEvaluator::ValueType GaussianProcessVectorSpaceEvaluator::evaluate(
     const Coefficients& coefficients) const {
 
-  return coefficients.get(keys_[0]).getValue() * 0.5 + coefficients.get(keys_[1]).getValue() * 0.5;
+  // Allocate memory for outputs
+  std::vector<Eigen::VectorXd*> outMeanAtKeyTimes;
+  std::vector<Eigen::MatrixXd*> outKtKinvMats;
+  for (unsigned int i = 0; i < keys_.size(); i++) {
+    outMeanAtKeyTimes.push_back( new Eigen::VectorXd(prior_->dim()) );
+    outKtKinvMats.push_back( new Eigen::MatrixXd(prior_->dim(),prior_->dim()) );
+  }
+
+  // Get interpolation information from prior
+  Eigen::VectorXd mean = prior_->evaluateAndInterpMatrices(queryTime_, keyTimes_, outMeanAtKeyTimes, outKtKinvMats);
+
+  // Calculate the interpolation
+  GaussianProcessVectorSpaceEvaluator::ValueType result = mean;
+  for (unsigned int i = 0; i < keys_.size(); i++) {
+    result = result + (*outKtKinvMats.at(i)) * (coefficients.get(keys_[i]).getValue() - *(outMeanAtKeyTimes.at(i)));
+  }
+  return result;
 }
 
+// TODO - this function is pretty inefficient! would be better to just use evalAndJacobian for GPs, unless we save Jacs.
 void GaussianProcessVectorSpaceEvaluator::getJacobians(unsigned derivativeOrder,
                                                        const Coefficients& /* coefficients */,
                                                        const Eigen::MatrixXd& chainRule,
-                                                       const std::vector<Eigen::MatrixXd*>* jacobians) const {
+                                                       const std::vector<Eigen::MatrixXd*>& jacobians) const {
+  // TODO(Sean) implement velocity
   CHECK_EQ(derivativeOrder, 0);
-  CHECK_NOTNULL(jacobians);
-  CHECK_NOTNULL((*jacobians)[0]);
-  CHECK_NOTNULL((*jacobians)[1]);
-  *((*jacobians)[0]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * 0.5;
-  *((*jacobians)[1]) += chainRule * Eigen::MatrixXd::Identity(dimension_,dimension_) * 0.5;
+  CHECK_EQ(jacobians.size(), keys_.size()) << "number of jacobians and keys do not match.";
+  for (unsigned i = 0; i < jacobians.size(); i++) {
+    CHECK_NOTNULL(jacobians[i]);
+  }
+
+  // Allocate memory for outputs
+  std::vector<Eigen::VectorXd*> outMeanAtKeyTimes;
+  std::vector<Eigen::MatrixXd*> outKtKinvMats;
+  for (unsigned int i = 0; i < keys_.size(); i++) {
+    outMeanAtKeyTimes.push_back( new Eigen::VectorXd(prior_->dim()) );
+    outKtKinvMats.push_back( new Eigen::MatrixXd(prior_->dim(),prior_->dim()) );
+  }
+
+  // Get interpolation information from prior
+  prior_->evaluateAndInterpMatrices(queryTime_, keyTimes_, outMeanAtKeyTimes, outKtKinvMats);
+
+  //TODO check matrix sizes should be chainRule.rows() x coefficient.ndim()
+  for (unsigned int i = 0; i < keys_.size(); i++) {
+    *(jacobians[i]) += chainRule * (*outKtKinvMats[i]);
+  }
 }
 
 ///

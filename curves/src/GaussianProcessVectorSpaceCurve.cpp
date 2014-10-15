@@ -41,6 +41,18 @@ void GaussianProcessVectorSpaceCurve::getCoefficientsAt(const Time& time,
   (*outCoefficients)[rval1->key] = rval1->coefficient;
 }
 
+void GaussianProcessVectorSpaceCurve::appendCoefficientsAt(const Time& time,
+                                                           std::vector<KeyCoefficientTime*>* outCoefficients) const {
+  if (time == this->getMaxTime()) {
+    std::cout <<"max time reached" << std::endl;
+  }
+  KeyCoefficientTime *coeff0, *coeff1;
+  bool success = manager_.getCoefficientsAt(time, &coeff0, &coeff1);
+  CHECK(success) << "Unable to get the coefficients at time " << time;
+  outCoefficients->push_back(coeff0);
+  outCoefficients->push_back(coeff1);
+}
+
 void GaussianProcessVectorSpaceCurve::getCoefficientsInRange(Time startTime,
                                                              Time endTime,
                                                              Coefficient::Map* outCoefficients) const {
@@ -117,8 +129,8 @@ Eigen::VectorXd GaussianProcessVectorSpaceCurve::evaluate(Time time) const {
   std::vector<Eigen::MatrixXd*> outKtKinvMats;
   for (unsigned int i = 0; i < interpCoefficients.size(); i++) {
     keyTimes.push_back(interpCoefficients.at(i)->time);
-    outMeanAtKeyTimes.push_back( new Eigen::VectorXd(this->dim()) );
-    outKtKinvMats.push_back( new Eigen::MatrixXd(this->dim(),this->dim()) );
+    outMeanAtKeyTimes.push_back( new Eigen::VectorXd(prior_->dim()) );
+    outKtKinvMats.push_back( new Eigen::MatrixXd(prior_->dim(),prior_->dim()) );
   }
 
   // Get interpolation information from prior
@@ -133,9 +145,13 @@ Eigen::VectorXd GaussianProcessVectorSpaceCurve::evaluate(Time time) const {
 }
 
 Eigen::VectorXd GaussianProcessVectorSpaceCurve::evaluateDerivative(Time time, unsigned derivativeOrder) const {
-  // \todo Sean
-  CHECK(false) << "Not implemented";
-  return Eigen::VectorXd::Zero(this->dim());
+  if (derivativeOrder == 0) {
+    return evaluate(time);
+  } else {
+    // \todo Sean
+    CHECK(false) << "Not implemented";
+    return Eigen::VectorXd::Zero(prior_->dim());
+  }
 }
 
 /// \brief Get an evaluator at this time
@@ -149,8 +165,5 @@ void GaussianProcessVectorSpaceCurve::setTimeRange(Time minTime, Time maxTime) {
   CHECK(false) << "Not implemented";
 }
 
-boost::unordered_map<Key, KeyCoefficientTime> GaussianProcessVectorSpaceCurve::getKeyCoefficientTime() const {
-  return manager_.getKeyCoefficientTime();
-}
 
 } // namespace curves

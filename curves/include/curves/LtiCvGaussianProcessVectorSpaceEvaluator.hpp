@@ -1,32 +1,23 @@
-#ifndef CURVES_GAUSSIAN_PROCESS_VECTOR_SPACE_EVALUATOR_HPP
-#define CURVES_GAUSSIAN_PROCESS_VECTOR_SPACE_EVALUATOR_HPP
+#ifndef CURVES_LTI_CONSTANT_VELOCITY_GAUSSIAN_PROCESS_VECTOR_SPACE_EVALUATOR_HPP
+#define CURVES_LTI_CONSTANT_VELOCITY_GAUSSIAN_PROCESS_VECTOR_SPACE_EVALUATOR_HPP
 
-#include "Evaluator.hpp"
-#include "VectorSpaceConfig.hpp"
-#include "GaussianProcessVectorSpaceCurve.hpp"
+#include "curves/LtiCvGaussianProcessVectorSpaceCurve.hpp"
+#include "curves/GaussianProcessVectorSpaceEvaluator.hpp"
 
 namespace curves {
 
 class Coefficients;
 
-class GaussianProcessVectorSpaceEvaluator : public Evaluator<VectorSpaceConfig> {
+class LtiCvGaussianProcessVectorSpaceEvaluator : public GaussianProcessVectorSpaceEvaluator {
 
  public:
 
-  typedef Evaluator<VectorSpaceConfig> Parent;
+  typedef GaussianProcessVectorSpaceEvaluator Parent;
   typedef Parent::DerivativeType DerivativeType;
   typedef Parent::ValueType ValueType;
 
-  GaussianProcessVectorSpaceEvaluator(const GaussianProcessVectorSpaceCurve& curve, const Time& time);
-  virtual ~GaussianProcessVectorSpaceEvaluator();
-
-  virtual void getKeys(std::vector<Key> *outKeys) const;
-
-  virtual void appendKeys(std::vector<Key> *outKeys) const;
-
-  virtual std::vector<Key>::const_iterator keyBegin() const;
-
-  virtual std::vector<Key>::const_iterator keyEnd() const;
+  LtiCvGaussianProcessVectorSpaceEvaluator(const LtiCvGaussianProcessVectorSpaceCurve& curve, const Time& time);
+  virtual ~LtiCvGaussianProcessVectorSpaceEvaluator();
 
   /// Evaluate the ambient space of the curve (functional form) by specifying new coefficients.
   virtual ValueType evaluate(const std::vector<Coefficient>& coefficients) const;
@@ -58,17 +49,7 @@ class GaussianProcessVectorSpaceEvaluator : public Evaluator<VectorSpaceConfig> 
   virtual ValueType evaluateDerivative(unsigned derivativeOrder,
                                        const Coefficients& coefficients) const;
 
- protected:
-  std::vector<Key> keys_;
-
-  Time queryTime_;
-  std::vector<Time> keyTimes_;
-  boost::shared_ptr<const GaussianProcessVectorSpacePrior> prior_;
-
-  //std::vector<Coefficient> coefficients_;
-  //std::vector<Coefficient> priorMeanCoefficients_;
-  //ValueType priorMeanEval_;
-  //std::vector<Eigen::MatrixXd> interpMatEvals_;
+ private:
 
 
 };
@@ -76,4 +57,4 @@ class GaussianProcessVectorSpaceEvaluator : public Evaluator<VectorSpaceConfig> 
 } // namespace curves
 
 
-#endif /* CURVES_GAUSSIAN_PROCESS_VECTOR_SPACE_EVALUATOR_HPP */
+#endif /* CURVES_LTI_CONSTANT_VELOCITY_GAUSSIAN_PROCESS_VECTOR_SPACE_EVALUATOR_HPP */

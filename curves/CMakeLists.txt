@@ -21,6 +21,8 @@ set(CURVE_SRC
   include/curves/LinearInterpolationVectorSpaceCurve.hpp
   include/curves/LinearInterpolationVectorSpaceEvaluator.hpp
   include/curves/LinearSdeGaussianProcessVectorSpacePrior.hpp
+  include/curves/LtiCvGaussianProcessVectorSpaceCurve.hpp
+  include/curves/LtiCvGaussianProcessVectorSpaceEvaluator.hpp
   include/curves/LtiCvGaussianProcessVectorSpacePrior.hpp
   include/curves/LtiSdeGaussianProcessVectorSpacePrior.hpp
   include/curves/ScalarCurveConfig.hpp
@@ -40,6 +42,8 @@ set(CURVE_SRC
   src/LinearInterpolationVectorSpaceCurve.cpp
   src/LinearInterpolationVectorSpaceEvaluator.cpp
   src/LinearSdeGaussianProcessVectorSpacePrior.cpp
+  src/LtiCvGaussianProcessVectorSpaceCurve.cpp
+  src/LtiCvGaussianProcessVectorSpaceEvaluator.cpp
   src/LtiCvGaussianProcessVectorSpacePrior.cpp
   src/LtiSdeGaussianProcessVectorSpacePrior.cpp
   src/VectorSpaceCoefficientImplementation.cpp
