@@ -9,7 +9,7 @@ namespace curves {
 
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
-
+typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
 
 SlerpSE3Evaluator::SlerpSE3Evaluator(const SlerpSE3Curve& curve, const Time& time){
   KeyCoefficientTime *coeff0, *coeff1;
@@ -69,12 +69,19 @@ SlerpSE3Evaluator::ValueType SlerpSE3Evaluator::evaluate(
     const Coefficients& coefficients) const {
   const Eigen::VectorXd& coeffA = coefficients.get(keys_[0]).getValue();
   const Eigen::VectorXd& coeffB = coefficients.get(keys_[1]).getValue();
-  SE3 w_T_a(SO3(SO3::Vector4(coeffA.segment<4>(3))),coeffA.head<3>());
-  SE3 w_T_b(SO3(SO3::Vector4(coeffB.segment<4>(3))),coeffB.head<3>());
-  SE3 a_T_b = w_T_a.inverted()*w_T_b;
-  SE3::Vector6 delta = a_T_b.log()*alpha_;
-  SE3 a_T_i = SE3(delta);
-  return (w_T_a*a_T_i).getTransformationMatrix();
+
+  SO3 w_R_a(SO3::Vector4(coeffA.segment<4>(3)));
+  SO3 w_R_b(SO3::Vector4(coeffB.segment<4>(3)));
+
+  SE3::Position w_t_a(coeffA.head<3>());
+  SE3::Position w_t_b(coeffB.head<3>());
+
+  SO3 a_R_b = w_R_a.inverted()*w_R_b;
+  AngleAxis delta(a_R_b);
+  delta.setAngle( delta.angle()*alpha_ );
+  SE3 w_T_i(w_R_a*SO3(delta)  , (w_t_a*(1-alpha_)+w_t_b*alpha_).eval());
+
+  return (w_T_i).getTransformationMatrix();
 }
 
 void SlerpSE3Evaluator::getJacobians(unsigned derivativeOrder,
@@ -82,7 +89,6 @@ void SlerpSE3Evaluator::getJacobians(unsigned derivativeOrder,
                                                            const Eigen::MatrixXd& chainRule,
                                                            const std::vector<Eigen::MatrixXd*>& jacobians) const {
 
-  std::cout << __FILE__ << " : " << __LINE__ << std::endl;
   // TODO(Abel and Renaud) implement velocity
   CHECK_EQ(derivativeOrder, 0);
   CHECK_NOTNULL(jacobians[0]);
@@ -90,7 +96,6 @@ void SlerpSE3Evaluator::getJacobians(unsigned derivativeOrder,
   CHECK_EQ(6,chainRule.rows());
   CHECK_EQ(6,chainRule.cols());
 
-  std::cout << __FILE__ << " : " << __LINE__ << std::endl;
   //TODO check matrix sizes should be chainRule.rows() x coefficient.ndim()
   *(jacobians[0]) += chainRule * Eigen::MatrixXd::Identity(6,6) * (1.0 - alpha_);
   *(jacobians[1]) += chainRule * Eigen::MatrixXd::Identity(6,6) * alpha_;
