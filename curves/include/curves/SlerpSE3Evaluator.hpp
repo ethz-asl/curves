@@ -33,16 +33,16 @@ class SlerpSE3Evaluator : public Evaluator<SE3Config> {
 
   /// Evaluate the curve derivatives (functional form).
   virtual ValueType evaluateDerivative(unsigned derivativeOrder,
-                                             const std::vector<Coefficient>& coefficients) const;
+                                       const std::vector<Coefficient>& coefficients) const;
 
   /// Evaluate the ambient space of the curve (functional form).
   virtual ValueType evaluateAndJacobian(const std::vector<Coefficient>& coefficients,
-                                                    std::vector<Eigen::MatrixXd>* outJacobian) const;
+                                        std::vector<Eigen::MatrixXd>* outJacobian) const;
 
   /// Evaluate the curve derivatives (functional form).
   virtual ValueType evaluateDerivativeAndJacobian(unsigned derivativeOrder,
-                                                        const std::vector<Coefficient>& coefficients,
-                                                        std::vector<Eigen::MatrixXd>* outJacobian) const;
+                                                  const std::vector<Coefficient>& coefficients,
+                                                  std::vector<Eigen::MatrixXd>* outJacobian) const;
 
   /// Evaluate the ambient space of the curve
   virtual ValueType evaluate(const Coefficients& coefficients) const;
@@ -65,6 +65,5 @@ class SlerpSE3Evaluator : public Evaluator<SE3Config> {
 };
 
 } // namespace curves
-
 
 #endif /* CURVES_SLERP_SE3_EVALUATOR_HPP */

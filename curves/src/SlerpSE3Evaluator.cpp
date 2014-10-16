@@ -3,7 +3,17 @@
 #include <iostream>
 #include "kindr/minimal/quat-transformation.h"
 
+#include <unsupported/Eigen/MatrixFunctions>
+
 using namespace std;
+
+Eigen::Matrix3d crossOperator(Eigen::Vector3d vector){
+  Eigen::Matrix3d rval;
+  rval << 0.0, -vector(2), vector(1),
+      vector(2), 0.0, -vector(0),
+      -vector(1), vector(0), 0.0;
+  return rval;
+}
 
 namespace curves {
 
@@ -85,9 +95,11 @@ SlerpSE3Evaluator::ValueType SlerpSE3Evaluator::evaluate(
 }
 
 void SlerpSE3Evaluator::getJacobians(unsigned derivativeOrder,
-                                                           const Coefficients& /* coefficients */,
+                                                           const Coefficients& coefficients,
                                                            const Eigen::MatrixXd& chainRule,
                                                            const std::vector<Eigen::MatrixXd*>& jacobians) const {
+
+  typedef Eigen::Matrix3d Matrix3d;
 
   // TODO(Abel and Renaud) implement velocity
   CHECK_EQ(derivativeOrder, 0);
@@ -96,9 +108,43 @@ void SlerpSE3Evaluator::getJacobians(unsigned derivativeOrder,
   CHECK_EQ(6,chainRule.rows());
   CHECK_EQ(6,chainRule.cols());
 
+  const Eigen::VectorXd& coeffA = coefficients.get(keys_[0]).getValue();
+  const Eigen::VectorXd& coeffB = coefficients.get(keys_[1]).getValue();
+  SO3 w_R_a(SO3::Vector4(coeffA.segment<4>(3)));
+  SO3 w_R_b(SO3::Vector4(coeffB.segment<4>(3)));
+  SE3::Position w_t_a(coeffA.head<3>());
+  SE3::Position w_t_b(coeffB.head<3>());
+
+  Matrix3d Ra = w_R_a.getRotationMatrix();
+  Matrix3d Rb = w_R_b.getRotationMatrix();
+
+  Matrix3d J_tA_tT, J_rA_tT, J_tA_rT, J_rA_rT;
+  Matrix3d J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
+  Eigen::Matrix<double, 6, 6> J_A_T, J_B_T;
+
+
+
+  Matrix3d Re = alpha_ * Ra * (Ra.transpose() * Rb).pow(-1/2) * Ra.transpose();
+
+  J_rA_tT = -((1-alpha_) * crossOperator(w_t_a) + alpha_*crossOperator(w_t_b))*Re + alpha_*crossOperator(w_t_b);
+  J_tA_rT = Matrix3d::Zero();
+  J_rA_rT = Matrix3d::Identity() - Re;
+  J_tA_tT = Matrix3d::Identity()*(1.0 - alpha_);
+
+  J_A_T << J_tA_tT, J_rA_tT, J_tA_rT, J_rA_rT;
+
+  J_tB_rT = Matrix3d::Zero();
+  J_rB_rT = Re;
+  J_tB_tT = Matrix3d::Identity()*alpha_;
+  J_rB_tT = (crossOperator(w_t_a)*(1-alpha_)+crossOperator(w_t_b)*alpha_)*Re - alpha_*crossOperator(w_t_b);
+
+  J_B_T << J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
+
+  std::cout << "chainrule: " << std::endl << chainRule << std::endl;
+
   //TODO check matrix sizes should be chainRule.rows() x coefficient.ndim()
-  *(jacobians[0]) += chainRule * Eigen::MatrixXd::Identity(6,6) * (1.0 - alpha_);
-  *(jacobians[1]) += chainRule * Eigen::MatrixXd::Identity(6,6) * alpha_;
+  *(jacobians[0]) +=  chainRule*J_A_T;
+  *(jacobians[1]) +=  chainRule*J_B_T;
 }
 
 /// Evaluate the ambient space of the curve
