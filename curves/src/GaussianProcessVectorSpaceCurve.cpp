@@ -80,13 +80,12 @@ Time GaussianProcessVectorSpaceCurve::getMinTime() const {
 }
 
 void GaussianProcessVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
-                                               const std::vector<Eigen::VectorXd>& values) {
+                                                   const std::vector<Eigen::VectorXd>& values,
+                                                   std::vector<Key>* outKeys /* = NULL */) {
   CHECK_EQ(times.size(), values.size());
 
   if(times.size() > 0) {
     manager_.clear();
-    std::vector<Key> outKeys;
-    outKeys.reserve(times.size());
     std::vector<Coefficient> coefficients;
     coefficients.reserve(times.size());
     size_t vsize = values[0].size();
@@ -94,7 +93,15 @@ void GaussianProcessVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
       CHECK_EQ(vsize, values[i].size()) << "The vectors must be uniform length.";
       coefficients.push_back(Coefficient(values[i]));
     }
-    manager_.insertCoefficients(times,coefficients,&outKeys);
+    if (outKeys != NULL) {
+      outKeys->clear();
+      outKeys->reserve(times.size());
+      manager_.insertCoefficients(times,coefficients,outKeys);
+    } else {
+      std::vector<Key> unwantedKeys;
+      unwantedKeys.reserve(times.size());
+      manager_.insertCoefficients(times,coefficients,&unwantedKeys);
+    }
     prior_->clearKeyTimes();
     prior_->addKeyTimes(times);
   }

@@ -119,13 +119,12 @@ class LinearSdeGaussianProcessVectorSpacePrior : public GaussianProcessVectorSpa
   virtual void extend(const std::vector<Time>& times, const std::vector<ValueType>& values) {
     CHECK(false) << "The values of a Gaussian Process prior based on an SDE cannot be set, they are determined functionally.";
   }
-  virtual void fitCurve(const std::vector<Time>& times, const std::vector<ValueType>& values) {
+  virtual void fitCurve(const std::vector<Time>& times, const std::vector<ValueType>& values, std::vector<Key>* outKeys = NULL) {
     CHECK(false) << "The values of a Gaussian Process prior based on an SDE cannot be set, they are determined functionally.";
   }
   boost::unordered_map<Key, KeyCoefficientTime> getKeyCoefficientTime() const {
     CHECK(false) << "Not implemented for a Gaussian Process prior based on an SDE.";
   }
-
   ///@}
 
   const Eigen::MatrixXd& getPowerSpectralDensityMatrix() const {return stationaryPowerSpectralDensity_;}

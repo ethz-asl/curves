@@ -63,7 +63,8 @@ class GaussianProcessVectorSpaceCurve : public VectorSpaceCurve {
   /// The existing curve will be cleared.
   /// Underneath the curve should have some default policy for fitting.
   virtual void fitCurve(const std::vector<Time>& times,
-                        const std::vector<ValueType>& values);
+                        const std::vector<ValueType>& values,
+                        std::vector<Key>* outKeys = NULL);
 
   /// Evaluate the ambient space of the curve.
   virtual Eigen::VectorXd evaluate(Time time) const;
