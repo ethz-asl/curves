@@ -2,6 +2,7 @@
 #define CURVES_GAUSSIAN_PROCESS_VECTOR_SPACE_PRIOR_HPP
 
 #include "VectorSpaceCurve.hpp"
+#include "GaussianProcessPriorFactorEvaluator.hpp"
 
 namespace curves {
 
@@ -29,13 +30,15 @@ class GaussianProcessVectorSpacePrior : public VectorSpaceCurve
 
   virtual unsigned getNumKeyTimes() const = 0;
 
+  virtual std::vector<boost::shared_ptr<GaussianProcessPriorFactorEvaluator> > getPriorFactors() const = 0;
+
  private:
 
   /// Add a keytime to the prior
-  virtual void addKeyTime(const Time& time) = 0;
+  virtual void addKeyTime(const Time& time, const Key& assocKey) = 0;
 
   /// Add a keytimes to the prior
-  virtual void addKeyTimes(const std::vector<Time>& times) = 0;
+  virtual void addKeyTimes(const std::vector<Time>& times, const std::vector<Key>& assocKeys) = 0;
 
   /// Clear the keytimes in the prior
   virtual void clearKeyTimes() = 0;

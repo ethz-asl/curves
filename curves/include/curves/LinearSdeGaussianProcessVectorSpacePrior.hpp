@@ -17,6 +17,7 @@ class LinearSdeGaussianProcessVectorSpacePrior : public GaussianProcessVectorSpa
 
   struct LinearSdeCoefficient {
     // Instantaneous Information
+    Key assocKey; // associated with the coefficient in curve
     Time time;
     Eigen::VectorXd mean;
 
@@ -56,6 +57,8 @@ class LinearSdeGaussianProcessVectorSpacePrior : public GaussianProcessVectorSpa
   /// Get the number of keytimes.
   virtual unsigned getNumKeyTimes() const;
 
+  /// Generate all the prior factors
+  virtual std::vector<boost::shared_ptr<GaussianProcessPriorFactorEvaluator> > getPriorFactors() const;
 
   /// Evaluate the ambient space of the curve.
   virtual Eigen::VectorXd evaluate(Time time) const;
@@ -154,10 +157,10 @@ class LinearSdeGaussianProcessVectorSpacePrior : public GaussianProcessVectorSpa
   void addExogenousInput(Time time, const ValueType& value, bool updateMean);
 
   /// Add a keytime to the prior
-  virtual void addKeyTime(const Time& time);
+  virtual void addKeyTime(const Time& time, const Key& assocKey);
 
   /// Add a keytimes to the prior
-  virtual void addKeyTimes(const std::vector<Time>& times);
+  virtual void addKeyTimes(const std::vector<Time>& times, const std::vector<Key>& assocKeys);
 
   /// Clear the keytimes in the prior
   virtual void clearKeyTimes();

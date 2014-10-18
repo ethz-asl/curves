@@ -86,6 +86,7 @@ void GaussianProcessVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
 
   if(times.size() > 0) {
     manager_.clear();
+    prior_->clearKeyTimes();
     std::vector<Coefficient> coefficients;
     coefficients.reserve(times.size());
     size_t vsize = values[0].size();
@@ -97,13 +98,13 @@ void GaussianProcessVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
       outKeys->clear();
       outKeys->reserve(times.size());
       manager_.insertCoefficients(times,coefficients,outKeys);
+      prior_->addKeyTimes(times, *outKeys);
     } else {
       std::vector<Key> unwantedKeys;
       unwantedKeys.reserve(times.size());
       manager_.insertCoefficients(times,coefficients,&unwantedKeys);
+      prior_->addKeyTimes(times, unwantedKeys);
     }
-    prior_->clearKeyTimes();
-    prior_->addKeyTimes(times);
   }
 }
 
@@ -117,7 +118,7 @@ void GaussianProcessVectorSpaceCurve::extend(const std::vector<Time>& times,
     coefficients[i] = Coefficient(values[i]);
   }
   manager_.insertCoefficients(times, coefficients, &outKeys);
-  prior_->addKeyTimes(times);
+  prior_->addKeyTimes(times, outKeys);
 }
 
 Eigen::VectorXd GaussianProcessVectorSpaceCurve::evaluate(Time time) const {
@@ -170,6 +171,10 @@ typename GaussianProcessVectorSpaceCurve::EvaluatorTypePtr GaussianProcessVector
 void GaussianProcessVectorSpaceCurve::setTimeRange(Time minTime, Time maxTime) {
   // \todo Sean
   CHECK(false) << "Not implemented";
+}
+
+std::vector<boost::shared_ptr<GaussianProcessPriorFactorEvaluator> > GaussianProcessVectorSpaceCurve::getPriorFactors() const {
+  return prior_->getPriorFactors();
 }
 
 

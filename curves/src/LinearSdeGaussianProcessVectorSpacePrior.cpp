@@ -1,4 +1,5 @@
 #include <curves/LinearSdeGaussianProcessVectorSpacePrior.hpp>
+#include <curves/LinearSdeGaussianProcessPriorFactorEvaluator.hpp>
 #include <boost/make_shared.hpp>
 #include <iostream>
 #include <Eigen/Dense>
@@ -102,15 +103,17 @@ void LinearSdeGaussianProcessVectorSpacePrior::setExogenousInputs(const std::vec
   this->updateFromExogenousInputChange(keytimeToMeanSorted_.begin()->second->time);
 }
 
-void LinearSdeGaussianProcessVectorSpacePrior::addKeyTime(const Time& time) {
+void LinearSdeGaussianProcessVectorSpacePrior::addKeyTime(const Time& time, const Key& assocKey) {
   CHECK(isInitialized()) << "Prior has not yet been initialized.";
   CHECK_GE(time, initialTime_) << "New key time is less than or equal to the initial prior time.";
 
   if ( this->getNumKeyTimes() == 0 ) {
     if (time == initialTime_) {
       boost::shared_ptr<LinearSdeCoefficient> coeff = boost::shared_ptr<LinearSdeCoefficient> (new LinearSdeCoefficient());
+      coeff->assocKey = assocKey;
       coeff->time = time;
       coeff->mean = initialMean_;
+      coeff->inverseLiftedCovarianceMatrix = initialCovariance_.inverse();
       keytimeToMean_.insert(std::pair<Time,boost::shared_ptr<LinearSdeCoefficient> >(time, coeff));
       keytimeToMeanSorted_.insert(std::pair<Time,boost::shared_ptr<LinearSdeCoefficient> >(time, coeff));
     } else {
@@ -148,9 +151,10 @@ void LinearSdeGaussianProcessVectorSpacePrior::addKeyTime(const Time& time) {
   }
 }
 
-void LinearSdeGaussianProcessVectorSpacePrior::addKeyTimes(const std::vector<Time>& times) {
+void LinearSdeGaussianProcessVectorSpacePrior::addKeyTimes(const std::vector<Time>& times, const std::vector<Key>& assocKeys) {
+  CHECK_EQ(times.size(), assocKeys.size());
   for (size_t i = 0; i < times.size(); ++i) {
-    this->addKeyTime(times.at(i));
+    this->addKeyTime(times.at(i), assocKeys.at(i));
   }
 }
 
@@ -161,6 +165,19 @@ unsigned LinearSdeGaussianProcessVectorSpacePrior::getNumKeyTimes() const {
 void LinearSdeGaussianProcessVectorSpacePrior::clearKeyTimes() {
   keytimeToMean_.clear();
   keytimeToMeanSorted_.clear();
+}
+
+std::vector<boost::shared_ptr<GaussianProcessPriorFactorEvaluator> > LinearSdeGaussianProcessVectorSpacePrior::getPriorFactors() const {
+
+  std::vector<boost::shared_ptr<GaussianProcessPriorFactorEvaluator> > outFactors;
+  std::map<Time, boost::shared_ptr<LinearSdeCoefficient> >::const_iterator it = keytimeToMeanSorted_.begin();
+  outFactors.push_back(boost::shared_ptr<GaussianProcessPriorFactorEvaluator>(new LinearSdeGaussianProcessPriorFactorEvaluator(it->second->assocKey, it->second)));
+  Key lastKey = it->second->assocKey;
+  for (; it != keytimeToMeanSorted_.end(); ++it) {
+    outFactors.push_back(boost::shared_ptr<GaussianProcessPriorFactorEvaluator>(new LinearSdeGaussianProcessPriorFactorEvaluator(lastKey, it->second->assocKey, it->second)));
+    lastKey = it->second->assocKey;
+  }
+  return outFactors;
 }
 
 Eigen::VectorXd LinearSdeGaussianProcessVectorSpacePrior::evaluate(Time time) const {

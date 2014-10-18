@@ -12,6 +12,7 @@ set(CURVE_SRC
   include/curves/CurveBase.hpp
   include/curves/Evaluator.hpp
   include/curves/EvaluatorBase.hpp
+  include/curves/GaussianProcessPriorFactorEvaluator.hpp
   include/curves/GaussianProcessVectorSpaceCurve.hpp
   include/curves/GaussianProcessVectorSpaceEvaluator.hpp
   include/curves/GaussianProcessVectorSpacePrior.hpp
@@ -20,6 +21,7 @@ set(CURVE_SRC
   include/curves/KeyGenerator.hpp
   include/curves/LinearInterpolationVectorSpaceCurve.hpp
   include/curves/LinearInterpolationVectorSpaceEvaluator.hpp
+  include/curves/LinearSdeGaussianProcessPriorFactorEvaluator.hpp
   include/curves/LinearSdeGaussianProcessVectorSpacePrior.hpp
   include/curves/LtiCvGaussianProcessVectorSpaceCurve.hpp
   include/curves/LtiCvGaussianProcessVectorSpaceEvaluator.hpp
@@ -35,12 +37,14 @@ set(CURVE_SRC
   src/CoefficientImplementation.cpp
   src/CurveBase.cpp
   src/EvaluatorBase.cpp
+  src/GaussianProcessPriorFactorEvaluator.cpp
   src/GaussianProcessVectorSpaceCurve.cpp
   src/GaussianProcessVectorSpaceEvaluator.cpp
   src/HermiteCoefficientManager.cpp
   src/KeyGenerator.cpp
   src/LinearInterpolationVectorSpaceCurve.cpp
   src/LinearInterpolationVectorSpaceEvaluator.cpp
+  src/LinearSdeGaussianProcessPriorFactorEvaluator.cpp
   src/LinearSdeGaussianProcessVectorSpacePrior.cpp
   src/LtiCvGaussianProcessVectorSpaceCurve.cpp
   src/LtiCvGaussianProcessVectorSpaceEvaluator.cpp

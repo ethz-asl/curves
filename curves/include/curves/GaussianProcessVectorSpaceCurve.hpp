@@ -4,6 +4,7 @@
 #include "VectorSpaceCurve.hpp"
 #include "HermiteCoefficientManager.hpp"
 #include <curves/GaussianProcessVectorSpacePrior.hpp>
+#include <curves/GaussianProcessPriorFactorEvaluator.hpp>
 
 class GaussianProcessVectorSpaceEvaluator; // Forward declaration
 
@@ -84,6 +85,8 @@ class GaussianProcessVectorSpaceCurve : public VectorSpaceCurve {
   virtual void setTimeRange(Time minTime, Time maxTime);
 
   boost::shared_ptr<GaussianProcessVectorSpacePrior> getPrior() const { return prior_; }
+
+  std::vector<boost::shared_ptr<GaussianProcessPriorFactorEvaluator> > getPriorFactors() const;
 
  private:
   /// Shared pointer to the prior, which determines the type of iterpolation and available sparsity
