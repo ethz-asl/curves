@@ -3,6 +3,7 @@
 #include <iostream>
 #include "kindr/minimal/quat-transformation.h"
 
+
 #include <unsupported/Eigen/MatrixFunctions>
 
 using namespace std;
@@ -115,16 +116,21 @@ void SlerpSE3Evaluator::getJacobians(unsigned derivativeOrder,
   SE3::Position w_t_a(coeffA.head<3>());
   SE3::Position w_t_b(coeffB.head<3>());
 
-  Matrix3d Ra = w_R_a.getRotationMatrix();
-  Matrix3d Rb = w_R_b.getRotationMatrix();
+  w_R_a.getRotationMatrix();
+  w_R_b.getRotationMatrix();
 
   Matrix3d J_tA_tT, J_rA_tT, J_tA_rT, J_rA_rT;
   Matrix3d J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
   Eigen::Matrix<double, 6, 6> J_A_T, J_B_T;
 
+  AngleAxis a_AA_b(w_R_a.inverted() * w_R_b);
 
+  // Rotational component computed with Baker-Campbell-Hausdorff
+  Matrix3d Re = alpha_ *(Matrix3d::Identity() - ((1-alpha_)/2)*a_AA_b.angle()*crossOperator(a_AA_b.axis()));
 
-  Matrix3d Re = alpha_ * Ra * (Ra.transpose() * Rb).pow(-1/2) * Ra.transpose();
+  // Rotational component computed without Baker-Campbell-Hausdorff
+//  a_AA_b.setAngle(-alpha_*a_AA_b.angle()/2);
+//  Matrix3d Re = alpha_ * (w_R_a * SO3(a_AA_b) * w_R_a.inverted()).getRotationMatrix();
 
   J_rA_tT = -((1-alpha_) * crossOperator(w_t_a) + alpha_*crossOperator(w_t_b))*Re + alpha_*crossOperator(w_t_b);
   J_tA_rT = Matrix3d::Zero();
