@@ -21,6 +21,4 @@ void LtiSdeGaussianProcessVectorSpacePrior::print(const std::string& str) const 
   LinearSdeGaussianProcessVectorSpacePrior::print("=> EXTENDED BY LTI SDE GP PRIOR");
 }
 
-
-
 } // namespace curves

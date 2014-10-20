@@ -11,7 +11,6 @@ LtiCvGaussianProcessVectorSpaceEvaluator::LtiCvGaussianProcessVectorSpaceEvaluat
 
 LtiCvGaussianProcessVectorSpaceEvaluator::~LtiCvGaussianProcessVectorSpaceEvaluator() {}
 
-
 LtiCvGaussianProcessVectorSpaceEvaluator::ValueType LtiCvGaussianProcessVectorSpaceEvaluator::evaluate(
     const std::vector<Coefficient>& coefficients) const {
   size_t priorDim = prior_->dim();
@@ -35,7 +34,6 @@ void LtiCvGaussianProcessVectorSpaceEvaluator::getJacobians(unsigned derivativeO
                                                             const Coefficients& /* coefficients */,
                                                             const Eigen::MatrixXd& chainRule,
                                                             const std::vector<Eigen::MatrixXd*>& jacobians) const {
-
   // TODO(Sean) implement velocity
   CHECK_EQ(derivativeOrder, 0);
   CHECK_EQ(jacobians.size(), keys_.size()) << "number of jacobians and keys do not match.";
@@ -44,28 +42,21 @@ void LtiCvGaussianProcessVectorSpaceEvaluator::getJacobians(unsigned derivativeO
   }
   size_t priorDim = prior_->dim();
 
-  // Allocate memory for outputs
-  std::vector<Eigen::VectorXd*> outMeanAtKeyTimes;
-  std::vector<Eigen::MatrixXd*> outKtKinvMats;
-  for (unsigned int i = 0; i < keys_.size(); i++) {
-    outMeanAtKeyTimes.push_back( new Eigen::VectorXd(priorDim) );
-    outKtKinvMats.push_back( new Eigen::MatrixXd(priorDim,priorDim) );
-  }
-
   // Get interpolation information from prior
-  prior_->evaluateAndInterpMatrices(queryTime_, keyTimes_, outMeanAtKeyTimes, outKtKinvMats);
+  std::vector<Eigen::VectorXd> outMeanAtKeyTimes;
+  std::vector<Eigen::MatrixXd> outKtKinvMats;
+  prior_->evaluateAndInterpMatrices(queryTime_, keyTimes_, &outMeanAtKeyTimes, &outKtKinvMats);
 
+  // Create projection matrix
   Eigen::MatrixXd projection(priorDim/2,priorDim);
   projection << Eigen::MatrixXd::Identity(priorDim/2,priorDim/2),
                 Eigen::MatrixXd::Zero(priorDim/2,priorDim/2);
 
   //TODO check matrix sizes should be chainRule.rows() x coefficient.ndim()
   for (unsigned int i = 0; i < keys_.size(); i++) {
-    *(jacobians[i]) += chainRule * projection * (*outKtKinvMats[i]);
+    *(jacobians[i]) += chainRule * projection * outKtKinvMats[i];
   }
 }
-
-///
 
 /// Evaluate the ambient space of the curve
 Eigen::VectorXd LtiCvGaussianProcessVectorSpaceEvaluator::evaluateDerivative(unsigned derivativeOrder,

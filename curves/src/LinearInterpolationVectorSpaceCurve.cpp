@@ -80,16 +80,17 @@ Time LinearInterpolationVectorSpaceCurve::getMinTime() const {
   return manager_.getMinTime();
 }
 
-
-
-
 void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
                                                    const std::vector<Eigen::VectorXd>& values,
-                                                   std::vector<Key>* outKeys /* = NULL */) {
+                                                   std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size());
 
   if(times.size() > 0) {
     manager_.clear();
+    if (outKeys != NULL) {
+      outKeys->clear();
+      outKeys->reserve(times.size());
+    }
     std::vector<Coefficient> coefficients;
     coefficients.reserve(times.size());
     size_t vsize = values[0].size();
@@ -97,15 +98,7 @@ void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& time
       CHECK_EQ(vsize, values[i].size()) << "The vectors must be uniform length.";
       coefficients.push_back(Coefficient(values[i]));
     }
-    if (outKeys != NULL) {
-      outKeys->clear();
-      outKeys->reserve(times.size());
-      manager_.insertCoefficients(times,coefficients,outKeys);
-    } else {
-      std::vector<Key> unwantedKeys;
-      unwantedKeys.reserve(times.size());
-      manager_.insertCoefficients(times,coefficients,&unwantedKeys);
-    }
+    manager_.insertCoefficients(times,coefficients,outKeys);
   }
 }
 

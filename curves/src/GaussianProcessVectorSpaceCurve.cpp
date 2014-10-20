@@ -80,12 +80,16 @@ Time GaussianProcessVectorSpaceCurve::getMinTime() const {
 }
 
 void GaussianProcessVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
-                                                   const std::vector<Eigen::VectorXd>& values,
-                                                   std::vector<Key>* outKeys /* = NULL */) {
+                                               const std::vector<Eigen::VectorXd>& values,
+                                               std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size());
 
   if(times.size() > 0) {
     manager_.clear();
+    if (outKeys != NULL) {
+      outKeys->clear();
+      outKeys->reserve(times.size());
+    }
     std::vector<Coefficient> coefficients;
     coefficients.reserve(times.size());
     size_t vsize = values[0].size();
@@ -93,15 +97,7 @@ void GaussianProcessVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
       CHECK_EQ(vsize, values[i].size()) << "The vectors must be uniform length.";
       coefficients.push_back(Coefficient(values[i]));
     }
-    if (outKeys != NULL) {
-      outKeys->clear();
-      outKeys->reserve(times.size());
-      manager_.insertCoefficients(times,coefficients,outKeys);
-    } else {
-      std::vector<Key> unwantedKeys;
-      unwantedKeys.reserve(times.size());
-      manager_.insertCoefficients(times,coefficients,&unwantedKeys);
-    }
+    manager_.insertCoefficients(times,coefficients,outKeys);
     prior_->clearKeyTimes();
     prior_->addKeyTimes(times);
   }
@@ -130,23 +126,21 @@ Eigen::VectorXd GaussianProcessVectorSpaceCurve::evaluate(Time time) const {
   interpCoefficients.push_back(rval0);
   interpCoefficients.push_back(rval1);
 
-  // Allocate memory for outputs
+  // Get key times
   std::vector<Time> keyTimes;
-  std::vector<Eigen::VectorXd*> outMeanAtKeyTimes;
-  std::vector<Eigen::MatrixXd*> outKtKinvMats;
   for (unsigned int i = 0; i < interpCoefficients.size(); i++) {
     keyTimes.push_back(interpCoefficients.at(i)->time);
-    outMeanAtKeyTimes.push_back( new Eigen::VectorXd(prior_->dim()) );
-    outKtKinvMats.push_back( new Eigen::MatrixXd(prior_->dim(),prior_->dim()) );
   }
 
   // Get interpolation information from prior
-  Eigen::VectorXd mean = prior_->evaluateAndInterpMatrices(time, keyTimes, outMeanAtKeyTimes, outKtKinvMats);
+  std::vector<Eigen::VectorXd> outMeanAtKeyTimes;
+  std::vector<Eigen::MatrixXd> outKtKinvMats;
+  Eigen::VectorXd mean = prior_->evaluateAndInterpMatrices(time, keyTimes, &outMeanAtKeyTimes, &outKtKinvMats);
 
   // Calculate the interpolation
   Eigen::VectorXd result = mean;
   for (unsigned int i = 0; i < interpCoefficients.size(); i++) {
-    result = result + (*outKtKinvMats.at(i)) * (interpCoefficients.at(i)->coefficient.getValue() - *(outMeanAtKeyTimes.at(i)));
+    result = result + outKtKinvMats.at(i) * (interpCoefficients.at(i)->coefficient.getValue() - outMeanAtKeyTimes.at(i));
   }
   return result;
 }
@@ -171,6 +165,5 @@ void GaussianProcessVectorSpaceCurve::setTimeRange(Time minTime, Time maxTime) {
   // \todo Sean
   CHECK(false) << "Not implemented";
 }
-
 
 } // namespace curves

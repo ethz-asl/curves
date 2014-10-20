@@ -37,13 +37,13 @@ class HermiteCoefficientManager {
   /// If a coefficient with this time already exists, it is overwritten
   Key insertCoefficient(Time time, const Coefficient& coefficient);
 
-  /// \brief Insert coefficients. Returns the keys for these coefficients.
+  /// \brief Insert coefficients. Optionally returns the keys for these coefficients.
   /// 
   /// This function will not check if outKeys is empty. New keys will
   /// be appended to this vector.
   void insertCoefficients(const std::vector<Time>& times,
                           const std::vector<Coefficient>& values,
-                          std::vector<Key>* outKeys);
+                          std::vector<Key>* outKeys = NULL);
 
   /// \brief Remove the coefficient with this key.
   ///

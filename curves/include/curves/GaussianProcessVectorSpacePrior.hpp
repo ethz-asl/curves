@@ -5,28 +5,50 @@
 
 namespace curves {
 
+/// \class GaussianProcessVectorSpacePrior
+///
+/// Extendable interface for a vector-space, Gaussian-process prior.
 class GaussianProcessVectorSpacePrior : public VectorSpaceCurve
 {
  public:
+  /// \brief Parent class
   typedef VectorSpaceCurve Parent;
-  typedef Parent::ValueType ValueType;
-  typedef Parent::DerivativeType DerivativeType;
-  typedef Parent::EvaluatorType EvaluatorType;
-  typedef Parent::EvaluatorTypePtr EvaluatorTypePtr;
-  /// \todo create base N-local-support coefficient manager
-  // typedef CoefficientManager CurveCoefficientManagerType;
 
+  /// \brief The value type of the curve.
+  typedef Parent::ValueType ValueType;
+
+  /// \brief The derivative type of the curve.
+  typedef Parent::DerivativeType DerivativeType;
+
+  /// \brief The evaluator type of the curve.
+  typedef Parent::EvaluatorType EvaluatorType;
+
+  /// \brief The evaluator type pointer.
+  typedef Parent::EvaluatorTypePtr EvaluatorTypePtr;
+
+  /// \todo create base N-local-support coefficient manager
+  /// \todo add a CoefficientManager typedef to help GP curves initialize properly
+
+  /// \brief General constructor using the curve dimension
   GaussianProcessVectorSpacePrior(size_t dimension) : VectorSpaceCurve(dimension) { }
   virtual ~GaussianProcessVectorSpacePrior() { }
 
-  /// \name Methods to evaluate the curve
-  ///@{
-
-  /// Evaluate the prior at the query time, the key times (associated with local support), and evaluate the interpolation matrix associated with the key times (and belonging to K(t)K^{-1}).
+  /// Evaluate the prior at the query time and the key times (associated
+  /// with local support), and evaluate the interpolation matrix
+  /// associated with the key times (non-zero blocks of K(t)K^{-1})
   virtual Eigen::VectorXd evaluateAndInterpMatrices(Time time, const std::vector<Time>& keyTimes,
-                                                    const std::vector<Eigen::VectorXd*>& outEvalAtKeyTimes,
-                                                    const std::vector<Eigen::MatrixXd*>& outInterpMatrices) const = 0;
+                                                    std::vector<Eigen::VectorXd>* outEvalAtKeyTimes,
+                                                    std::vector<Eigen::MatrixXd>* outInterpMatrices) const = 0;
 
+  /// Evaluate the derivative of the prior at the query time and the
+  /// key times (associated with local support), and evaluate the
+  /// interpolation matrix associated with the derivative order and
+  /// key times (non-zero blocks of K(t)K^{-1}).
+  virtual Eigen::VectorXd evaluateDerivativeAndInterpMatrices(Time time, unsigned derivativeOrder, const std::vector<Time>& keyTimes,
+                                                              std::vector<Eigen::VectorXd>* outEvalAtKeyTimes,
+                                                              std::vector<Eigen::MatrixXd>* outInterpMatrices) const = 0;
+
+  /// Get the number of key times
   virtual unsigned getNumKeyTimes() const = 0;
 
  private:
@@ -40,9 +62,9 @@ class GaussianProcessVectorSpacePrior : public VectorSpaceCurve
   /// Clear the keytimes in the prior
   virtual void clearKeyTimes() = 0;
 
-  /// The GP Curve is a friend class so that it can manipulate the keytimes to mirror it's own internal coefficient times
+  /// The GP Curve is a friend class so that it can manipulate
+  /// the keytimes to mirror it's own internal coefficient times
   friend class GaussianProcessVectorSpaceCurve;
-
 };
 
 } // namespace curves

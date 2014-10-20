@@ -8,18 +8,41 @@ class LtiCvGaussianProcessVectorSpaceEvaluator; // Forward declaration
 
 namespace curves {
 
+/// \class LtiCvGaussianProcessVectorSpaceCurve
+/// \brief A special curve interface for GP curves based on a LTI CV prior.
+///
+/// A special curve interface for Gaussian-process, vector-space trajectories
+/// based on a linear, time-invariant, constant-velocity prior. In order to be
+/// interchangable with other typical vector-space curve representations while
+/// maintaining sparisty, this interface hides the true underlying ambient curve
+/// dimension (position + velocity), in favour of the more typical position-only space.
 class LtiCvGaussianProcessVectorSpaceCurve : public GaussianProcessVectorSpaceCurve {
  public:
-  typedef GaussianProcessVectorSpaceCurve::ValueType ValueType;
-  typedef GaussianProcessVectorSpaceCurve::DerivativeType DerivativeType;
-  typedef GaussianProcessVectorSpaceCurve::EvaluatorType EvaluatorType;
-  typedef GaussianProcessVectorSpaceCurve::EvaluatorTypePtr EvaluatorTypePtr;
+  /// \brief Parent class
+  typedef GaussianProcessVectorSpaceCurve Parent;
 
-  /// \brief Initialize with the dimension of the vector space
+  /// \brief The value type of the curve.
+  typedef Parent::ValueType ValueType;
+
+  /// \brief The derivative type of the curve.
+  typedef Parent::DerivativeType DerivativeType;
+
+  /// \brief The evaluator type of the curve.
+  typedef Parent::EvaluatorType EvaluatorType;
+
+  /// \brief The evaluator type pointer.
+  typedef Parent::EvaluatorTypePtr EvaluatorTypePtr;
+
+  /// Constructor to make a Gaussian process curve based on a prior with a
+  /// linear, time-invariant, constant-velocity model by specifiying the
+  /// stationary power spectral density matrix.
   LtiCvGaussianProcessVectorSpaceCurve(Eigen::MatrixXd stationaryPowerSpectralDensity);
   virtual ~LtiCvGaussianProcessVectorSpaceCurve();
 
+  /// Initialize the linear time invariant, constant velocity prior.
   void initialize(Time initialTime, Eigen::VectorXd initialMean, Eigen::MatrixXd initialInverseCovariance);
+
+  /// Check if the prior has been properly initialized.
   bool isInitialized() const;
 
   /// Append an exogenous input.
@@ -39,11 +62,8 @@ class LtiCvGaussianProcessVectorSpaceCurve : public GaussianProcessVectorSpaceCu
   /// \brief Get an evaluator at this time
   EvaluatorTypePtr getEvaluator(const Time& time) const;
 
+  /// \brief Get the curve dimension.
   virtual size_t dim() const;
-
- private:
-
-
 };
 
 } // namespace curves

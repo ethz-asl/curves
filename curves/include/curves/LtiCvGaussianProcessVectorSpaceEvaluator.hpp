@@ -8,14 +8,27 @@ namespace curves {
 
 class Coefficients;
 
+/// \class LtiCvGaussianProcessVectorSpaceEvaluator
+/// \brief A special evaluator interface for GP curves based on a LTI CV prior.
+///
+/// A special evaluator interface for Gaussian-process, vector-space trajectories
+/// based on a linear, time-invariant, constant-velocity prior. In order to be
+/// interchangable with other typical vector-space evaluators while maintaining
+/// sparisty, this interface hides the true underlying ambient curve dimension
+/// (position + velocity), in favour of the more typical position-only space.
 class LtiCvGaussianProcessVectorSpaceEvaluator : public GaussianProcessVectorSpaceEvaluator {
 
  public:
-
+  /// \brief Parent class
   typedef GaussianProcessVectorSpaceEvaluator Parent;
-  typedef Parent::DerivativeType DerivativeType;
+
+  /// \brief The value type of the curve.
   typedef Parent::ValueType ValueType;
 
+  /// \brief The derivative type of the curve.
+  typedef Parent::DerivativeType DerivativeType;
+
+  /// Constructor to make a LTI, constant-velocity Gaussian process curve evaluator.
   LtiCvGaussianProcessVectorSpaceEvaluator(const LtiCvGaussianProcessVectorSpaceCurve& curve, const Time& time);
   virtual ~LtiCvGaussianProcessVectorSpaceEvaluator();
 
@@ -48,10 +61,6 @@ class LtiCvGaussianProcessVectorSpaceEvaluator : public GaussianProcessVectorSpa
   /// Evaluate the ambient space of the curve
   virtual ValueType evaluateDerivative(unsigned derivativeOrder,
                                        const Coefficients& coefficients) const;
-
- private:
-
-
 };
 
 } // namespace curves

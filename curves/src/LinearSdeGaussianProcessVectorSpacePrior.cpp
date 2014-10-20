@@ -31,7 +31,6 @@ void LinearSdeGaussianProcessVectorSpacePrior::print(const std::string& str) con
   std::cout << "num of keytimes: " << getNumKeyTimes() << std::endl;
   std::cout << "power spectral density: " << std::endl << stationaryPowerSpectralDensity_ << std::endl;
   std::cout << "inv power spectral density: " << std::endl << invStationaryPowerSpectralDensity_ << std::endl;
-
 }
 
 Time LinearSdeGaussianProcessVectorSpacePrior::getMaxTime() const {
@@ -76,7 +75,6 @@ void LinearSdeGaussianProcessVectorSpacePrior::updateFromExogenousInputChange(Ti
 }
 
 void LinearSdeGaussianProcessVectorSpacePrior::addExogenousInput(Time time, const ValueType& value, bool updateMean) {
-
   // insert into timeToExogenousInputValue_
   timeToExogenousInputValue_.insert(std::pair<Time,Eigen::VectorXd>(time, value));
 
@@ -184,40 +182,45 @@ Eigen::VectorXd LinearSdeGaussianProcessVectorSpacePrior::evaluate(Time time) co
 
 /// Evaluate the curve and interpolation matrices K(t)K^{-1}.
 Eigen::VectorXd LinearSdeGaussianProcessVectorSpacePrior::evaluateAndInterpMatrices(Time time, const std::vector<Time>& keyTimes,
-                                                                                    const std::vector<Eigen::VectorXd*>& outEvalAtKeyTimes,
-                                                                                    const std::vector<Eigen::MatrixXd*>& outInterpMatrices) const {
+                                                                                    std::vector<Eigen::VectorXd>* outEvalAtKeyTimes,
+                                                                                    std::vector<Eigen::MatrixXd>* outInterpMatrices) const {
+  // Sanity check inputs
   CHECK_GT(getNumKeyTimes(), 0) << "Please add keytimes before using an SDE prior.";
   CHECK_EQ(keyTimes.size(), 2)  << "Expected number of interpolation key times is not 2";
   CHECK_GE(time, keyTimes[0])   << "Time is not in correct bounds";
   CHECK_LE(time, keyTimes[1])   << "Time is not in correct bounds";
-  CHECK_EQ(outEvalAtKeyTimes.size(), keyTimes.size()) << "Output vector is not initialized to have the correct number of entries";
-  CHECK_NOTNULL(outEvalAtKeyTimes[0]);
-  CHECK_NOTNULL(outEvalAtKeyTimes[1]);
-  CHECK_EQ(outInterpMatrices.size(), keyTimes.size()) << "Output vector is not initialized to have the correct number of entries";
-  CHECK_NOTNULL(outInterpMatrices[0]);
-  CHECK_NOTNULL(outInterpMatrices[1]);
 
+  // Find evaluations at key times
   boost::unordered_map<Time, boost::shared_ptr<LinearSdeCoefficient> >::const_iterator it0 = keytimeToMean_.find(keyTimes[0]);
   CHECK(it0 != keytimeToMean_.end()) << "Keytime did not exist in map";
   boost::unordered_map<Time, boost::shared_ptr<LinearSdeCoefficient> >::const_iterator it1 = keytimeToMean_.find(keyTimes[1]);
   CHECK(it1 != keytimeToMean_.end()) << "Keytime did not exist in map";
   CHECK(it1->second->prevTime == it0->second->time) << "`Previous time' stored in keytime 1 does not match time of keytime 0.";
-  *(outEvalAtKeyTimes[0]) = it0->second->mean;
-  *(outEvalAtKeyTimes[1]) = it1->second->mean;
 
-  if (time == keyTimes[0]) {
-    *(outInterpMatrices[0]) = Eigen::MatrixXd::Identity(this->dim(),this->dim());
-    *(outInterpMatrices[1]) = Eigen::MatrixXd::Zero(this->dim(),this->dim());
-  } else if (time == keyTimes[1]) {
-    *(outInterpMatrices[0]) = Eigen::MatrixXd::Zero(this->dim(),this->dim());
-    *(outInterpMatrices[1]) = Eigen::MatrixXd::Identity(this->dim(),this->dim());
-  } else {
-    *(outInterpMatrices[1]) = calculateLiftedCovarianceMatrix(it0->second->time, time) *
-                              calculateStateTransitionMatrix(it1->second->time, time).transpose() *
-                              it1->second->inverseLiftedCovarianceMatrix;
-    *(outInterpMatrices[0]) = calculateStateTransitionMatrix(time, it0->second->time) - (*(outInterpMatrices[1])) * it1->second->stateTransitionMatrix;
+  // Setup outputs
+  outEvalAtKeyTimes->clear();
+  outEvalAtKeyTimes->reserve(2);
+  outInterpMatrices->clear();
+  outInterpMatrices->reserve(2);
+
+  // Add key time evaluations to output
+  outEvalAtKeyTimes->push_back(it0->second->mean);
+  outEvalAtKeyTimes->push_back(it1->second->mean);
+
+  // Check for boundary cases
+  if (time == keyTimes[0]) { // time is equal to first key time
+    outInterpMatrices->push_back(Eigen::MatrixXd::Identity(this->dim(),this->dim()));
+    outInterpMatrices->push_back(Eigen::MatrixXd::Zero(this->dim(),this->dim()));
+  } else if (time == keyTimes[1]) { // time is equal to second key time
+    outInterpMatrices->push_back(Eigen::MatrixXd::Zero(this->dim(),this->dim()));
+    outInterpMatrices->push_back(Eigen::MatrixXd::Identity(this->dim(),this->dim()));
+  } else { // time is between key times
+    outInterpMatrices->push_back(Eigen::MatrixXd());
+    outInterpMatrices->push_back(calculateLiftedCovarianceMatrix(it0->second->time, time) *
+                                 calculateStateTransitionMatrix(it1->second->time, time).transpose() *
+                                 it1->second->inverseLiftedCovarianceMatrix);
+    outInterpMatrices->at(0) = calculateStateTransitionMatrix(time, it0->second->time) - outInterpMatrices->at(1) * it1->second->stateTransitionMatrix;
   }
-
   return evaluate(time);
 }
 
@@ -228,8 +231,8 @@ Eigen::VectorXd LinearSdeGaussianProcessVectorSpacePrior::evaluateDerivative(Tim
 }
 
 Eigen::VectorXd LinearSdeGaussianProcessVectorSpacePrior::evaluateDerivativeAndInterpMatrices(Time time, unsigned derivativeOrder, const std::vector<Time>& keyTimes,
-                                                                                              const std::vector<Eigen::VectorXd*>& outEvalAtKeyTimes,
-                                                                                              const std::vector<Eigen::MatrixXd*>& outInterpMatrices) const {
+                                                                                              std::vector<Eigen::VectorXd>* outEvalAtKeyTimes,
+                                                                                              std::vector<Eigen::MatrixXd>* outInterpMatrices) const {
   CHECK_GT(getNumKeyTimes(), 0) << "Please add keytimes before using an SDE prior.";
   CHECK(false) << "Not implemented, todo Sean";
   return Eigen::VectorXd::Zero(this->dim(),1);

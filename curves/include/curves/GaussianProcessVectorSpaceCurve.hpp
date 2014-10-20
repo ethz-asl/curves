@@ -9,14 +9,29 @@ class GaussianProcessVectorSpaceEvaluator; // Forward declaration
 
 namespace curves {
 
+/// \class GaussianProcessVectorSpaceCurve
+///
+/// The main curve interface for Gaussian process, vector space trajectories.
+/// The underlying smoothing and type of the curve depends primarily on the
+/// type of setting of the provided Gaussian process prior curve.
 class GaussianProcessVectorSpaceCurve : public VectorSpaceCurve {
  public:
-  typedef VectorSpaceCurve::ValueType ValueType;
-  typedef VectorSpaceCurve::DerivativeType DerivativeType;
-  typedef VectorSpaceCurve::EvaluatorType EvaluatorType;
-  typedef VectorSpaceCurve::EvaluatorTypePtr EvaluatorTypePtr;
+  /// \brief Parent class
+  typedef VectorSpaceCurve Parent;
 
-  /// \brief Initialize with the dimension of the vector space
+  /// \brief The value type of the curve.
+  typedef Parent::ValueType ValueType;
+
+  /// \brief The derivative type of the curve.
+  typedef Parent::DerivativeType DerivativeType;
+
+  /// \brief The evaluator type of the curve.
+  typedef Parent::EvaluatorType EvaluatorType;
+
+  /// \brief The evaluator type pointer.
+  typedef Parent::EvaluatorTypePtr EvaluatorTypePtr;
+
+  /// \brief Constructor to make a Gaussian process curve based on a type of prior.
   GaussianProcessVectorSpaceCurve(boost::shared_ptr<GaussianProcessVectorSpacePrior> prior);
   virtual ~GaussianProcessVectorSpaceCurve();
 
@@ -45,7 +60,6 @@ class GaussianProcessVectorSpaceCurve : public VectorSpaceCurve {
   /// \brief Set coefficients.
   virtual void setCoefficients(const Coefficient::Map& coefficients);
 
-
   /// The first valid time for the curve.
   virtual Time getMinTime() const;
 
@@ -70,19 +84,15 @@ class GaussianProcessVectorSpaceCurve : public VectorSpaceCurve {
   virtual Eigen::VectorXd evaluate(Time time) const;
 
   /// Evaluate the curve derivatives.
-  /// linear 1st derivative has following behaviour:
-  /// - time is out of bound --> error
-  /// - time is between 2 coefficients --> take slope between the 2 coefficients
-  /// - time is on coefficient (not last coefficient) --> take slope between coefficient and next coefficients
-  /// - time is on last coefficient --> take slope between last-1 and last coefficient
-  /// derivatives of order >1 equal 0
   virtual Eigen::VectorXd evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
   /// \brief Get an evaluator at this time
   EvaluatorTypePtr getEvaluator(const Time& time) const;
 
+  /// Set the time range of the curve
   virtual void setTimeRange(Time minTime, Time maxTime);
 
+  /// Get a reference to the underlying Gaussian process prior.
   boost::shared_ptr<GaussianProcessVectorSpacePrior> getPrior() const { return prior_; }
 
  private:
@@ -92,7 +102,6 @@ class GaussianProcessVectorSpaceCurve : public VectorSpaceCurve {
   /// The manager type is determined by the prior, as the prior determines the local support of the curve
   /// \todo change this to be a shared pointer to a base class of manager... it is created based on the typdef in the prior
   HermiteCoefficientManager manager_;
-
 };
 
 } // namespace curves

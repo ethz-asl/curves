@@ -5,16 +5,34 @@
 
 namespace curves {
 
+/// \class LtiCvGaussianProcessVectorSpacePrior
+///
+/// Interface for vector-space, Gaussian-process-trajectory priors based on
+/// linear, time-invariant, stochastic different equation using a constant
+/// velocity model.
 class LtiCvGaussianProcessVectorSpacePrior : public LtiSdeGaussianProcessVectorSpacePrior {
  public:
+  /// \brief Parent class
   typedef LtiSdeGaussianProcessVectorSpacePrior Parent;
+
+  /// \brief The value type of the curve.
   typedef Parent::ValueType ValueType;
+
+  /// \brief The derivative type of the curve.
   typedef Parent::DerivativeType DerivativeType;
+
+  /// \brief The evaluator type of the curve.
   typedef Parent::EvaluatorType EvaluatorType;
+
+  /// \brief The evaluator type pointer.
   typedef Parent::EvaluatorTypePtr EvaluatorTypePtr;
+
+  /// \brief The coefficient manager type the GP curve should use.
   typedef Parent::CurveCoefficientManagerType CurveCoefficientManagerType;
 
-  /// \brief Initialize with the dimension of the vector space
+  /// Constructor to make a Gaussian process prior based on a linear,
+  /// time-invariant, constant-velocity model by specifiying the
+  /// stationary power spectral density matrix.
   LtiCvGaussianProcessVectorSpacePrior(Eigen::MatrixXd stationaryPowerSpectralDensity);
   virtual ~LtiCvGaussianProcessVectorSpacePrior();
 
@@ -35,7 +53,6 @@ class LtiCvGaussianProcessVectorSpacePrior : public LtiSdeGaussianProcessVectorS
   /// \todo this level could implement numerical integration
   virtual Eigen::MatrixXd calculateLiftedCovarianceMatrix(Time time1, Time time2) const;
   virtual Eigen::MatrixXd calculateInverseLiftedCovarianceMatrix(Time time1, Time time2) const;
-
 };
 
 } // namespace curves

@@ -86,14 +86,17 @@ Key HermiteCoefficientManager::insertCoefficient(Time time, const Coefficient& c
   return key;
 }
 
-/// \brief insert coefficients. Returns the keys for these coefficients
+/// \brief insert coefficients. Optionally returns the keys for these coefficients
 void HermiteCoefficientManager::insertCoefficients(const std::vector<Time>& times,
                                                    const std::vector<Coefficient>& values,
                                                    std::vector<Key>* outKeys) {
-  CHECK_NOTNULL(outKeys);
   CHECK_EQ(times.size(), values.size());
+  Key outKey;
   for(Key i = 0; i < times.size(); ++i) {
-    outKeys->push_back(insertCoefficient(times[i], values[i]));
+    outKey = insertCoefficient(times[i], values[i]);
+    if (outKeys != NULL) {
+      outKeys->push_back(outKey);
+    }
   }
 }
 
