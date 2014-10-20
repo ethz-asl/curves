@@ -270,10 +270,6 @@ void HermiteCoefficientManager::checkInternalConsistency(bool doExit) const {
   }
 }
 
-boost::unordered_map<Key, KeyCoefficientTime> HermiteCoefficientManager::getKeyCoefficientTime() const {
-  return coefficients_;
-}
-
 void HermiteCoefficientManager::removeCoefficientWithKey(Key key) {
   CHECK(false) << "Not implemented";
   // todo Abel and Renaud
