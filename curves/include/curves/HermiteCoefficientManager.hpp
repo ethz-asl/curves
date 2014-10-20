@@ -117,9 +117,6 @@ class HermiteCoefficientManager {
   /// the end. This is useful for gtest death tests
   void checkInternalConsistency(bool doExit = false) const;
 
-  /// Returns the Key-Coefficient-Time relationship
-  boost::unordered_map<Key, KeyCoefficientTime> getKeyCoefficientTime() const;
-
  private:
   /// Key to coefficient mapping
   boost::unordered_map<Key, KeyCoefficientTime> coefficients_;
