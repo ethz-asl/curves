@@ -49,6 +49,8 @@ class SlerpSE3Evaluator : public Evaluator<SE3Config> {
 
   /// Get the curve Jacobians.
   /// This is the main interface for GTSAM
+  /// The Jacobian has the form: \linebreak
+  /// \f$ dt_r=[(1-\alpha)I+\alpha[\frac{R_a[R_a^TR_b]^\vee}{2}]_xdr_a]^\wedge \f$
   virtual void getJacobians(unsigned derivativeOrder,
                             const Coefficients& coefficients,
                             const Eigen::MatrixXd& chainRule,

@@ -146,7 +146,7 @@ void SlerpSE3Evaluator::getJacobians(unsigned derivativeOrder,
 
   J_B_T << J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
 
-  std::cout << "chainrule: " << std::endl << chainRule << std::endl;
+//  std::cout << "chainrule: " << std::endl << chainRule << std::endl;
 
   //TODO check matrix sizes should be chainRule.rows() x coefficient.ndim()
   *(jacobians[0]) +=  chainRule*J_A_T;
