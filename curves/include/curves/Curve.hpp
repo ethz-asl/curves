@@ -1,5 +1,5 @@
-#ifndef CURVES_TYPED_CURVE_HPP
-#define CURVES_TYPED_CURVE_HPP
+#ifndef CURVES_CURVE_HPP
+#define CURVES_CURVE_HPP
 
 #include "CurveBase.hpp"
 #include "Evaluator.hpp"
@@ -52,13 +52,13 @@ class Curve : public CurveBase
   /// The existing curve will be cleared.
   /// Underneath the curve should have some default policy for fitting.
   virtual void fitCurve(const std::vector<Time>& times,
-                        const std::vector<ValueType>& values) = 0;
+                        const std::vector<ValueType>& values,
+                        std::vector<Key>* outKeys = NULL) = 0;
 
   ///@}
-
 };
 
 } // namespace curves
 
 
-#endif /* CURVES_TYPED_CURVE_HPP */
+#endif /* CURVES_CURVE_HPP */

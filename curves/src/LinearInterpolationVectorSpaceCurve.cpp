@@ -31,7 +31,6 @@ void LinearInterpolationVectorSpaceCurve::print(const std::string& str) const {
   std::cout <<"=========================================" <<std::endl;
 }
 
-
 void LinearInterpolationVectorSpaceCurve::getCoefficientsAt(const Time& time,
                                                             Coefficient::Map* outCoefficients) const {
   CHECK_NOTNULL(outCoefficients);
@@ -72,8 +71,6 @@ void LinearInterpolationVectorSpaceCurve::setCoefficients(const Coefficient::Map
   manager_.setCoefficients(coefficients);
 }
 
-
-
 Time LinearInterpolationVectorSpaceCurve::getMaxTime() const {
   return manager_.getMaxTime();
 }
@@ -82,17 +79,17 @@ Time LinearInterpolationVectorSpaceCurve::getMinTime() const {
   return manager_.getMinTime();
 }
 
-
-
-
 void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& times,
-                                                   const std::vector<Eigen::VectorXd>& values) {
+                                                   const std::vector<Eigen::VectorXd>& values,
+                                                   std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size());
 
   if(times.size() > 0) {
     manager_.clear();
-    std::vector<Key> outKeys;
-    outKeys.reserve(times.size());
+    if (outKeys != NULL) {
+      outKeys->clear();
+      outKeys->reserve(times.size());
+    }
     std::vector<Coefficient> coefficients;
     coefficients.reserve(times.size());
     size_t vsize = values[0].size();
@@ -100,7 +97,7 @@ void LinearInterpolationVectorSpaceCurve::fitCurve(const std::vector<Time>& time
       CHECK_EQ(vsize, values[i].size()) << "The vectors must be uniform length.";
       coefficients.push_back(Coefficient(values[i]));
     }
-    manager_.insertCoefficients(times,coefficients,&outKeys);
+    manager_.insertCoefficients(times,coefficients,outKeys);
   }
 }
 
