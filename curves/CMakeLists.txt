@@ -10,7 +10,7 @@ option(USE_GTSAM "Should the curves library enable GTSAM-specific functionality?
 	${gtsam_catkin_FOUND})
 
 if(USE_GTSAM)
-  message(STATUS "+++ Enabling GTSAM-specific functionality."
+  message(STATUS "+++ Enabling GTSAM-specific functionality.")
   add_definitions(-DCURVES_USE_GTSAM)
 endif()
 
