@@ -2,7 +2,16 @@ cmake_minimum_required(VERSION 2.8.3)
 project(curves)
 
 find_package(catkin_simple 0.1.0 REQUIRED)
-catkin_simple(ALL_DEPS_REQUIRED)
+
+# Skip ALL_DEPS_REQUIRED so that we can run without gtsam
+catkin_simple()
+
+option(USE_GTSAM "Should the curves library enable GTSAM-specific functionality?" 
+	${gtsam_catkin_FOUND})
+
+if(USE_GTSAM)
+	add_definitions(-DCURVES_USE_GTSAM)
+endif()
 
 cs_add_library(${PROJECT_NAME} 
   src/CoefficientImplementation.cpp
@@ -33,5 +42,5 @@ target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
 add_doxygen(NOT_AUTOMATIC)
 
 cs_install()
-cs_export()
+cs_export(CFG_EXTRAS curves-extras.cmake)
 

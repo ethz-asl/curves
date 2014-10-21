@@ -7,6 +7,10 @@
 
 #include "CoefficientImplementation.hpp"
 
+#ifdef CURVES_USE_GTSAM
+#include <gtsam/base/DerivedValue.h>
+#endif
+
 namespace curves {
 
 /// \class Coefficient
@@ -14,6 +18,9 @@ namespace curves {
 ///
 /// \todo PTF shortly summarize the design
 class Coefficient
+#ifdef CURVES_USE_GTSAM
+: public gtsam::DerivedValue<Coefficient>
+#endif
 {
  public:
 

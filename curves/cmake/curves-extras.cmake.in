@@ -1,0 +1,6 @@
+
+set(CURVES_USE_GTSAM @USE_GTSAM@)
+
+if(CURVES_USE_GTSAM)
+	add_definitions(-DCURVES_USE_GTSAM)
+endif()
