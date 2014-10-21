@@ -3,7 +3,7 @@ project(curves)
 
 find_package(catkin_simple 0.1.0 REQUIRED)
 
-# Skip ALL_DEPS_REQUIRED so that we can run without gtsam
+# Skip ALL_DEPS_REQUIRED so that we can run without gtsam.
 catkin_simple()
 
 option(USE_GTSAM "Should the curves library enable GTSAM-specific functionality?" 
