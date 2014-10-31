@@ -1,5 +1,6 @@
 #include <curves/LinearInterpolationVectorSpaceCurve.hpp>
 #include <iostream>
+#include "gtsam_unstable/nonlinear/Expression.h"
 
 namespace curves {
 
@@ -35,7 +36,7 @@ void LinearInterpolationVectorSpaceCurve<N>::print(const std::string& str) const
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::getCoefficientsAt(const Time& time,
-                                                            Coefficient::Map* outCoefficients) const {
+                                                               Coefficient::Map* outCoefficients) const {
   CHECK_NOTNULL(outCoefficients);
   KeyCoefficientTime *rval0, *rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
@@ -46,8 +47,8 @@ void LinearInterpolationVectorSpaceCurve<N>::getCoefficientsAt(const Time& time,
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::getCoefficientsAt(const Time& time,
-                                                            KeyCoefficientTime** outCoefficient0,
-                                                            KeyCoefficientTime** outCoefficient1) const {
+                                                               KeyCoefficientTime** outCoefficient0,
+                                                               KeyCoefficientTime** outCoefficient1) const {
   CHECK_NOTNULL(&outCoefficient0);
   CHECK_NOTNULL(&outCoefficient1);
   if (time == this->getMaxTime()) {
@@ -59,8 +60,8 @@ void LinearInterpolationVectorSpaceCurve<N>::getCoefficientsAt(const Time& time,
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::getCoefficientsInRange(Time startTime,
-                                                                 Time endTime, 
-                                                                 Coefficient::Map* outCoefficients) const {
+                                                                    Time endTime,
+                                                                    Coefficient::Map* outCoefficients) const {
   manager_.getCoefficientsInRange(startTime, endTime, outCoefficients);
 }
 
@@ -91,7 +92,7 @@ Time LinearInterpolationVectorSpaceCurve<N>::getMinTime() const {
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::fitCurve(const std::vector<Time>& times,
-                                                   const std::vector<ValueType>& values) {
+                                                      const std::vector<ValueType>& values) {
   CHECK_EQ(times.size(), values.size());
 
   if(times.size() > 0) {
@@ -111,7 +112,7 @@ void LinearInterpolationVectorSpaceCurve<N>::fitCurve(const std::vector<Time>& t
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::extend(const std::vector<Time>& times,
-                                                 const std::vector<ValueType>& values) {
+                                                    const std::vector<ValueType>& values) {
 
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
   std::vector<Key> outKeys;
@@ -123,7 +124,7 @@ void LinearInterpolationVectorSpaceCurve<N>::extend(const std::vector<Time>& tim
 }
 
 template<int N>
-Eigen::VectorXd LinearInterpolationVectorSpaceCurve<N>::evaluate(Time time) const {
+typename LinearInterpolationVectorSpaceCurve<N>::ValueType LinearInterpolationVectorSpaceCurve<N>::evaluate(Time time) const {
   KeyCoefficientTime *rval0, *rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
   CHECK(success) << "Unable to get the coefficients at time " << time;  
@@ -137,7 +138,7 @@ Eigen::VectorXd LinearInterpolationVectorSpaceCurve<N>::evaluate(Time time) cons
 }
 
 template<int N>
-Eigen::VectorXd LinearInterpolationVectorSpaceCurve<N>::evaluateDerivative(Time time, unsigned derivativeOrder) const {
+typename LinearInterpolationVectorSpaceCurve<N>::DerivativeType LinearInterpolationVectorSpaceCurve<N>::evaluateDerivative(Time time, unsigned derivativeOrder) const {
 
   // time is out of bound --> error
   CHECK_GE(time, this->getMinTime()) << "Time out of bounds"; 
@@ -166,8 +167,34 @@ Eigen::VectorXd LinearInterpolationVectorSpaceCurve<N>::evaluateDerivative(Time 
 //}
 
 template<int N>
+Eigen::Matrix<double,3,1> evalFunc(Eigen::Matrix<double,N,1>  v1, Eigen::Matrix<double,N,1>  v2, double alpha,
+                   boost::optional<Eigen::Matrix<double,N,N> &> H1=boost::none,
+                   boost::optional<Eigen::Matrix<double,N,N> &> H2=boost::none,
+                   boost::optional<Eigen::Matrix<double,N,1> &> H3=boost::none) {
+  if (H1 && H2 && H3) {
+    typedef typename Eigen::Matrix<double,3,3> sizedMatrix;
+    *H1 = sizedMatrix::Identity()*(1-alpha);
+    *H2 = sizedMatrix::Identity()*alpha;
+    *H3 = Eigen::Matrix<double,3,1>::Zero();
+  }
+  return v1*(1-alpha) + v2*alpha;
+}
+
+template<int N>
 gtsam::Expression<typename LinearInterpolationVectorSpaceCurve<N>::ValueType> LinearInterpolationVectorSpaceCurve<N>::getEvalExpression(const Time& time) const {
-  return gtsam::Expression<typename LinearInterpolationVectorSpaceCurve<N>::ValueType>(1);
+  typedef typename LinearInterpolationVectorSpaceCurve<N>::ValueType ValueType;
+  using namespace gtsam;
+  KeyCoefficientTime *rval0, *rval1;
+  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
+
+  Expression<ValueType> leaf1(rval0->key);
+  Expression<ValueType> leaf2(rval1->key);
+
+  double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
+
+  Expression<ValueType> rval(evalFunc<N>, leaf1, leaf2, Expression<double>(alpha));
+
+  return rval;
 }
 
 template<int N>

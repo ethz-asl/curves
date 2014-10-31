@@ -67,7 +67,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
                         const std::vector<ValueType>& values);
 
   /// Evaluate the ambient space of the curve.
-  virtual Eigen::VectorXd evaluate(Time time) const;
+  virtual ValueType evaluate(Time time) const;
 
   /// Evaluate the curve derivatives.
   /// linear 1st derivative has following behaviour:
@@ -76,7 +76,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   /// - time is on coefficient (not last coefficient) --> take slope between coefficient and next coefficients
   /// - time is on last coefficient --> take slope between last-1 and last coefficient
   /// derivatives of order >1 equal 0
-  virtual Eigen::VectorXd evaluateDerivative(Time time, unsigned derivativeOrder) const;
+  virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
 //  /// \brief Get an evaluator at this time
 //  EvaluatorTypePtr getEvaluator(const Time& time) const;
