@@ -23,7 +23,6 @@ cs_add_library(${PROJECT_NAME}
   src/HermiteCoefficientManager.cpp
   src/VectorSpaceCurve.cpp
   src/EvaluatorBase.cpp
-  src/LinearInterpolationVectorSpaceCurve.cpp
   src/LinearInterpolationVectorSpaceEvaluator.cpp
   src/Coefficients.cpp
 )

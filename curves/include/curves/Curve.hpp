@@ -4,6 +4,8 @@
 #include "CurveBase.hpp"
 #include "Evaluator.hpp"
 
+#include "gtsam_unstable/nonlinear/Expression.h"
+
 namespace curves {
 
 template<typename CurveConfig>
@@ -33,8 +35,11 @@ class Curve : public CurveBase
   /// Evaluate the curve derivatives.
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const = 0;
 
-  /// \brief Get an evaluator at this time.
-  virtual EvaluatorTypePtr getEvaluator(const Time& time) const = 0;
+//  /// \brief Get an evaluator at this time.
+//  virtual EvaluatorTypePtr getEvaluator(const Time& time) const = 0;
+
+  /// \brief Get a gtsam::Expression which evaluates the curve at this time.
+  virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const = 0;
 
   ///@}
 

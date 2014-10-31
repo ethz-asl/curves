@@ -7,16 +7,17 @@
 class LinearInterpolationVectorSpaceEvaluator; // Forward declaration
 
 namespace curves {
-
-class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
+template<int N>
+class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
  public:
-  typedef VectorSpaceCurve::ValueType ValueType;
-  typedef VectorSpaceCurve::DerivativeType DerivativeType;
-  typedef VectorSpaceCurve::EvaluatorType EvaluatorType;
-  typedef VectorSpaceCurve::EvaluatorTypePtr EvaluatorTypePtr;
+  typedef VectorSpaceCurve<N> Parent;
+  typedef typename Parent::ValueType ValueType;
+  typedef typename Parent::DerivativeType DerivativeType;
+  typedef typename Parent::EvaluatorType EvaluatorType;
+  typedef typename Parent::EvaluatorTypePtr EvaluatorTypePtr;
 
   /// \brief Initialize with the dimension of the vector space
-  LinearInterpolationVectorSpaceCurve(size_t dimension);
+  LinearInterpolationVectorSpaceCurve();
   virtual ~LinearInterpolationVectorSpaceCurve();
 
   /// Print the value of the coefficient, for debugging and unit tests
@@ -77,8 +78,10 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
   /// derivatives of order >1 equal 0
   virtual Eigen::VectorXd evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
-  /// \brief Get an evaluator at this time
-  EvaluatorTypePtr getEvaluator(const Time& time) const;
+//  /// \brief Get an evaluator at this time
+//  EvaluatorTypePtr getEvaluator(const Time& time) const;
+
+  virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
 
   virtual void setTimeRange(Time minTime, Time maxTime);
 
@@ -87,7 +90,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 };
 
 } // namespace curves
-
+#include "LinearInterpolationVectorSpaceCurve-inl.hpp"
 #include "LinearInterpolationVectorSpaceEvaluator.hpp"
 
 #endif /* CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_CURVE_HPP */

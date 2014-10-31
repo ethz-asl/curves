@@ -76,16 +76,12 @@ class SlerpSE3Curve : public SE3Curve {
   /// derivatives of order >1 equal 0
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
-  /// \brief Get an evaluator at this time
-  EvaluatorTypePtr getEvaluator(const Time& time) const;
+//  /// \brief Get an evaluator at this time
+//  EvaluatorTypePtr getEvaluator(const Time& time) const;
+
+  virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
 
   virtual void setTimeRange(Time minTime, Time maxTime);
-
-
-
-
-
-
 
   /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
   virtual Eigen::Vector3d evaluateAngularVelocityA(Time time);
@@ -130,9 +126,6 @@ class SlerpSE3Curve : public SE3Curve {
   ///        expressed in Frame b. The return value has the linear velocity (0,1,2),
   ///        and the angular velocity (3,4,5).
   virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
-
-
-
 
  private:
   HermiteCoefficientManager manager_;

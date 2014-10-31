@@ -153,6 +153,10 @@ SlerpSE3Curve::EvaluatorTypePtr SlerpSE3Curve::getEvaluator(const Time& time) co
   return rval;
 }
 
+gtsam::Expression<SlerpSE3Curve::ValueType> SlerpSE3Curve::getEvalExpression(const Time& time) const {
+  return gtsam::Expression<SlerpSE3Curve::ValueType>(1);
+}
+
 void SlerpSE3Curve::setTimeRange(Time minTime, Time maxTime) {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
