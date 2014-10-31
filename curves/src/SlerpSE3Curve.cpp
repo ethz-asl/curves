@@ -91,9 +91,7 @@ void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
     outKeys.reserve(times.size());
     std::vector<Coefficient> coefficients;
     coefficients.reserve(times.size());
-    size_t vsize = values[0].size();
     for(size_t i = 0; i < values.size(); ++i) {
-      CHECK_EQ(vsize, values[i].size()) << "The vectors must be uniform length.";
       CoefficientImplementation::Ptr impl(new SE3CoefficientImplementation);
       boost::dynamic_pointer_cast<SE3CoefficientImplementation>(impl)->makeValue(values[i],&val);
       Coefficient c1(impl,val);

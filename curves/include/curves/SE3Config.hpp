@@ -2,13 +2,14 @@
 #define SE3CONFIG_H_
 
 #include <Eigen/Core>
+#include "kindr/minimal/quat-transformation.h"
 
 namespace curves {
 
 typedef Eigen::Matrix<double, 6, 1> Vector6d;
 
 struct SE3Config {
-  typedef Eigen::Matrix4d ValueType;
+  typedef kindr::minimal::QuatTransformationTemplate<double> ValueType;
   typedef Vector6d DerivativeType;
 };
 

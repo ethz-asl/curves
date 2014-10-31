@@ -5,11 +5,6 @@
 
 namespace curves {
 
-typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
-typedef SE3::Rotation SO3;
-typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
-
-
 SE3CoefficientImplementation::SE3CoefficientImplementation() {}
 
 SE3CoefficientImplementation::~SE3CoefficientImplementation() {}
@@ -41,10 +36,9 @@ void SE3CoefficientImplementation::print(const Eigen::VectorXd& thisCoeff,
   std::cout << str << " " << thisCoeff.transpose();
 }
 
-void SE3CoefficientImplementation::makeValue(const Eigen::Matrix4d& matrix, Eigen::VectorXd *outValue) const {
+void SE3CoefficientImplementation::makeValue(const SE3& pose, Eigen::VectorXd *outValue) const {
   CHECK_NOTNULL(outValue);
   CHECK_EQ(7,outValue->size());
-  SE3 pose(SO3(SO3::RotationMatrix(matrix.topLeftCorner<3,3>())),matrix.topRightCorner<3,1>());
   (*outValue) << pose.getPosition(),pose.getRotation().vector();
 }
 

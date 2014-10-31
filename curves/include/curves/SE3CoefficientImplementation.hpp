@@ -2,11 +2,16 @@
 #define CT_SE3_COEFFICIENT_IMPLEMENTATION_HPP
 
 #include "CoefficientImplementation.hpp"
+#include "kindr/minimal/quat-transformation.h"
 
 namespace curves {
 
 class SE3CoefficientImplementation : public CoefficientImplementation
 {
+ private:
+  typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
+  typedef SE3::Rotation SO3;
+  typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
  public:
   /// \brief Initialize this with the dimension of
   ///        the vector space.
@@ -14,7 +19,7 @@ class SE3CoefficientImplementation : public CoefficientImplementation
 
   virtual ~SE3CoefficientImplementation();
 
-  void makeValue(const Eigen::Matrix4d& matrix, Eigen::VectorXd *outValue) const;
+  void makeValue(const SE3& pose, Eigen::VectorXd *outValue) const;
   
   /// Compare this Coeficient with another for equality.
   virtual bool equals(const Eigen::VectorXd& thisCoeff, 
