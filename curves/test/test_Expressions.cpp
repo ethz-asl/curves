@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 #include <curves/LinearInterpolationVectorSpaceCurve.hpp>
 #include "gtsam_unstable/nonlinear/Expression.h"
+#include <gtsam/nonlinear/NonlinearFactorGraph.h>
+#include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
+#include "gtsam_unstable/nonlinear/ExpressionFactor.h"
 
 #define DIM 3
 
@@ -43,7 +46,7 @@ void print(const double& obj, const std::string& str) {
 }
 }
 
-TEST(CurvesTestSuite, testGetExpression) {
+TEST(CurvesTestSuite, testExpressionKeysAndEvaluation) {
 
   LinearInterpolationVectorSpaceCurve<DIM> curve;
 
@@ -67,21 +70,103 @@ TEST(CurvesTestSuite, testGetExpression) {
   // Check keys
   ASSERT_EQ(*(keys.begin()), rval0->key);
   ASSERT_EQ(*(++(keys.begin())), rval1->key);
-  //  cout << "rval0->key: " << rval0->key << "rval1->key: " << rval1->key << endl;
 
   Values gtsamValues;
   gtsamValues.insert(rval0->key, ValueType(rval0->coefficient.getValue()));
   gtsamValues.insert(rval1->key, ValueType(rval1->coefficient.getValue()));
+
   JacobianMap actualMap;
   Eigen::MatrixXd H = Eigen::Matrix3d::Zero();
   actualMap.insert(make_pair(rval0->key, H.block(0, 0, 3, 3)));
   actualMap.insert(make_pair(rval1->key, H.block(0, 0, 3, 3)));
+
   ValueType result = expression.value(gtsamValues, actualMap);
 
   // Check evaluation result
   ASSERT_EQ(result, Eigen::Vector3d(1,1,1));
-
 }
+
+TEST(CurvesTestSuite, testExpressionGTSAMoptimization) {
+
+  LinearInterpolationVectorSpaceCurve<DIM> curve;
+
+  // Populate coefficients
+  const double t[] = {0, 10, 20};
+  const double evalTime = 5;
+  std::vector<Time> times(t,t+3);
+  std::vector<ValueType> coefficients;
+  coefficients.push_back(ValueType(0,0,0));
+  coefficients.push_back(ValueType(40,20,-30));
+  coefficients.push_back(ValueType(20,-20,-80));
+
+  // Populate measurements
+  const double tmeas[] = {4, 8, 12, 16};
+  std::vector<Time> measTimes(tmeas,tmeas+4);
+  std::vector<ValueType> measurements;
+  measurements.push_back(ValueType(16,8,-12));
+  measurements.push_back(ValueType(32,16,-24));
+  measurements.push_back(ValueType(36,12,-40));
+  measurements.push_back(ValueType(28,-4,-60));
+
+  // Fit a curve
+  curve.fitCurve(times, coefficients);
+
+  // Populate GTSAM values
+  KeyCoefficientTime *rval0, *rval1;
+  Values initials, expected;
+  for(int i=0; i< coefficients.size(); i++) {
+    curve.getCoefficientsAt(times[i], &rval0, &rval1);
+    Key key;
+    // todo use another method for getting the keys
+    // here a if is necessary since t=maxtime the coef is in rval1
+    if (i == coefficients.size() - 1) {
+      key = rval1->key;
+    } else {
+      key = rval0->key;
+    }
+    initials.insert(key,ValueType(0,0,0));
+    expected.insert(key,coefficients[i]);
+  }
+
+  // Noise models
+  SharedNoiseModel measNoiseModel = noiseModel::Diagonal::Sigmas(Vector3(1, 1, 1));
+  SharedNoiseModel priorNoiseModel = noiseModel::Diagonal::Sigmas(Vector3(0, 0, 0));
+
+  // Get expressions and build the graph
+  NonlinearFactorGraph graph;
+  for(int i=0; i < measurements.size(); i++) {
+    Expression<ChartValue<ValueType> > predicted(convertToChartValue<ValueType>,
+                                                 curve.getEvalExpression(measTimes[i]));
+
+    ExpressionFactor<ChartValue<ValueType> > f(measNoiseModel,
+                                                ChartValue<Vector3>(measurements[i]),
+                                                predicted);
+    graph.add(ExpressionFactor<ChartValue<ValueType> >(measNoiseModel,
+                                                       ChartValue<Vector3>(measurements[i]),
+                                                       predicted));
+    // Assert that error is null for expected values
+    std::vector<Matrix> H(2);
+    Vector error = f.unwhitenedError(expected, H);
+    ASSERT_EQ(error, ValueType(0,0,0));
+  }
+
+  // Add a prior of 0,0,0 on the first coefficient
+  curve.getCoefficientsAt(0, &rval0, &rval1);
+  Expression<ValueType> leaf1(rval0->key);
+  Expression<ChartValue<ValueType> > prior(convertToChartValue<ValueType>, leaf1);
+  graph.add(ExpressionFactor<ChartValue<ValueType> >(priorNoiseModel,ChartValue<ValueType>(ValueType(0,0,0)),prior));
+
+  // Optimize
+  gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, initials).optimize();
+
+  ASSERT_TRUE(expected.equals(result,1e-8));
+}
+
+TEST(CurvesTestSuite, testExpressionJacobians){
+  // todo AG-RD
+  ASSERT_TRUE(true);
+}
+
 
 
 
