@@ -4,8 +4,6 @@
 #include "VectorSpaceCurve.hpp"
 #include "HermiteCoefficientManager.hpp"
 
-class LinearInterpolationVectorSpaceEvaluator; // Forward declaration
-
 namespace curves {
 template<int N>
 class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
@@ -13,8 +11,6 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   typedef VectorSpaceCurve<N> Parent;
   typedef typename Parent::ValueType ValueType;
   typedef typename Parent::DerivativeType DerivativeType;
-  typedef typename Parent::EvaluatorType EvaluatorType;
-  typedef typename Parent::EvaluatorTypePtr EvaluatorTypePtr;
 
   /// \brief Initialize with the dimension of the vector space
   LinearInterpolationVectorSpaceCurve();
@@ -78,9 +74,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   /// derivatives of order >1 equal 0
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
-//  /// \brief Get an evaluator at this time
-//  EvaluatorTypePtr getEvaluator(const Time& time) const;
-
+  /// \brief Get an Expression evaluating the curve at this time
   virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
 
   virtual void setTimeRange(Time minTime, Time maxTime);
@@ -90,7 +84,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
 };
 
 } // namespace curves
+
 #include "LinearInterpolationVectorSpaceCurve-inl.hpp"
-#include "LinearInterpolationVectorSpaceEvaluator.hpp"
 
 #endif /* CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_CURVE_HPP */

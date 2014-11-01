@@ -159,13 +159,7 @@ typename LinearInterpolationVectorSpaceCurve<N>::DerivativeType LinearInterpolat
   }
 }
 
-/// \brief Get an evaluator at this time
-//template<int N>
-//typename LinearInterpolationVectorSpaceCurve<N>::EvaluatorTypePtr LinearInterpolationVectorSpaceCurve<N>::getEvaluator(const Time& time) const {
-//  boost::shared_ptr< Evaluator<VectorSpaceConfig<N> > > rval( new LinearInterpolationVectorSpaceEvaluator((*this), time) );
-//  return rval;
-//}
-
+// Evaluation function in functional form. To be passed to the expression
 template<int N>
 Eigen::Matrix<double,3,1> evalFunc(Eigen::Matrix<double,N,1>  v1, Eigen::Matrix<double,N,1>  v2, double alpha,
                    boost::optional<Eigen::Matrix<double,N,N> &> H1=boost::none,

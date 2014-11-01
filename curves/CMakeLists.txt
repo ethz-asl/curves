@@ -23,7 +23,6 @@ cs_add_library(${PROJECT_NAME}
   src/HermiteCoefficientManager.cpp
   src/VectorSpaceCurve.cpp
   src/EvaluatorBase.cpp
-  src/LinearInterpolationVectorSpaceEvaluator.cpp
   src/Coefficients.cpp
 )
 
@@ -34,6 +33,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
   test/test_main.cpp
   test/test_HermiteCoefficientManager.cpp
   test/test_Coefficient.cpp
+  test/test_Expressions.cpp
 )
 
 message(glog_catkin_LIBRARIES: ${glog_catkin_LIBRARIES})

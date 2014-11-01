@@ -13,8 +13,6 @@ class VectorSpaceCurve : public Curve<VectorSpaceConfig<N> >
   typedef Curve<VectorSpaceConfig<N> > Parent;
   typedef typename Parent::ValueType ValueType;
   typedef typename Parent::DerivativeType DerivativeType;
-  typedef typename Parent::EvaluatorType EvaluatorType;
-  typedef typename Parent::EvaluatorTypePtr EvaluatorTypePtr;
 
   VectorSpaceCurve() : dimension_(N) { }
   virtual ~VectorSpaceCurve() {}
