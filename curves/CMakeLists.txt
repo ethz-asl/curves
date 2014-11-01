@@ -21,7 +21,6 @@ cs_add_library(${PROJECT_NAME}
   src/Coefficient.cpp
   src/KeyGenerator.cpp
   src/HermiteCoefficientManager.cpp
-  src/VectorSpaceCurve.cpp
   src/EvaluatorBase.cpp
   src/Coefficients.cpp
 )
