@@ -1,5 +1,5 @@
-#ifndef CURVES_CURVE_HPP
-#define CURVES_CURVE_HPP
+#ifndef CURVES_CURVE_BASE_HPP
+#define CURVES_CURVE_BASE_HPP
 
 #include "types.hpp"
 #include "Coefficient.hpp"
@@ -49,7 +49,6 @@ class CurveBase {
 
   ///@}
 
-
   /// \defgroup Time 
   /// \name Methods to deal with time.
   ///@{
@@ -70,12 +69,9 @@ class CurveBase {
   virtual void setTimeRange(Time minTime, Time maxTime) = 0;
   
   ///@}
-
-
 };
 
 } // namespace curves
 
 
-
-#endif /* CURVES_CURVE_HPP */
+#endif /* CURVES_CURVE_BASE_HPP */
