@@ -5,6 +5,8 @@
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
 #include "gtsam_unstable/nonlinear/ExpressionFactor.h"
 
+#include <boost/assign/list_of.hpp>
+
 #define DIM 3
 
 using namespace curves;
@@ -75,11 +77,14 @@ TEST(CurvesTestSuite, testExpressionKeysAndEvaluation) {
   gtsamValues.insert(rval0->key, ValueType(rval0->coefficient.getValue()));
   gtsamValues.insert(rval1->key, ValueType(rval1->coefficient.getValue()));
 
-  JacobianMap actualMap;
   Eigen::MatrixXd H = Eigen::Matrix3d::Zero();
-  actualMap.insert(make_pair(rval0->key, H.block(0, 0, 3, 3)));
-  actualMap.insert(make_pair(rval1->key, H.block(0, 0, 3, 3)));
-
+  std::vector<size_t> dimensions;
+  dimensions.push_back(DIM);
+  dimensions.push_back(DIM);
+  static const int Dim = traits::dimension<ValueType>::value;
+  VerticalBlockMatrix Ab(dimensions, Dim);
+  FastVector<Key> key = boost::assign::list_of(rval0->key)(rval1->key);
+  JacobianMap actualMap(key,Ab);
   ValueType result = expression.value(gtsamValues, actualMap);
 
   // Check evaluation result
