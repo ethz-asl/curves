@@ -158,16 +158,15 @@ typename LinearInterpolationVectorSpaceCurve<N>::DerivativeType LinearInterpolat
 
 // Evaluation function in functional form. To be passed to the expression
 template<int N>
-Eigen::Matrix<double,3,1> evalFunc(Eigen::Matrix<double,N,1>  v1, Eigen::Matrix<double,N,1>  v2, double alpha,
+Eigen::Matrix<double,N,1> evalFunc(Eigen::Matrix<double,N,1>  v1, Eigen::Matrix<double,N,1>  v2, double alpha,
                    boost::optional<Eigen::Matrix<double,N,N> &> H1=boost::none,
                    boost::optional<Eigen::Matrix<double,N,N> &> H2=boost::none,
                    boost::optional<Eigen::Matrix<double,N,1> &> H3=boost::none) {
-  if (H1 && H2 && H3) {
-    typedef typename Eigen::Matrix<double,3,3> sizedMatrix;
-    *H1 = sizedMatrix::Identity()*(1-alpha);
-    *H2 = sizedMatrix::Identity()*alpha;
-    *H3 = Eigen::Matrix<double,3,1>::Zero();
-  }
+
+  if (H1) { *H1 = Eigen::Matrix<double,N,N>::Identity()*(1-alpha); }
+  if (H2) { *H2 = Eigen::Matrix<double,N,N>::Identity()*alpha; }
+  if (H3) { *H3 = Eigen::Matrix<double,N,1>::Zero(); }
+
   return v1*(1-alpha) + v2*alpha;
 }
 

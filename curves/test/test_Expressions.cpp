@@ -19,32 +19,24 @@ namespace gtsam {
 namespace traits {
 // todo fix template specialization for eigen types. see :
 // https://forum.kde.org/viewtopic.php?f=74&t=121280
-template<>
-bool equals(const Vector3& a,
-            const Vector3& b,
-            double tol) {
-  return (a-b).cwiseAbs().maxCoeff() < tol;
-}
 
 template<>
-void print(const Vector3& obj, const std::string& str) {
-  std::cout << str << " " << obj << std::endl;
-}
+struct equals<Vector3> {
+  typedef Vector3 type;
+  typedef bool result_type;
+  bool operator()(const Vector3& a, const Vector3& b, double tol) {
+    return (a-b).cwiseAbs().maxCoeff() < tol;
+  }
+};
 
 template<>
-bool equals(const double& a,
-            const double& b,
-            double tol) {
-  if (a > b)
-    return a-b < tol;
-  else
-    return b-a < tol;
-}
-
-template<>
-void print(const double& obj, const std::string& str) {
-  std::cout << str << " " << obj << std::endl;
-}
+struct print<Vector3> {
+  typedef Vector3 type;
+  typedef void result_type;
+  void operator()(const Vector3& obj, const std::string& str) {
+    std::cout << str << " " << obj << std::endl;
+  }
+};
 }
 }
 
@@ -144,8 +136,8 @@ TEST(CurvesTestSuite, testExpressionGTSAMoptimization) {
                                                  curve.getEvalExpression(measTimes[i]));
 
     ExpressionFactor<ChartValue<ValueType> > f(measNoiseModel,
-                                                ChartValue<Vector3>(measurements[i]),
-                                                predicted);
+                                               ChartValue<Vector3>(measurements[i]),
+                                               predicted);
     graph.add(ExpressionFactor<ChartValue<ValueType> >(measNoiseModel,
                                                        ChartValue<Vector3>(measurements[i]),
                                                        predicted));
