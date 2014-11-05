@@ -42,8 +42,6 @@ void SE3CoefficientImplementation::makeValue(const SE3& pose, Eigen::VectorXd *o
   (*outValue) << pose.getPosition(),pose.getRotation().vector();
 }
 
-
-
 void SE3CoefficientImplementation::retract(const Eigen::VectorXd& thisCoeff,
                                            const Eigen::VectorXd& delta,
                                            Eigen::VectorXd* outIncrementedCoeff) const {
@@ -63,6 +61,19 @@ void SE3CoefficientImplementation::retract(const Eigen::VectorXd& thisCoeff,
   // the SE3 constructor with a 6D vector is the exponential map
   SE3 updated = SE3(delta.head<6>().eval())*thisSE3;
   (*outIncrementedCoeff) << updated.getPosition(), updated.getRotation().vector();
+}
+
+// chart-friendly overload of retract
+void SE3CoefficientImplementation::retract(const SE3& thisSE3,
+                                           const Eigen::Matrix<double,6,1>& delta,
+                                           SE3* outIncrementedSE3) const {
+  // \todo PTF Add check for dimension.
+  CHECK_NOTNULL(outIncrementedSE3);
+
+  // the position is stored in the first 3 dimenstions, and the quaternion is in the next 4 or the coeff vector
+    // the SE3 constructor with a 6D vector is the exponential map
+  SE3 updated = SE3(delta.eval())*thisSE3;
+  (*outIncrementedSE3) = updated;
 }
 
 void SE3CoefficientImplementation::localCoordinates(const Eigen::VectorXd& thisCoeff,
@@ -90,4 +101,21 @@ void SE3CoefficientImplementation::localCoordinates(const Eigen::VectorXd& thisC
   (*outLocalCoordinates) = delta.log();
 }
 
+// chart-friendly overload of localCoordinates
+void SE3CoefficientImplementation::localCoordinates(const SE3& thisSE3,
+                                                    const SE3& otherSE3,
+                                                    Eigen::Matrix<double,6,1>* outLocalCoordinates) const {
+  // \todo PTF Add check for dimension.
+  CHECK_NOTNULL(outLocalCoordinates);
+  // SE3 local coordinates
+  // local coordinates are defined to be on the left side of the transformation,
+  // ie other = [delta]^ A
+  SE3 delta = otherSE3*thisSE3.inverted();
+  (*outLocalCoordinates) = delta.log();
+}
+
 } // namespace curves
+
+
+
+

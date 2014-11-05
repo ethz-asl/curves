@@ -23,6 +23,9 @@ cs_add_library(${PROJECT_NAME}
   src/HermiteCoefficientManager.cpp
   src/EvaluatorBase.cpp
   src/Coefficients.cpp
+  src/SlerpSE3Curve.cpp
+  src/SE3CoefficientImplementation.cpp
+  src/SE3Curve.cpp
 )
 
 find_package(Boost REQUIRED COMPONENTS system thread)
@@ -33,6 +36,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
   test/test_HermiteCoefficientManager.cpp
   test/test_Coefficient.cpp
   test/test_Expressions.cpp
+  test/test_Expressions_Slerp_SE3.cpp
 )
 
 message(glog_catkin_LIBRARIES: ${glog_catkin_LIBRARIES})

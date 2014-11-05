@@ -133,6 +133,7 @@ class SlerpSE3Curve : public SE3Curve {
 
 } // namespace curves
 
-#include "SlerpSE3Evaluator.hpp"
+//#include "SlerpSE3Evaluator.hpp"
+//#include "SlerpSE3Curve-inl.hpp"
 
 #endif /* CURVES_SLERP_SE3_CURVE_HPP */

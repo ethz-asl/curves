@@ -20,7 +20,7 @@ class SE3CoefficientImplementation : public CoefficientImplementation
   virtual ~SE3CoefficientImplementation();
 
   void makeValue(const SE3& pose, Eigen::VectorXd *outValue) const;
-  
+
   /// Compare this Coeficient with another for equality.
   virtual bool equals(const Eigen::VectorXd& thisCoeff, 
                       const Eigen::VectorXd& otherCoeff,
@@ -64,6 +64,11 @@ class SE3CoefficientImplementation : public CoefficientImplementation
                        const Eigen::VectorXd& delta,
                        Eigen::VectorXd* outIncrementedCoeff) const;
 
+  /// chart-friendly overload of retract
+  void retract(const SE3& thisSE3,
+               const Eigen::Matrix<double,6,1>& delta,
+               SE3* outIncrementedSE3) const;
+
   /// Compute the coordinates in the chart assigned to this coefficient that
   /// retract() would map to \c value.
   /// @param value The value whose coordinates should be determined in this
@@ -71,8 +76,12 @@ class SE3CoefficientImplementation : public CoefficientImplementation
   virtual void localCoordinates(const Eigen::VectorXd& thisCoeff, 
                                 const Eigen::VectorXd& otherCoeff,
                                 Eigen::VectorXd* outLocalCoordinates) const;
-};
 
+  /// chart-friendly overload of localCoordinates
+  void localCoordinates(const SE3& thisSE3,
+                        const SE3& otherSE3,
+                        Eigen::Matrix<double,6,1>* outLocalCoordinates) const;
+};
 
 } // namespace curves
 
