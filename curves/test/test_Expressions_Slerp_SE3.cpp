@@ -27,7 +27,8 @@ struct equals<SE3> {
   typedef SE3 type;
   typedef bool result_type;
   bool operator()(const SE3& a, const SE3& b, double tol) {
-    return a == b;
+    Eigen::Matrix<double,6,1> delta;
+    return (a.log() -b.log()).cwiseAbs().maxCoeff() < tol;
   }
 };
 
@@ -36,8 +37,10 @@ struct print<SE3> {
   typedef SE3 type;
   typedef void result_type;
   void operator()(const SE3& obj, const std::string& str) {
-    // todo replace print dummy
-    std::cout << str << " " << std::endl;
+    // make nicer layout
+    std:: cout << "SE3 object: " << std::endl;
+    std:: cout << "Position: " << obj.getPosition() << std::endl;
+    std:: cout << "Rotation: "<< obj.getRotation() << std::endl;
   }
 };
 } // namespace traits
@@ -50,15 +53,14 @@ struct DefaultChart<SE3> {
   typedef SE3 type;
   typedef Eigen::Matrix<double, 6, 1> vector;
   static vector local(const SE3& origin, const SE3& other) {
-    vector *diff;
-    SE3CoefficientImplementation::localCoordinates(origin, other, diff);
-    Eigen::Map<vector> map(diff->data());
-    return vector(map);
+    vector diff;
+    SE3CoefficientImplementation::localCoordinates(origin, other, &diff);
+    return diff;
   }
   static SE3 retract(const SE3& origin, const vector& d) {
-    SE3 *retracted;
-    SE3CoefficientImplementation::retract(origin, d, retracted);
-    return *retracted;
+    SE3 retracted;
+    SE3CoefficientImplementation::retract(origin, d, &retracted);
+    return retracted;
   }
   static int getDimension(const SE3& origin) {
     return 6;
@@ -124,8 +126,7 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
   SlerpSE3Curve curve;
 
   // Populate coefficients
-  const double t[] = {0, 10, 20};
-  const double evalTime = 5;
+  const double t[] = {0, 45, 90};
   std::vector<Time> times(t,t+3);
   std::vector<ValueType> coefficients;
 
@@ -134,7 +135,7 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
   coefficients.push_back(ValueType(SO3(SO3::Vector4(0.7071067811865476,0,-0.7071067811865476,0)),SE3::Position(9,9,9)));
 
   // Populate measurements
-  const double tmeas[] = {4, 8, 12, 16};
+  const double tmeas[] = {20, 40, 60, 80};
   std::vector<Time> measTimes(tmeas,tmeas+4);
   std::vector<ValueType> measurements;
 
@@ -165,27 +166,25 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
 
   // Noise models
   noiseModel::Diagonal::shared_ptr measNoiseModel = noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1));
-  noiseModel::Diagonal::shared_ptr priorNoiseModel = noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1));
+  noiseModel::Diagonal::shared_ptr priorNoiseModel = noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
   // Get expressions and build the graph
   NonlinearFactorGraph graph;
   for(int i=0; i < measurements.size(); i++) {
+
     Expression<ChartValue<ValueType> > predicted(convertToChartValue<ValueType>,
                                                  curve.getEvalExpression(measTimes[i]));
 
     ExpressionFactor<ChartValue<ValueType> > f(measNoiseModel,
                                                ChartValue<ValueType>(measurements[i]),
                                                predicted);
-    graph.add(ExpressionFactor<ChartValue<ValueType> >(measNoiseModel,
-                                                       ChartValue<ValueType>(measurements[i]),
-                                                       predicted));
+    graph.add(f);
+
     // Assert that error is null for expected values
-    std::vector<Matrix> H(2);
-    Vector error = f.unwhitenedError(expected, H);
-
-    ASSERT_EQ(error, (gtsam::Vector(6) << 0.0,0.0,0.0,0.0,0.0,0.0));
+    std::vector<gtsam::Matrix> H(2);
+    Vector error = f.unwhitenedError(expected);
+    CHECK((error).cwiseAbs().maxCoeff() < 1e-6);
   }
-
   // Add a prior of 0 on the first coefficient
   curve.getCoefficientsAt(0, &rval0, &rval1);
   Expression<ValueType> leaf1(rval0->key);
@@ -194,8 +193,7 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
 
   // Optimize
   gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, initials).optimize();
-
-  ASSERT_TRUE(expected.equals(result,1e-8));
+  ASSERT_TRUE(expected.equals(result,1e-6));
 }
 
 TEST(CurvesTestSuite, testSlerpSE3ExpressionJacobians){
