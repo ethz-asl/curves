@@ -155,11 +155,10 @@ Eigen::Matrix3d crossOperator(Eigen::Vector3d vector){
 
 // Evaluation function in functional form. To be passed to the expression
 // old type Eigen::Matrix<double,dim,1> <double,dim,dim> <Eigen::MatrixXd*>&
-
-SE3 evalFunc(SE3  v1, SE3  v2, double alpha,
-             boost::optional<Eigen::Matrix<double,6,6>&>H1=boost::none,
-             boost::optional<Eigen::Matrix<double,6,6>&>H2=boost::none,
-             boost::optional<Eigen::Matrix<double,6,1>&>H3=boost::none) {
+//SE3 boost::bind(slerpInterpolation(_1,_2, alpha, _3, _4)(v1, v2, H1, H2)))
+SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
+                       boost::optional<Eigen::Matrix<double,6,6>&>H1=boost::none,
+                       boost::optional<Eigen::Matrix<double,6,6>&>H2=boost::none) {
 
   typedef Eigen::Matrix3d Matrix3d;
   SO3 w_R_a(v1.getRotation());
@@ -199,7 +198,6 @@ SE3 evalFunc(SE3  v1, SE3  v2, double alpha,
   //TODO check matrix sizes should be chainRule.rows() x coefficient.ndim()
   if (H1) { *H1 += J_A_T; }
   if (H2) { *H2 += J_B_T; }
-  if (H3) { *H3 = Eigen::Matrix<double,6,1>::Zero(); }
 
   // from previous evaluate function:
 
@@ -223,7 +221,7 @@ gtsam::Expression<typename SlerpSE3Curve::ValueType> SlerpSE3Curve::getEvalExpre
 
   double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
 
-  Expression<ValueType> rval(evalFunc, leaf1, leaf2, Expression<double>(alpha));
+  Expression<ValueType> rval(boost::bind(&slerpInterpolation,_1,_2,alpha,_3,_4), leaf1, leaf2);
 
   return rval;
 }
