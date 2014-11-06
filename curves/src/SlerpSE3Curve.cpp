@@ -197,8 +197,8 @@ SE3 evalFunc(SE3  v1, SE3  v2, double alpha,
   J_B_T << J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
 
   //TODO check matrix sizes should be chainRule.rows() x coefficient.ndim()
-  if (H1) { *H1 += Eigen::Matrix<double,6,6>::Identity()*J_A_T; }
-  if (H2) { *H2 += Eigen::Matrix<double,6,6>::Identity()*J_B_T; }
+  if (H1) { *H1 += J_A_T; }
+  if (H2) { *H2 += J_B_T; }
   if (H3) { *H3 = Eigen::Matrix<double,6,1>::Zero(); }
 
   // from previous evaluate function:

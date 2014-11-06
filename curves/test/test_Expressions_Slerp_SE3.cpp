@@ -21,8 +21,6 @@ typedef SE3::Rotation SO3;
 
 namespace gtsam {
 namespace traits {
-// todo fix template specialization for eigen types. see :
-// https://forum.kde.org/viewtopic.php?f=74&t=121280
 
 template<>
 struct equals<SE3> {
@@ -53,20 +51,16 @@ struct DefaultChart<SE3> {
   typedef Eigen::Matrix<double, 6, 1> vector;
   static vector local(const SE3& origin, const SE3& other) {
     vector *diff;
-    // todo replace dummy
-    SE3CoefficientImplementation* dummy;
-    dummy->localCoordinates(origin, other, diff);
+    SE3CoefficientImplementation::localCoordinates(origin, other, diff);
     Eigen::Map<vector> map(diff->data());
     return vector(map);
   }
   static SE3 retract(const SE3& origin, const vector& d) {
     SE3 *retracted;
-    // todo replace dummy
-    SE3CoefficientImplementation* dummy;
-    dummy->retract(origin, d, retracted);
+    SE3CoefficientImplementation::retract(origin, d, retracted);
     return *retracted;
   }
-  static int getDimension(const SE3&origin) {
+  static int getDimension(const SE3& origin) {
     return 6;
   }
 };

@@ -65,9 +65,9 @@ class SE3CoefficientImplementation : public CoefficientImplementation
                        Eigen::VectorXd* outIncrementedCoeff) const;
 
   /// chart-friendly overload of retract
-  void retract(const SE3& thisSE3,
+  static void retract(const SE3& thisSE3,
                const Eigen::Matrix<double,6,1>& delta,
-               SE3* outIncrementedSE3) const;
+               SE3* outIncrementedSE3);
 
   /// Compute the coordinates in the chart assigned to this coefficient that
   /// retract() would map to \c value.
@@ -78,9 +78,9 @@ class SE3CoefficientImplementation : public CoefficientImplementation
                                 Eigen::VectorXd* outLocalCoordinates) const;
 
   /// chart-friendly overload of localCoordinates
-  void localCoordinates(const SE3& thisSE3,
+  static void localCoordinates(const SE3& thisSE3,
                         const SE3& otherSE3,
-                        Eigen::Matrix<double,6,1>* outLocalCoordinates) const;
+                        Eigen::Matrix<double,6,1>* outLocalCoordinates);
 };
 
 } // namespace curves

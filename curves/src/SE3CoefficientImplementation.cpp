@@ -66,7 +66,7 @@ void SE3CoefficientImplementation::retract(const Eigen::VectorXd& thisCoeff,
 // chart-friendly overload of retract
 void SE3CoefficientImplementation::retract(const SE3& thisSE3,
                                            const Eigen::Matrix<double,6,1>& delta,
-                                           SE3* outIncrementedSE3) const {
+                                           SE3* outIncrementedSE3) {
   // \todo PTF Add check for dimension.
   CHECK_NOTNULL(outIncrementedSE3);
 
@@ -104,7 +104,7 @@ void SE3CoefficientImplementation::localCoordinates(const Eigen::VectorXd& thisC
 // chart-friendly overload of localCoordinates
 void SE3CoefficientImplementation::localCoordinates(const SE3& thisSE3,
                                                     const SE3& otherSE3,
-                                                    Eigen::Matrix<double,6,1>* outLocalCoordinates) const {
+                                                    Eigen::Matrix<double,6,1>* outLocalCoordinates) {
   // \todo PTF Add check for dimension.
   CHECK_NOTNULL(outLocalCoordinates);
   // SE3 local coordinates
