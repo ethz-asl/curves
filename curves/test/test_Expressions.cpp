@@ -126,8 +126,8 @@ TEST(CurvesTestSuite, testExpressionGTSAMoptimization) {
   }
 
   // Noise models
-  SharedNoiseModel measNoiseModel = noiseModel::Diagonal::Sigmas(Vector3(1, 1, 1));
-  SharedNoiseModel priorNoiseModel = noiseModel::Diagonal::Sigmas(Vector3(0, 0, 0));
+  SharedNoiseModel measNoiseModel = noiseModel::Diagonal::Sigmas(ValueType(1, 1, 1));
+  SharedNoiseModel priorNoiseModel = noiseModel::Diagonal::Sigmas(ValueType(0, 0, 0));
 
   // Get expressions and build the graph
   NonlinearFactorGraph graph;
@@ -136,11 +136,9 @@ TEST(CurvesTestSuite, testExpressionGTSAMoptimization) {
                                                  curve.getEvalExpression(measTimes[i]));
 
     ExpressionFactor<ChartValue<ValueType> > f(measNoiseModel,
-                                               ChartValue<Vector3>(measurements[i]),
+                                               ChartValue<ValueType>(measurements[i]),
                                                predicted);
-    graph.add(ExpressionFactor<ChartValue<ValueType> >(measNoiseModel,
-                                                       ChartValue<Vector3>(measurements[i]),
-                                                       predicted));
+    graph.add(f);
     // Assert that error is null for expected values
     std::vector<Matrix> H(2);
     Vector error = f.unwhitenedError(expected, H);
