@@ -118,3 +118,87 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   ASSERT_NEAR(resultRot(2),-0.3826834323650897,1e-6);
   ASSERT_NEAR(resultRot(3),0.0,1e-6);
 }
+
+TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
+
+  SlerpSE3Curve curve;
+
+  // Populate coefficients
+  const double t[] = {0, 10, 20};
+  const double evalTime = 5;
+  std::vector<Time> times(t,t+3);
+  std::vector<ValueType> coefficients;
+
+  coefficients.push_back(ValueType(SO3(SO3::Vector4(1,0,0,0)),SE3::Position(0,0,0)));
+  coefficients.push_back(ValueType(SO3(SO3::Vector4(0.9238795325112867,0,-0.3826834323650897,0)),SE3::Position(4.5,4.5,4.5)));
+  coefficients.push_back(ValueType(SO3(SO3::Vector4(0.7071067811865476,0,-0.7071067811865476,0)),SE3::Position(9,9,9)));
+
+  // Populate measurements
+  const double tmeas[] = {4, 8, 12, 16};
+  std::vector<Time> measTimes(tmeas,tmeas+4);
+  std::vector<ValueType> measurements;
+
+  measurements.push_back(ValueType(SO3(SO3::Vector4(0.984807753012208,0,-0.17364817766693036,0)),SE3::Position(2,2,2)));
+  measurements.push_back(ValueType(SO3(SO3::Vector4(0.9396926207859083,0,-0.3420201433256687,0)),SE3::Position(4,4,4)));
+  measurements.push_back(ValueType(SO3(SO3::Vector4(0.8660254037844386,0,-0.5,0)),SE3::Position(6,6,6)));
+  measurements.push_back(ValueType(SO3(SO3::Vector4(0.7660444431189781,0,-0.6427876096865393,0)),SE3::Position(8,8,8)));
+
+  // Fit a curve
+  curve.fitCurve(times, coefficients);
+
+  // Populate GTSAM values
+  KeyCoefficientTime *rval0, *rval1;
+  Values initials, expected;
+  for(int i=0; i< coefficients.size(); i++) {
+    curve.getCoefficientsAt(times[i], &rval0, &rval1);
+    Key key;
+    // todo use another method for getting the keys
+    // here a if is necessary since t=maxtime the coef is in rval1
+    if (i == coefficients.size() - 1) {
+      key = rval1->key;
+    } else {
+      key = rval0->key;
+    }
+    initials.insert(key,ValueType(SO3(SO3::Vector4(1.0,0.0,0.0,0.0)),SE3::Position(0.0,0.0,0.0)));
+    expected.insert(key,coefficients[i]);
+  }
+
+  // Noise models
+  noiseModel::Diagonal::shared_ptr measNoiseModel = noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1));
+  noiseModel::Diagonal::shared_ptr priorNoiseModel = noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1));
+
+  // Get expressions and build the graph
+  NonlinearFactorGraph graph;
+  for(int i=0; i < measurements.size(); i++) {
+    Expression<ChartValue<ValueType> > predicted(convertToChartValue<ValueType>,
+                                                 curve.getEvalExpression(measTimes[i]));
+
+    ExpressionFactor<ChartValue<ValueType> > f(measNoiseModel,
+                                               ChartValue<ValueType>(measurements[i]),
+                                               predicted);
+    graph.add(ExpressionFactor<ChartValue<ValueType> >(measNoiseModel,
+                                                       ChartValue<ValueType>(measurements[i]),
+                                                       predicted));
+    // Assert that error is null for expected values
+    std::vector<Matrix> H(2);
+    Vector error = f.unwhitenedError(expected, H);
+
+    ASSERT_EQ(error, (gtsam::Vector(6) << 0.0,0.0,0.0,0.0,0.0,0.0));
+  }
+
+  // Add a prior of 0 on the first coefficient
+  curve.getCoefficientsAt(0, &rval0, &rval1);
+  Expression<ValueType> leaf1(rval0->key);
+  Expression<ChartValue<ValueType> > prior(convertToChartValue<ValueType>, leaf1);
+  graph.add(ExpressionFactor<ChartValue<ValueType> >(priorNoiseModel,ChartValue<ValueType>(ValueType(SO3(SO3::Vector4(1.0,0.0,0.0,0.0)),SE3::Position(0.0,0.0,0.0))),prior));
+
+  // Optimize
+  gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, initials).optimize();
+
+  ASSERT_TRUE(expected.equals(result,1e-8));
+}
+
+TEST(CurvesTestSuite, testSlerpSE3ExpressionJacobians){
+  // todo AG-RD
+  ASSERT_TRUE(true);
+}
