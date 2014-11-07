@@ -85,7 +85,8 @@ Time SlerpSE3Curve::getMinTime() const {
 }
 
 void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
-                             const std::vector<ValueType>& values) {
+                             const std::vector<ValueType>& values,
+                             std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size());
 
   if(times.size() > 0) {
