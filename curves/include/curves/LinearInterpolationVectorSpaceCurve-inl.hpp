@@ -1,6 +1,8 @@
 #include <curves/LinearInterpolationVectorSpaceCurve.hpp>
 #include <iostream>
 #include "gtsam_unstable/nonlinear/Expression.h"
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
 
 namespace curves {
 
@@ -89,13 +91,16 @@ Time LinearInterpolationVectorSpaceCurve<N>::getMinTime() const {
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::fitCurve(const std::vector<Time>& times,
-                                                      const std::vector<ValueType>& values) {
+                                                      const std::vector<ValueType>& values,
+                                                      std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size());
 
   if(times.size() > 0) {
     manager_.clear();
-    std::vector<Key> outKeys;
-    outKeys.reserve(times.size());
+    if (outKeys != NULL) {
+      outKeys->clear();
+      outKeys->reserve(times.size());
+    }
     std::vector<Coefficient> coefficients;
     coefficients.reserve(times.size());
     size_t vsize = values[0].size();
@@ -103,7 +108,7 @@ void LinearInterpolationVectorSpaceCurve<N>::fitCurve(const std::vector<Time>& t
       CHECK_EQ(vsize, values[i].size()) << "The vectors must be uniform length.";
       coefficients.push_back(Coefficient(values[i]));
     }
-    manager_.insertCoefficients(times,coefficients,&outKeys);
+    manager_.insertCoefficients(times,coefficients,outKeys);
   }
 }
 
@@ -158,14 +163,13 @@ typename LinearInterpolationVectorSpaceCurve<N>::DerivativeType LinearInterpolat
 
 // Evaluation function in functional form. To be passed to the expression
 template<int N>
-Eigen::Matrix<double,N,1> evalFunc(Eigen::Matrix<double,N,1>  v1, Eigen::Matrix<double,N,1>  v2, double alpha,
-                   boost::optional<Eigen::Matrix<double,N,N> &> H1=boost::none,
-                   boost::optional<Eigen::Matrix<double,N,N> &> H2=boost::none,
-                   boost::optional<Eigen::Matrix<double,N,1> &> H3=boost::none) {
+Eigen::Matrix<double,N,1> linearInterpolation(Eigen::Matrix<double,N,1>  v1,
+                                              Eigen::Matrix<double,N,1>  v2, double alpha,
+                                              boost::optional<Eigen::Matrix<double,N,N> &> H1=boost::none,
+                                              boost::optional<Eigen::Matrix<double,N,N> &> H2=boost::none) {
 
   if (H1) { *H1 = Eigen::Matrix<double,N,N>::Identity()*(1-alpha); }
   if (H2) { *H2 = Eigen::Matrix<double,N,N>::Identity()*alpha; }
-  if (H3) { *H3 = Eigen::Matrix<double,N,1>::Zero(); }
 
   return v1*(1-alpha) + v2*alpha;
 }
@@ -182,7 +186,8 @@ gtsam::Expression<typename LinearInterpolationVectorSpaceCurve<N>::ValueType> Li
 
   double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
 
-  Expression<ValueType> rval(evalFunc<N>, leaf1, leaf2, Expression<double>(alpha));
+  Expression<ValueType> rval(boost::bind(&linearInterpolation<N>, _1, _2, alpha, _3, _4),
+                             leaf1, leaf2);
 
   return rval;
 }
