@@ -18,19 +18,6 @@ class SE3Curve : public Curve<SE3Config> {
   SE3Curve();
   virtual ~SE3Curve();
 
-  /* typedef Curve<SE3Config> CurveConfig;
-
-  /// The value type of the curve.
-  typedef CurveConfig::ValueType ValueType;
-
-  /// The curve's derivative type.
-  typedef CurveConfig::DerivativeType DerivativeType;
-
-  typedef Evaluator<CurveConfig> EvaluatorType;
-
-  typedef EvaluatorType::Ptr EvaluatorTypePtr;*/
-
-
   typedef Curve<SE3Config> Parent;
   typedef Parent::ValueType ValueType;
   typedef Parent::DerivativeType DerivativeType;
