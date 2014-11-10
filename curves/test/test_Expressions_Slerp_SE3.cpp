@@ -85,7 +85,6 @@ ValueType relativeMeasurementExpression(const ValueType& interp1,
 
 // test for correct keys and evaluation function in Slerp SE3 curves
 TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
-
   SlerpSE3Curve curve;
   const double t[] = {0, 10};
   const double evalTime = 5;
@@ -239,6 +238,24 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionDynamicKeys){
   curve.fitCurve(times, coefficients);
   noiseModel::Diagonal::shared_ptr measNoiseModel = noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1));
 
+  // Populate GTSAM values
+  KeyCoefficientTime *rval0, *rval1;
+  Values initials, expected;
+  for(int i=0; i< coefficients.size(); i++) {
+    curve.getCoefficientsAt(times[i], &rval0, &rval1);
+    Key key;
+    // todo use another method for getting the keys
+    // here a if is necessary since t=maxtime the coef is in rval1
+    if (i == coefficients.size() - 1) {
+      key = rval1->key;
+    } else {
+      key = rval0->key;
+    }
+    expected.insert(key,coefficients[i]);
+  }
+
+
+
   // create ExpressionFactor which represents relative pose relation (former Relative pose factor)
   for (int i=0; i<3; ++i) {
     Expression<ChartValue<ValueType> > relative (relativeMeasurementExpression, curve.getEvalExpression(tmeas[i]), curve.getEvalExpression(tmeas[i]+durations[i]));
@@ -246,6 +263,20 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionDynamicKeys){
     const FastVector<Key> keys = factor.keys();
     // check that the ExpressionFactor dynamically handles duplicate keys
     ASSERT_EQ(factor.keys().size(),i+2);
+
+    // todo also add test to check that keys are the same, not only the number of keys. looks good with :
+//    Values::const_iterator itGTSAM = expected.begin();
+    for(FastVector<Key>::const_iterator it = factor.keys().begin(); it!= factor.keys().end(); ++it) {
+//      ASSERT_EQ(*it,(*itGTSAM).key);
+//      ++itGTSAM;
+//      cout << *it << endl;
+    }
+
+    Vector error = factor.unwhitenedError(expected);
+
+    cout << "error" << error << endl;
+//    CHECK((error).cwiseAbs().maxCoeff() < 1e-6);
+
   }
 }
 
