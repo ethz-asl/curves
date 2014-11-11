@@ -254,22 +254,18 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionDynamicKeys){
     expected.insert(key,coefficients[i]);
   }
 
-
-
   // create ExpressionFactor which represents relative pose relation (former Relative pose factor)
   for (int i=0; i<3; ++i) {
     Expression<ChartValue<ValueType> > relative (relativeMeasurementExpression, curve.getEvalExpression(tmeas[i]), curve.getEvalExpression(tmeas[i]+durations[i]));
     ExpressionFactor<ChartValue<ValueType> > factor(measNoiseModel,ChartValue<ValueType>(measurements[i]), relative);
     const FastVector<Key> keys = factor.keys();
+
     // check that the ExpressionFactor dynamically handles duplicate keys
     ASSERT_EQ(factor.keys().size(),i+2);
-
-    // todo also add test to check that keys are the same, not only the number of keys. looks good with :
-//    Values::const_iterator itGTSAM = expected.begin();
+    Values::iterator itGTSAM = expected.begin();
     for(FastVector<Key>::const_iterator it = factor.keys().begin(); it!= factor.keys().end(); ++it) {
-//      ASSERT_EQ(*it,(*itGTSAM).key);
-//      ++itGTSAM;
-//      cout << *it << endl;
+      ASSERT_EQ(*it,(*itGTSAM).key);
+      ++itGTSAM;
     }
 
     Vector error = factor.unwhitenedError(expected);
