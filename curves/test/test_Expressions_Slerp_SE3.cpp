@@ -89,8 +89,8 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   const double t[] = {0, 10};
   const double evalTime = 5;
 
-  ValueType poseA(SO3(SO3::Vector4(1,0,0,0)),SE3::Position(0,0,0));
-  ValueType poseB(SO3(SO3::Vector4(0.7071067811865476,0,-0.7071067811865476,0)),SE3::Position(2,2,2));
+  ValueType poseA(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
+  ValueType poseB(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(2,2,2));
 
   std::vector<Time> times(t,t+2);
   std::vector<ValueType> values;
@@ -112,8 +112,8 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
 
   Values gtsamValues;
 
-  gtsamValues.insert(rval0->key, ValueType(SO3(SO3::Vector4(rval0->coefficient.getValue().segment<4>(3))),rval0->coefficient.getValue().head<3>()));
-  gtsamValues.insert(rval1->key, ValueType(SO3(SO3::Vector4(rval1->coefficient.getValue().segment<4>(3))),rval1->coefficient.getValue().head<3>()));
+  gtsamValues.insert(rval0->key, ValueType(SO3(rval0->coefficient.getValue()(3),rval0->coefficient.getValue().segment<3>(4)),rval0->coefficient.getValue().head<3>()));
+  gtsamValues.insert(rval1->key, ValueType(SO3(rval1->coefficient.getValue()(3),rval1->coefficient.getValue().segment<3>(4)),rval1->coefficient.getValue().head<3>()));
 
   Eigen::MatrixXd H = Eigen::Matrix3d::Zero();
   std::vector<size_t> dimensions;
@@ -144,19 +144,19 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
   std::vector<Time> times(t,t+3);
   std::vector<ValueType> coefficients;
 
-  coefficients.push_back(ValueType(SO3(SO3::Vector4(1,0,0,0)),SE3::Position(0,0,0)));
-  coefficients.push_back(ValueType(SO3(SO3::Vector4(0.9238795325112867,0,-0.3826834323650897,0)),SE3::Position(4.5,4.5,4.5)));
-  coefficients.push_back(ValueType(SO3(SO3::Vector4(0.7071067811865476,0,-0.7071067811865476,0)),SE3::Position(9,9,9)));
+  coefficients.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
+  coefficients.push_back(ValueType(SO3(0.9238795325112867,SO3::Vector3(0,-0.3826834323650897,0)),SE3::Position(4.5,4.5,4.5)));
+  coefficients.push_back(ValueType(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(9,9,9)));
 
   // Populate measurements
   const double tmeas[] = {20, 40, 60, 80};
   std::vector<Time> measTimes(tmeas,tmeas+4);
   std::vector<ValueType> measurements;
 
-  measurements.push_back(ValueType(SO3(SO3::Vector4(0.984807753012208,0,-0.17364817766693036,0)),SE3::Position(2,2,2)));
-  measurements.push_back(ValueType(SO3(SO3::Vector4(0.9396926207859083,0,-0.3420201433256687,0)),SE3::Position(4,4,4)));
-  measurements.push_back(ValueType(SO3(SO3::Vector4(0.8660254037844386,0,-0.5,0)),SE3::Position(6,6,6)));
-  measurements.push_back(ValueType(SO3(SO3::Vector4(0.7660444431189781,0,-0.6427876096865393,0)),SE3::Position(8,8,8)));
+  measurements.push_back(ValueType(SO3(0.984807753012208, SO3::Vector3(0,-0.17364817766693036,0)),SE3::Position(2,2,2)));
+  measurements.push_back(ValueType(SO3(0.9396926207859083,SO3::Vector3(0,-0.3420201433256687,0)),SE3::Position(4,4,4)));
+  measurements.push_back(ValueType(SO3(0.8660254037844386,SO3::Vector3(0,-0.5,0)),SE3::Position(6,6,6)));
+  measurements.push_back(ValueType(SO3(0.7660444431189781,SO3::Vector3(0,-0.6427876096865393,0)),SE3::Position(8,8,8)));
 
   // Fit a curve
   curve.fitCurve(times, coefficients);
@@ -174,7 +174,7 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
     } else {
       key = rval0->key;
     }
-    initials.insert(key,ValueType(SO3(SO3::Vector4(1.0,0.0,0.0,0.0)),SE3::Position(0.0,0.0,0.0)));
+    initials.insert(key,ValueType(SO3(1,SO3::Vector3(0.0,0.0,0.0)),SE3::Position(0.0,0.0,0.0)));
     expected.insert(key,coefficients[i]);
   }
 
@@ -203,7 +203,7 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
   curve.getCoefficientsAt(0, &rval0, &rval1);
   Expression<ValueType> leaf1(rval0->key);
   Expression<ChartValue<ValueType> > prior(convertToChartValue<ValueType>, leaf1);
-  graph.add(ExpressionFactor<ChartValue<ValueType> >(priorNoiseModel,ChartValue<ValueType>(ValueType(SO3(SO3::Vector4(1.0,0.0,0.0,0.0)),SE3::Position(0.0,0.0,0.0))),prior));
+  graph.add(ExpressionFactor<ChartValue<ValueType> >(priorNoiseModel,ChartValue<ValueType>(ValueType(SO3(1.0,SO3::Vector3(0.0,0.0,0.0)),SE3::Position(0.0,0.0,0.0))),prior));
 
   // Optimize
   gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, initials).optimize();
@@ -220,19 +220,19 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionDynamicKeys){
   std::vector<ValueType> coefficients;
 
   // create a set of coefficients
-  coefficients.push_back(ValueType(SO3(SO3::Vector4(1,0,0,0)),SE3::Position(0,0,0)));
-  coefficients.push_back(ValueType(SO3(SO3::Vector4(0.9238795325112867,0,-0.3826834323650897,0)),SE3::Position(4.5,4.5,4.5)));
-  coefficients.push_back(ValueType(SO3(SO3::Vector4(0.7071067811865476,0,-0.7071067811865476,0)),SE3::Position(9,9,9)));
-  coefficients.push_back(ValueType(SO3(SO3::Vector4(0.38268343236508984,0,-0.9238795325112866,0)),SE3::Position(13.5,13.5,13.5)));
+  coefficients.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
+  coefficients.push_back(ValueType(SO3(0.9238795325112867,SO3::Vector3(0,-0.3826834323650897,0)),SE3::Position(4.5,4.5,4.5)));
+  coefficients.push_back(ValueType(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(9,9,9)));
+  coefficients.push_back(ValueType(SO3(0.38268343236508984,SO3::Vector3(0,-0.9238795325112866,0)),SE3::Position(13.5,13.5,13.5)));
 
   // Populate measurements
   const double tmeas[] = {10, 30, 20};
   std::vector<Time> measTimes(tmeas,tmeas+3);
   const double durations[] = {30, 30, 100};
   std::vector<ValueType> measurements;
-  measurements.push_back(ValueType(SO3(SO3::Vector4(0.9659258262890683,0,-0.25881904510252074,0)),SE3::Position(3.633974596215561,3,2.633974596215561)));
-  measurements.push_back(ValueType(SO3(SO3::Vector4(0.9659258262890683,0,-0.25881904510252074,0)),SE3::Position(4.901923788646684,3,1.901923788646684)));
-  measurements.push_back(ValueType(SO3(SO3::Vector4(0.6427876096865394,0,-0.766044443118978,0)),SE3::Position(14.316911861358276,10,10.377680849309444)));
+  measurements.push_back(ValueType(SO3(0.9659258262890683,SO3::Vector3(0,-0.25881904510252074,0)),SE3::Position(3.633974596215561,3,2.633974596215561)));
+  measurements.push_back(ValueType(SO3(0.9659258262890683,SO3::Vector3(0,-0.25881904510252074,0)),SE3::Position(4.901923788646684,3,1.901923788646684)));
+  measurements.push_back(ValueType(SO3(0.6427876096865394,SO3::Vector3(0,-0.766044443118978,0)),SE3::Position(14.316911861358276,10,10.377680849309444)));
 
   // Fit a curve
   curve.fitCurve(times, coefficients);

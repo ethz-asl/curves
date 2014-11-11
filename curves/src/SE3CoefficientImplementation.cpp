@@ -57,7 +57,8 @@ void SE3CoefficientImplementation::retract(const Eigen::VectorXd& thisCoeff,
 
   // SE3 retract
   // the position is stored in the first 3 dimenstions, and the quaternion is in the next 4 or the coeff vector
-  SE3 thisSE3(SO3(SO3::Vector4(thisCoeff.segment<4>(3))),thisCoeff.head<3>());
+  SE3 thisSE3(SO3(thisCoeff[3], thisCoeff.segment<3>(4)),thisCoeff.head<3>());
+//  SE3 thisSE3(SO3(SO3::Vector4(thisCoeff.segment<4>(3))),thisCoeff.head<3>());
   // the SE3 constructor with a 6D vector is the exponential map
   SE3 updated = SE3(delta.head<6>().eval())*thisSE3;
   (*outIncrementedCoeff) << updated.getPosition(), updated.getRotation().vector();
@@ -93,8 +94,8 @@ void SE3CoefficientImplementation::localCoordinates(const Eigen::VectorXd& thisC
 //  (*outLocalCoordinates) << deltaPosition, deltaRotationAA.axis()*deltaRotationAA.angle();
 
   // SE3 local coordinates
-  SE3 thisSE3(SO3(SO3::Vector4(thisCoeff.segment<4>(3))),thisCoeff.head<3>());
-  SE3 otherSE3(SO3(SO3::Vector4(otherCoeff.segment<4>(3))),otherCoeff.head<3>());
+  SE3 thisSE3(SO3(thisCoeff[3], thisCoeff.segment<3>(4)),thisCoeff.head<3>());
+  SE3 otherSE3(SO3(otherCoeff[3], otherCoeff.segment<3>(4)),otherCoeff.head<3>());
   // local coordinates are defined to be on the left side of the transformation,
   // ie other = [delta]^ A
   SE3 delta = otherSE3*thisSE3.inverted();
