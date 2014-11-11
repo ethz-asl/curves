@@ -230,9 +230,9 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionDynamicKeys){
   std::vector<Time> measTimes(tmeas,tmeas+3);
   const double durations[] = {30, 30, 100};
   std::vector<ValueType> measurements;
-  measurements.push_back(ValueType(SO3(SO3::Vector4(0.9659258262890683,0,-0.25881904510252074,0)),SE3::Position(3,3,3)));
-  measurements.push_back(ValueType(SO3(SO3::Vector4(0.9659258262890683,0,-0.25881904510252074,0)),SE3::Position(3,3,3)));
-  measurements.push_back(ValueType(SO3(SO3::Vector4(0.6427876096865394,0,-0.766044443118978,0)),SE3::Position(10,10,10)));
+  measurements.push_back(ValueType(SO3(SO3::Vector4(0.9659258262890683,0,-0.25881904510252074,0)),SE3::Position(3.633974596215561,3,2.633974596215561)));
+  measurements.push_back(ValueType(SO3(SO3::Vector4(0.9659258262890683,0,-0.25881904510252074,0)),SE3::Position(4.901923788646684,3,1.901923788646684)));
+  measurements.push_back(ValueType(SO3(SO3::Vector4(0.6427876096865394,0,-0.766044443118978,0)),SE3::Position(14.316911861358276,10,10.377680849309444)));
 
   // Fit a curve
   curve.fitCurve(times, coefficients);
@@ -267,12 +267,8 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionDynamicKeys){
       ASSERT_EQ(*it,(*itGTSAM).key);
       ++itGTSAM;
     }
-
     Vector error = factor.unwhitenedError(expected);
-
-    cout << "error" << error << endl;
-//    CHECK((error).cwiseAbs().maxCoeff() < 1e-6);
-
+    CHECK((error).cwiseAbs().maxCoeff() < 1e-6);
   }
 }
 
