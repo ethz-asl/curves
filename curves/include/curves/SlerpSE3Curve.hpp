@@ -82,6 +82,8 @@ class SlerpSE3Curve : public SE3Curve {
 
   virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
 
+  virtual gtsam::Expression<ValueType> getEvalExpression2(const Time& time) const;
+
   virtual void setTimeRange(Time minTime, Time maxTime);
 
   /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.

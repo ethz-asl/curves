@@ -211,6 +211,63 @@ SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
   return (w_T_i);
 }
 
+// T^alpha
+SE3 transformationPower(SE3  T, double alpha,
+                        boost::optional<Eigen::Matrix<double,6,6>&>H=boost::none) {
+  typedef Eigen::Matrix3d Matrix3d;
+
+  SO3 R(T.getRotation());
+  SE3::Position t(T.getPosition());
+
+  AngleAxis angleAxis(R);
+  angleAxis.setAngle( angleAxis.angle()*alpha);
+
+  if(H) {
+    Matrix3d J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
+    Eigen::Matrix<double, 6, 6> J_B_T;
+
+    AngleAxis AA(R);
+
+    Matrix3d Re = alpha *(Matrix3d::Identity() - ((1-alpha)/2)*AA.angle()*crossOperator(AA.axis()));
+
+    J_tB_rT = Matrix3d::Zero();
+    J_rB_rT = Re;
+    J_tB_tT = Matrix3d::Identity()*alpha;
+    J_rB_tT = (crossOperator(t)*alpha)*Re - alpha*crossOperator(t);
+
+    J_B_T << J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
+    (*H) = J_B_T;
+  }
+
+  return SE3(SO3(angleAxis),(t*alpha).eval());
+}
+
+// A*B
+SE3 composeTransformations(SE3 A, SE3 B,
+                           boost::optional<Eigen::Matrix<double,6,6>&>H1=boost::none,
+                           boost::optional<Eigen::Matrix<double,6,6>&>H2=boost::none) {
+  // todo compute jacobians
+  if (H1) {
+    (*H1) = Eigen::Matrix<double,6,6>::Identity();
+  }
+
+  if (H2) {
+    (*H2) = Eigen::Matrix<double,6,6>::Identity();
+  }
+
+  return A*B;
+}
+
+// T^-1
+SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H=boost::none) {
+  // todo compute jacobian
+  if (H) {
+    (*H) = Eigen::Matrix<double,6,6>::Identity();
+  }
+
+  return T.inverted();
+}
+
 gtsam::Expression<typename SlerpSE3Curve::ValueType> SlerpSE3Curve::getEvalExpression(const Time& time) const {
   typedef typename SlerpSE3Curve::ValueType ValueType;
   using namespace gtsam;
@@ -226,6 +283,26 @@ gtsam::Expression<typename SlerpSE3Curve::ValueType> SlerpSE3Curve::getEvalExpre
 
   return rval;
 }
+
+// A*(exp(log((A^-1)*B)*alpha))
+gtsam::Expression<typename SlerpSE3Curve::ValueType> SlerpSE3Curve::getEvalExpression2(const Time& time) const {
+  typedef typename SlerpSE3Curve::ValueType ValueType;
+  using namespace gtsam;
+  KeyCoefficientTime *rval0, *rval1;
+  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
+
+  double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
+
+  Expression<ValueType> leaf1(rval0->key);
+  Expression<ValueType> leaf2(rval1->key);
+
+  Expression<ValueType> inverted(inverseTransformation, leaf1);
+  Expression<ValueType> composed(composeTransformations, inverted, leaf2);
+  Expression<ValueType> powered(boost::bind(&transformationPower,_1,alpha,_2), composed);
+
+  return Expression<ValueType>(composeTransformations, leaf1, powered);
+}
+
 
 void SlerpSE3Curve::setTimeRange(Time minTime, Time maxTime) {
   // \todo Abel and Renaud

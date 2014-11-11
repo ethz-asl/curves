@@ -134,6 +134,77 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   ASSERT_NEAR(resultRot(3),0.0,1e-6);
 }
 
+TEST(CurvesTestSuite, compareEvalExpressions1and2) {
+  SlerpSE3Curve curve;
+  const double t[] = {0, 10};
+  const double evalTime = 3;
+
+  ValueType poseA(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
+  ValueType poseB(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(2,2,2));
+
+  std::vector<Time> times(t,t+2);
+  std::vector<ValueType> values;
+  values.push_back(poseA);
+  values.push_back(poseB);
+
+  curve.fitCurve(times, values);
+
+  KeyCoefficientTime *rval0, *rval1;
+  curve.getCoefficientsAt(evalTime, &rval0, &rval1);
+
+  Expression<ValueType> expression1 = curve.getEvalExpression(evalTime);
+  Expression<ValueType> expression2 = curve.getEvalExpression2(evalTime);
+
+  std::set<Key> keys1 = expression1.keys();
+  std::set<Key> keys2 = expression2.keys();
+
+  // Check keys1
+  ASSERT_EQ(*(keys1.begin()), rval0->key);
+  ASSERT_EQ(*(++(keys1.begin())), rval1->key);
+  ASSERT_EQ(*(keys2.begin()), rval0->key);
+  ASSERT_EQ(*(++(keys2.begin())), rval1->key);
+
+  Values gtsamValues;
+
+  gtsamValues.insert(rval0->key, ValueType(SO3(rval0->coefficient.getValue()(3),rval0->coefficient.getValue().segment<3>(4)),rval0->coefficient.getValue().head<3>()));
+  gtsamValues.insert(rval1->key, ValueType(SO3(rval1->coefficient.getValue()(3),rval1->coefficient.getValue().segment<3>(4)),rval1->coefficient.getValue().head<3>()));
+
+  Eigen::MatrixXd H = Eigen::Matrix3d::Zero();
+  std::vector<size_t> dimensions;
+  dimensions.push_back(DIM);
+  dimensions.push_back(DIM);
+  static const int Dim = traits::dimension<ValueType>::value;
+  VerticalBlockMatrix Ab(dimensions, Dim);
+  FastVector<Key> key = boost::assign::list_of(rval0->key)(rval1->key);
+  JacobianMap actualMap(key,Ab);
+
+  ValueType result1 = expression1.value(gtsamValues, actualMap);
+  Eigen::Vector3d resultPos1 = result1.getPosition();
+  Eigen::Vector4d resultRot1 = result1.getRotation().vector();
+
+  ValueType result2 = expression2.value(gtsamValues, actualMap);
+  Eigen::Vector3d resultPos2 = result2.getPosition();
+  Eigen::Vector4d resultRot2 = result2.getRotation().vector();
+
+  ASSERT_EQ(resultPos1, resultPos2);
+  ASSERT_NEAR(resultRot1(0), resultRot2(0), 1e-6);
+  ASSERT_NEAR(resultRot1(1), resultRot2(1), 1e-6);
+  ASSERT_NEAR(resultRot1(2), resultRot2(2), 1e-6);
+  ASSERT_NEAR(resultRot1(3), resultRot2(3), 1e-6);
+
+//  ASSERT_EQ(resultPos1, Eigen::Vector3d(1,1,1));
+//  ASSERT_NEAR(resultRot1(0),0.9238795325112867,1e-6);
+//  ASSERT_NEAR(resultRot1(1),0.0,1e-6);
+//  ASSERT_NEAR(resultRot1(2),-0.3826834323650897,1e-6);
+//  ASSERT_NEAR(resultRot1(3),0.0,1e-6);
+//
+//  ASSERT_EQ(resultPos2, Eigen::Vector3d(1,1,1));
+//  ASSERT_NEAR(resultRot2(0),0.9238795325112867,1e-6);
+//  ASSERT_NEAR(resultRot2(1),0.0,1e-6);
+//  ASSERT_NEAR(resultRot2(2),-0.3826834323650897,1e-6);
+//  ASSERT_NEAR(resultRot2(3),0.0,1e-6);
+}
+
 // test basic gtsam interface of Slerp SE3 curves
 TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
 
