@@ -5,8 +5,9 @@
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
 #include "gtsam_unstable/nonlinear/ExpressionFactor.h"
-#include <Eigen/Core>
+#include <gtsam/base/numericalDerivative.h>
 
+#include <Eigen/Core>
 #include <boost/assign/list_of.hpp>
 
 #define DIM 6
@@ -44,6 +45,9 @@ struct print<SE3> {
     std:: cout << "Rotation: "<< obj.getRotation() << std::endl;
   }
 };
+
+template <>
+struct is_manifold<ChartValue<ValueType> > : public boost::true_type {};
 } // namespace traits
 } // namespace gtsam
 
@@ -70,6 +74,45 @@ struct DefaultChart<SE3> {
 };
 
 } //namespace gtsam
+
+
+// Wrapper to enable numerical differentiation on SlerpSE3Evaluator::evaluate
+
+class ExpressionValueWrapper {
+ private:
+  Expression<ValueType> expression_;
+  const Values& initialCoefficients_;
+
+ public:
+  ExpressionValueWrapper(const Expression<ValueType>& expression,
+                         const Values& initialCoefficients) : expression_(expression),
+                         initialCoefficients_(initialCoefficients){
+
+  }
+  ~ExpressionValueWrapper() {}
+
+  ChartValue<ValueType> evaluate(const ChartValue<ValueType>& x, int arg) {
+    std::set<Key>::const_iterator it = expression_.keys().begin();
+    if (arg) {++it;}
+    Key key = *it;
+
+    Values values(initialCoefficients_);
+    values.update(key,x.value());
+
+    std::vector<size_t> dimensions;
+    dimensions.push_back(DIM);
+    dimensions.push_back(DIM);
+    static const int Dim = traits::dimension<ValueType>::value;
+    VerticalBlockMatrix Ab(dimensions, Dim);
+    FastVector<Key> keys = boost::assign::list_of(*(expression_.keys().begin()))(*(++expression_.keys().begin()));
+    JacobianMap actualMap(keys,Ab);
+
+    ValueType result = expression_.value(values, actualMap);
+
+    return convertToChartValue<ValueType>(result);
+  }
+};
+
 
 // Expression to calculate relative measurement between 2 SE3 values
 // \todo AG move this to trajectory maintainer at some point (this replaces relative pose factor functionality)
@@ -110,10 +153,12 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   ASSERT_EQ(*(keys.begin()), rval0->key);
   ASSERT_EQ(*(++(keys.begin())), rval1->key);
 
-  Values gtsamValues;
+  ValueType val0(SO3(rval0->coefficient.getValue()(3),rval0->coefficient.getValue().segment<3>(4)),rval0->coefficient.getValue().head<3>());
+  ValueType val1(SO3(rval1->coefficient.getValue()(3),rval1->coefficient.getValue().segment<3>(4)),rval1->coefficient.getValue().head<3>());
 
-  gtsamValues.insert(rval0->key, ValueType(SO3(rval0->coefficient.getValue()(3),rval0->coefficient.getValue().segment<3>(4)),rval0->coefficient.getValue().head<3>()));
-  gtsamValues.insert(rval1->key, ValueType(SO3(rval1->coefficient.getValue()(3),rval1->coefficient.getValue().segment<3>(4)),rval1->coefficient.getValue().head<3>()));
+  Values gtsamValues;
+  gtsamValues.insert(rval0->key, val0);
+  gtsamValues.insert(rval1->key, val1);
 
   Eigen::MatrixXd H = Eigen::Matrix3d::Zero();
   std::vector<size_t> dimensions;
@@ -132,6 +177,23 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   ASSERT_NEAR(resultRot(1),0.0,1e-6);
   ASSERT_NEAR(resultRot(2),-0.3826834323650897,1e-6);
   ASSERT_NEAR(resultRot(3),0.0,1e-6);
+
+  // Test the jacobians
+
+  ExpressionValueWrapper expressionValueWrapper(expression,gtsamValues);
+
+  gtsam::Matrix expectedH0 = gtsam::numericalDerivative11<ChartValue<ValueType>, ChartValue<ValueType> >
+  (boost::bind(&ExpressionValueWrapper::evaluate, &expressionValueWrapper, _1, 0), convertToChartValue<ValueType>(val0), 1e-3);
+  gtsam::Matrix expectedH1 = gtsam::numericalDerivative11<ChartValue<ValueType>, ChartValue<ValueType> >
+  (boost::bind(&ExpressionValueWrapper::evaluate, &expressionValueWrapper, _1, 1), convertToChartValue<ValueType>(val1), 1e-3);
+
+  cout << "expectedH0:" << endl << expectedH0 << endl;
+  cout << "actualMap(rval0->key)" << endl << actualMap(rval0->key) << endl;
+
+  cout << "expectedH1:" << endl << expectedH1 << endl;
+  cout << "actualMap(rval1->key)" << endl << actualMap(rval1->key) << endl;
+
+
 }
 
 TEST(CurvesTestSuite, compareEvalExpressions1and2) {
@@ -192,17 +254,17 @@ TEST(CurvesTestSuite, compareEvalExpressions1and2) {
   ASSERT_NEAR(resultRot1(2), resultRot2(2), 1e-6);
   ASSERT_NEAR(resultRot1(3), resultRot2(3), 1e-6);
 
-//  ASSERT_EQ(resultPos1, Eigen::Vector3d(1,1,1));
-//  ASSERT_NEAR(resultRot1(0),0.9238795325112867,1e-6);
-//  ASSERT_NEAR(resultRot1(1),0.0,1e-6);
-//  ASSERT_NEAR(resultRot1(2),-0.3826834323650897,1e-6);
-//  ASSERT_NEAR(resultRot1(3),0.0,1e-6);
-//
-//  ASSERT_EQ(resultPos2, Eigen::Vector3d(1,1,1));
-//  ASSERT_NEAR(resultRot2(0),0.9238795325112867,1e-6);
-//  ASSERT_NEAR(resultRot2(1),0.0,1e-6);
-//  ASSERT_NEAR(resultRot2(2),-0.3826834323650897,1e-6);
-//  ASSERT_NEAR(resultRot2(3),0.0,1e-6);
+  //  ASSERT_EQ(resultPos1, Eigen::Vector3d(1,1,1));
+  //  ASSERT_NEAR(resultRot1(0),0.9238795325112867,1e-6);
+  //  ASSERT_NEAR(resultRot1(1),0.0,1e-6);
+  //  ASSERT_NEAR(resultRot1(2),-0.3826834323650897,1e-6);
+  //  ASSERT_NEAR(resultRot1(3),0.0,1e-6);
+  //
+  //  ASSERT_EQ(resultPos2, Eigen::Vector3d(1,1,1));
+  //  ASSERT_NEAR(resultRot2(0),0.9238795325112867,1e-6);
+  //  ASSERT_NEAR(resultRot2(1),0.0,1e-6);
+  //  ASSERT_NEAR(resultRot2(2),-0.3826834323650897,1e-6);
+  //  ASSERT_NEAR(resultRot2(3),0.0,1e-6);
 }
 
 // test basic gtsam interface of Slerp SE3 curves
