@@ -24,7 +24,8 @@ void LinearInterpolationVectorSpaceCurve<N>::print(const std::string& str) const
   std::vector<Time> times;
   manager_.getTimes(&times);
   manager_.getKeys(&keys);
-  std::cout << "curve defined between times: " << manager_.getMinTime() << " and " << manager_.getMaxTime() <<std::endl;
+  std::cout << "curve defined between times: " << manager_.getMinTime() <<
+      " and " << manager_.getMaxTime() <<std::endl;
   std::cout <<"=========================================" <<std::endl;
   for (size_t i = 0; i < manager_.size(); i++) {
     ss << "coefficient " << keys[i] << ": ";
@@ -126,7 +127,8 @@ void LinearInterpolationVectorSpaceCurve<N>::extend(const std::vector<Time>& tim
 }
 
 template<int N>
-typename LinearInterpolationVectorSpaceCurve<N>::ValueType LinearInterpolationVectorSpaceCurve<N>::evaluate(Time time) const {
+typename LinearInterpolationVectorSpaceCurve<N>::ValueType
+LinearInterpolationVectorSpaceCurve<N>::evaluate(Time time) const {
   KeyCoefficientTime *rval0, *rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
   CHECK(success) << "Unable to get the coefficients at time " << time;  
@@ -140,7 +142,9 @@ typename LinearInterpolationVectorSpaceCurve<N>::ValueType LinearInterpolationVe
 }
 
 template<int N>
-typename LinearInterpolationVectorSpaceCurve<N>::DerivativeType LinearInterpolationVectorSpaceCurve<N>::evaluateDerivative(Time time, unsigned derivativeOrder) const {
+typename LinearInterpolationVectorSpaceCurve<N>::DerivativeType
+LinearInterpolationVectorSpaceCurve<N>::evaluateDerivative(Time time,
+                                                           unsigned derivativeOrder) const {
 
   // time is out of bound --> error
   CHECK_GE(time, this->getMinTime()) << "Time out of bounds"; 
@@ -175,7 +179,8 @@ Eigen::Matrix<double,N,1> linearInterpolation(Eigen::Matrix<double,N,1>  v1,
 }
 
 template<int N>
-gtsam::Expression<typename LinearInterpolationVectorSpaceCurve<N>::ValueType> LinearInterpolationVectorSpaceCurve<N>::getEvalExpression(const Time& time) const {
+gtsam::Expression<typename LinearInterpolationVectorSpaceCurve<N>::ValueType>
+LinearInterpolationVectorSpaceCurve<N>::getEvalExpression(const Time& time) const {
   typedef typename LinearInterpolationVectorSpaceCurve<N>::ValueType ValueType;
   using namespace gtsam;
   KeyCoefficientTime *rval0, *rval1;

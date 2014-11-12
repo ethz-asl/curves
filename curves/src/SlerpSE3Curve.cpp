@@ -24,7 +24,8 @@ void SlerpSE3Curve::print(const std::string& str) const {
   std::vector<Time> times;
   manager_.getTimes(&times);
   manager_.getKeys(&keys);
-  std::cout << "curve defined between times: " << manager_.getMinTime() << " and " << manager_.getMaxTime() <<std::endl;
+  std::cout << "curve defined between times: " << manager_.getMinTime() <<
+      " and " << manager_.getMaxTime() <<std::endl;
   std::cout <<"=========================================" <<std::endl;
   for (size_t i = 0; i < manager_.size(); i++) {
     ss << "coefficient " << keys[i] << ": ";
@@ -98,7 +99,8 @@ void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
     coefficients.reserve(times.size());
     for(size_t i = 0; i < values.size(); ++i) {
       CoefficientImplementation::Ptr impl(new SE3CoefficientImplementation);
-      boost::dynamic_pointer_cast<SE3CoefficientImplementation>(impl)->makeValue(values[i],&val);
+      boost::dynamic_pointer_cast<SE3CoefficientImplementation>(impl)->makeValue(values[i],
+                                                                                 &val);
       Coefficient c1(impl,val);
       coefficients.push_back(c1);
     }
@@ -123,7 +125,9 @@ typename SlerpSE3Curve::ValueType SlerpSE3Curve::evaluate(Time time) const {
   // \todo Jenkins implement this please
 }
 
-typename SlerpSE3Curve::DerivativeType SlerpSE3Curve::evaluateDerivative(Time time, unsigned derivativeOrder) const {
+typename SlerpSE3Curve::DerivativeType
+SlerpSE3Curve::evaluateDerivative(Time time,
+                                  unsigned derivativeOrder) const {
 
   // time is out of bound --> error
   CHECK_GE(time, this->getMinTime()) << "Time out of bounds";
@@ -143,8 +147,6 @@ typename SlerpSE3Curve::DerivativeType SlerpSE3Curve::evaluateDerivative(Time ti
     return Eigen::VectorXd::Zero(dimension,1);
   }
 }
-
-
 
 Eigen::Matrix3d crossOperator(Eigen::Vector3d vector){
   Eigen::Matrix3d rval;
@@ -268,7 +270,8 @@ SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H=bo
   return T.inverted();
 }
 
-gtsam::Expression<typename SlerpSE3Curve::ValueType> SlerpSE3Curve::getEvalExpression(const Time& time) const {
+gtsam::Expression<typename SlerpSE3Curve::ValueType>
+SlerpSE3Curve::getEvalExpression(const Time& time) const {
   typedef typename SlerpSE3Curve::ValueType ValueType;
   using namespace gtsam;
   KeyCoefficientTime *rval0, *rval1;
@@ -279,7 +282,8 @@ gtsam::Expression<typename SlerpSE3Curve::ValueType> SlerpSE3Curve::getEvalExpre
 
   double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
 
-  Expression<ValueType> rval(boost::bind(&slerpInterpolation,_1,_2,alpha,_3,_4), leaf1, leaf2);
+  Expression<ValueType> rval(boost::bind(&slerpInterpolation,_1,_2,alpha,_3,_4),
+                             leaf1, leaf2);
 
   return rval;
 }
