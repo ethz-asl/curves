@@ -254,7 +254,16 @@ SE3 composeTransformations(SE3 A, SE3 B,
   }
 
   if (H2) {
-    (*H2) = Eigen::Matrix<double,6,6>::Identity();
+    Eigen::Matrix3d J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
+    Eigen::Matrix<double, 6, 6> J_B_T;
+    SE3::Position ta(A.getPosition());
+    J_tB_rT = Eigen::Matrix3d::Zero();
+    J_rB_rT = A.getRotationMatrix();
+    J_tB_tT = A.getRotationMatrix();
+    J_rB_tT = crossOperator(ta)*A.getRotationMatrix();
+
+    J_B_T << J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
+    (*H2) = J_B_T;
   }
 
   return A*B;
@@ -264,7 +273,16 @@ SE3 composeTransformations(SE3 A, SE3 B,
 SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H=boost::none) {
   // todo compute jacobian
   if (H) {
-    (*H) = Eigen::Matrix<double,6,6>::Identity();
+    Eigen::Matrix3d J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
+    Eigen::Matrix<double, 6, 6> J_B_T;
+    SE3::Position ta(T.getPosition());
+    J_tB_rT = Eigen::Matrix3d::Zero();
+    J_rB_rT = - T.getRotationMatrix().inverse();
+    J_tB_tT = - T.getRotationMatrix().inverse();
+    J_rB_tT = T.getRotationMatrix().inverse() * crossOperator(ta);
+
+    J_B_T << J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
+    (*H) = J_B_T;
   }
 
   return T.inverted();

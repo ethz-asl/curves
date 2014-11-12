@@ -177,31 +177,15 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   ASSERT_NEAR(resultRot(1),0.0,1e-6);
   ASSERT_NEAR(resultRot(2),-0.3826834323650897,1e-6);
   ASSERT_NEAR(resultRot(3),0.0,1e-6);
-
-  // Test the jacobians
-
-  ExpressionValueWrapper expressionValueWrapper(expression,gtsamValues);
-
-  gtsam::Matrix expectedH0 = gtsam::numericalDerivative11<ChartValue<ValueType>, ChartValue<ValueType> >
-  (boost::bind(&ExpressionValueWrapper::evaluate, &expressionValueWrapper, _1, 0), convertToChartValue<ValueType>(val0), 1e-3);
-  gtsam::Matrix expectedH1 = gtsam::numericalDerivative11<ChartValue<ValueType>, ChartValue<ValueType> >
-  (boost::bind(&ExpressionValueWrapper::evaluate, &expressionValueWrapper, _1, 1), convertToChartValue<ValueType>(val1), 1e-3);
-
-  cout << "expectedH0:" << endl << expectedH0 << endl;
-  cout << "actualMap(rval0->key)" << endl << actualMap(rval0->key) << endl;
-
-  cout << "expectedH1:" << endl << expectedH1 << endl;
-  cout << "actualMap(rval1->key)" << endl << actualMap(rval1->key) << endl;
-
-
 }
 
 TEST(CurvesTestSuite, compareEvalExpressions1and2) {
   SlerpSE3Curve curve;
   const double t[] = {0, 10};
-  const double evalTime = 3;
+  const double evalTime = 5;
 
-  ValueType poseA(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
+//  ValueType poseA(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
+    ValueType poseA(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(1,1,1));
   ValueType poseB(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(2,2,2));
 
   std::vector<Time> times(t,t+2);
@@ -226,10 +210,12 @@ TEST(CurvesTestSuite, compareEvalExpressions1and2) {
   ASSERT_EQ(*(keys2.begin()), rval0->key);
   ASSERT_EQ(*(++(keys2.begin())), rval1->key);
 
-  Values gtsamValues;
+  ValueType val0(SO3(rval0->coefficient.getValue()(3),rval0->coefficient.getValue().segment<3>(4)),rval0->coefficient.getValue().head<3>());
+  ValueType val1(SO3(rval1->coefficient.getValue()(3),rval1->coefficient.getValue().segment<3>(4)),rval1->coefficient.getValue().head<3>());
 
-  gtsamValues.insert(rval0->key, ValueType(SO3(rval0->coefficient.getValue()(3),rval0->coefficient.getValue().segment<3>(4)),rval0->coefficient.getValue().head<3>()));
-  gtsamValues.insert(rval1->key, ValueType(SO3(rval1->coefficient.getValue()(3),rval1->coefficient.getValue().segment<3>(4)),rval1->coefficient.getValue().head<3>()));
+  Values gtsamValues, gtsamValues2;
+  gtsamValues.insert(rval0->key, val0);
+  gtsamValues.insert(rval1->key, val1);
 
   Eigen::MatrixXd H = Eigen::Matrix3d::Zero();
   std::vector<size_t> dimensions;
@@ -237,22 +223,44 @@ TEST(CurvesTestSuite, compareEvalExpressions1and2) {
   dimensions.push_back(DIM);
   static const int Dim = traits::dimension<ValueType>::value;
   VerticalBlockMatrix Ab(dimensions, Dim);
+  Ab.matrix().setZero();
   FastVector<Key> key = boost::assign::list_of(rval0->key)(rval1->key);
   JacobianMap actualMap(key,Ab);
 
-  ValueType result1 = expression1.value(gtsamValues, actualMap);
-  Eigen::Vector3d resultPos1 = result1.getPosition();
-  Eigen::Vector4d resultRot1 = result1.getRotation().vector();
+  //  ValueType result1 = expression1.value(gtsamValues, actualMap);
+  //  Eigen::Vector3d resultPos1 = result1.getPosition();
+  //  Eigen::Vector4d resultRot1 = result1.getRotation().vector();
 
   ValueType result2 = expression2.value(gtsamValues, actualMap);
   Eigen::Vector3d resultPos2 = result2.getPosition();
   Eigen::Vector4d resultRot2 = result2.getRotation().vector();
 
-  ASSERT_EQ(resultPos1, resultPos2);
-  ASSERT_NEAR(resultRot1(0), resultRot2(0), 1e-6);
-  ASSERT_NEAR(resultRot1(1), resultRot2(1), 1e-6);
-  ASSERT_NEAR(resultRot1(2), resultRot2(2), 1e-6);
-  ASSERT_NEAR(resultRot1(3), resultRot2(3), 1e-6);
+  cout << "resultPos2:" << endl << resultPos2 << endl;
+  cout << "resultRot2:" << endl << resultRot2 << endl;
+
+
+  //  ASSERT_EQ(resultPos1, resultPos2);
+  //  ASSERT_NEAR(resultRot1(0), resultRot2(0), 1e-6);
+  //  ASSERT_NEAR(resultRot1(1), resultRot2(1), 1e-6);
+  //  ASSERT_NEAR(resultRot1(2), resultRot2(2), 1e-6);
+  //  ASSERT_NEAR(resultRot1(3), resultRot2(3), 1e-6);
+
+
+  // Test the jacobians
+
+  // Call analytical calculation of Jacobians (using BAD)
+  ExpressionValueWrapper expressionValueWrapper(expression2,gtsamValues);
+  // Call numerical calculation of Jacobians
+  gtsam::Matrix expectedH0 = gtsam::numericalDerivative11<ChartValue<ValueType>, ChartValue<ValueType> >
+  (boost::bind(&ExpressionValueWrapper::evaluate, &expressionValueWrapper, _1, 0), convertToChartValue<ValueType>(val0), 1e-3);
+  gtsam::Matrix expectedH1 = gtsam::numericalDerivative11<ChartValue<ValueType>, ChartValue<ValueType> >
+  (boost::bind(&ExpressionValueWrapper::evaluate, &expressionValueWrapper, _1, 1), convertToChartValue<ValueType>(val1), 1e-3);
+
+  cout << "expectedH0:" << endl << expectedH0 << endl;
+  cout << "actualMap(rval0->key)" << endl << actualMap(rval0->key) << endl;
+
+  cout << "expectedH1:" << endl << expectedH1 << endl;
+  cout << "actualMap(rval1->key)" << endl << actualMap(rval1->key) << endl;
 
   //  ASSERT_EQ(resultPos1, Eigen::Vector3d(1,1,1));
   //  ASSERT_NEAR(resultRot1(0),0.9238795325112867,1e-6);

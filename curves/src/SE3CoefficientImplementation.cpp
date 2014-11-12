@@ -73,7 +73,7 @@ void SE3CoefficientImplementation::retract(const SE3& thisSE3,
 
   // the position is stored in the first 3 dimenstions, and the quaternion is in the next 4 or the coeff vector
     // the SE3 constructor with a 6D vector is the exponential map
-  SE3 updated = SE3(delta.eval())*thisSE3;
+  SE3 updated = SE3(delta)*thisSE3;
   (*outIncrementedSE3) = updated;
 }
 
