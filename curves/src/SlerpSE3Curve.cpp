@@ -182,8 +182,6 @@ SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
   // Rotational component computed with Baker-Campbell-Hausdorff
   Matrix3d Re = alpha *(Matrix3d::Identity() - ((1-alpha)/2)*a_AA_b.angle()*crossOperator(a_AA_b.axis()));
 
-  // Rotational component computed without Baker-Campbell-Hausdorff
-
   J_rA_tT = -((1-alpha) * crossOperator(w_t_a) + alpha*crossOperator(w_t_b))*Re + alpha*crossOperator(w_t_b);
   J_tA_rT = Matrix3d::Zero();
   J_rA_rT = Matrix3d::Identity() - Re;
@@ -208,7 +206,6 @@ SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
   delta.setAngle( delta.angle()*alpha);
   SE3 w_T_i(w_R_a*SO3(delta)  , (w_t_a*(1-alpha)+w_t_b*alpha).eval());
 
-  //  return (w_T_i).getTransformationMatrix();
   return (w_T_i);
 }
 
@@ -309,7 +306,8 @@ SlerpSE3Curve::getEvalExpression(const Time& time) const {
 /// \brief forms slerp interpolation into a binary expression with 2 leafs and binds alpha into it,
 ///        uses break down of expression into its operations
 ///        \f[ T = A(A^{-1}B)^{\alpha} \f]
-gtsam::Expression<typename SlerpSE3Curve::ValueType> SlerpSE3Curve::getEvalExpression2(const Time& time) const {
+gtsam::Expression<typename SlerpSE3Curve::ValueType>
+SlerpSE3Curve::getEvalExpression2(const Time& time) const {
   typedef typename SlerpSE3Curve::ValueType ValueType;
   using namespace gtsam;
   KeyCoefficientTime *rval0, *rval1;
