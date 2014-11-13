@@ -37,6 +37,8 @@ catkin_add_gtest(${PROJECT_NAME}_tests
   test/test_Coefficient.cpp
   test/test_Expressions.cpp
   test/test_Expressions_Slerp_SE3.cpp
+  test/test_SE3_Sinus_Circle.cpp
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
 )
 
 message(glog_catkin_LIBRARIES: ${glog_catkin_LIBRARIES})
