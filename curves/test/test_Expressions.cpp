@@ -21,6 +21,7 @@ using namespace std;
 
 typedef typename LinearInterpolationVectorSpaceCurve<DIM>::ValueType ValueType;
 
+// define traits for ValueType (Vector3)
 namespace gtsam {
 namespace traits {
 // todo fix template specialization for eigen types. see :
@@ -46,36 +47,35 @@ struct print<Vector3> {
 }
 }
 
+// test correct handling of keys and interpolation with expressions
 TEST(CurvesTestSuite, testExpressionKeysAndEvaluation) {
 
+  // create curve
   LinearInterpolationVectorSpaceCurve<DIM> curve;
-
   const double t[] = {0, 10};
   const double evalTime = 5;
-
   std::vector<Time> times(t,t+2);
   std::vector<ValueType> values;
   values.push_back(ValueType(0,0,0));
   values.push_back(ValueType(2,2,2));
-
   curve.fitCurve(times, values);
 
+  // retrieve keys and expression from curve
   KeyCoefficientTime *rval0, *rval1;
   curve.getCoefficientsAt(evalTime, &rval0, &rval1);
-
   Expression<ValueType> expression = curve.getEvalExpression(evalTime);
-
   std::set<Key> keys = expression.keys();
 
   // Check keys
   ASSERT_EQ(*(keys.begin()), rval0->key);
   ASSERT_EQ(*(++(keys.begin())), rval1->key);
 
+  // populate gtsam Values container with coefficients & keys
   Values gtsamValues;
   gtsamValues.insert(rval0->key, ValueType(rval0->coefficient.getValue()));
   gtsamValues.insert(rval1->key, ValueType(rval1->coefficient.getValue()));
 
-  Eigen::MatrixXd H = Eigen::Matrix3d::Zero();
+  // read out interpolated value from gtsam Values container via expression
   std::vector<size_t> dimensions;
   dimensions.push_back(DIM);
   dimensions.push_back(DIM);
@@ -89,6 +89,7 @@ TEST(CurvesTestSuite, testExpressionKeysAndEvaluation) {
   ASSERT_EQ(result, Eigen::Vector3d(1,1,1));
 }
 
+// test optimization of gtsam factor graph using expressions
 TEST(CurvesTestSuite, testExpressionGTSAMoptimization) {
 
   LinearInterpolationVectorSpaceCurve<DIM> curve;
