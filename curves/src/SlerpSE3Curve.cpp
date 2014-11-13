@@ -117,18 +117,15 @@ void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
 void SlerpSE3Curve::extend(const std::vector<Time>& times,
                            const std::vector<ValueType>& values) {
 
-  //  CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
-  //  std::vector<Key> outKeys;
-  //  std::vector<Coefficient> coefficients(values.size());
-  //  for (size_t i = 0; i < values.size(); ++i) {
-  //    coefficients[i] = Coefficient(values[i]);
-  //  }
-  //  manager_.insertCoefficients(times, coefficients, &outKeys);
+  /// \todo is this function needed anymore?
+  CHECK(false) << "SlerpSE3Curve::extend not implemented";
 }
 
-typename SlerpSE3Curve::ValueType SlerpSE3Curve::evaluate(Time time) const {
+typename SlerpSE3Curve::ValueType
+SlerpSE3Curve::evaluate(Time time) const {
 
-  // \todo Jenkins implement this please
+  /// \todo is this function needed anymore?
+  CHECK(false) << "SlerpSE3Curve::evaluate not implemented";
 }
 
 typename SlerpSE3Curve::DerivativeType
@@ -162,9 +159,7 @@ Eigen::Matrix3d crossOperator(Eigen::Vector3d vector){
   return rval;
 }
 
-// Evaluation function in functional form. To be passed to the expression
-// old type Eigen::Matrix<double,dim,1> <double,dim,dim> <Eigen::MatrixXd*>&
-//SE3 boost::bind(slerpInterpolation(_1,_2, alpha, _3, _4)(v1, v2, H1, H2)))
+/// \brief Evaluation function in functional form. To be passed to the expression (full implementation)
 SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
                        boost::optional<Eigen::Matrix<double,6,6>&>H1=boost::none,
                        boost::optional<Eigen::Matrix<double,6,6>&>H2=boost::none) {
@@ -188,7 +183,6 @@ SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
   Matrix3d Re = alpha *(Matrix3d::Identity() - ((1-alpha)/2)*a_AA_b.angle()*crossOperator(a_AA_b.axis()));
 
   // Rotational component computed without Baker-Campbell-Hausdorff
-  //  a_AA_b.setAngle(-alpha_*a_AA_b.angle()/2);
 
   J_rA_tT = -((1-alpha) * crossOperator(w_t_a) + alpha*crossOperator(w_t_b))*Re + alpha*crossOperator(w_t_b);
   J_tA_rT = Matrix3d::Zero();
@@ -204,12 +198,11 @@ SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
 
   J_B_T << J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
 
-  //TODO check matrix sizes should be chainRule.rows() x coefficient.ndim()
+  /// \todo check matrix sizes should be chainRule.rows() x coefficient.ndim()
   if (H1) { *H1 += J_A_T; }
   if (H2) { *H2 += J_B_T; }
 
-  // from previous evaluate function:
-
+  /// Slerp interpolation function
   SO3 a_R_b = w_R_a.inverted()*w_R_b;
   AngleAxis delta(a_R_b);
   delta.setAngle( delta.angle()*alpha);
@@ -219,7 +212,7 @@ SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
   return (w_T_i);
 }
 
-// T^alpha
+/// \brief \f[T^{\alpha}\f]
 SE3 transformationPower(SE3  T, double alpha,
                         boost::optional<Eigen::Matrix<double,6,6>&>H=boost::none) {
   typedef Eigen::Matrix3d Matrix3d;
@@ -250,7 +243,7 @@ SE3 transformationPower(SE3  T, double alpha,
   return SE3(SO3(angleAxis),(t*alpha).eval());
 }
 
-// A*B
+/// \brief \f[A*B\f]
 SE3 composeTransformations(SE3 A, SE3 B,
                            boost::optional<Eigen::Matrix<double,6,6>&>H1=boost::none,
                            boost::optional<Eigen::Matrix<double,6,6>&>H2=boost::none) {
@@ -275,7 +268,7 @@ SE3 composeTransformations(SE3 A, SE3 B,
   return A*B;
 }
 
-// T^-1
+/// \brief \f[T^{-1}\f]
 SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H=boost::none) {
   // todo compute jacobian
   if (H) {
@@ -294,6 +287,8 @@ SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H=bo
   return T.inverted();
 }
 
+/// \brief forms slerp interpolation into a binary expression with 2 leafs and binds alpha into it
+///        \f[ T = A(A^{-1}B)^{\alpha} \f]
 gtsam::Expression<typename SlerpSE3Curve::ValueType>
 SlerpSE3Curve::getEvalExpression(const Time& time) const {
   typedef typename SlerpSE3Curve::ValueType ValueType;
@@ -311,8 +306,9 @@ SlerpSE3Curve::getEvalExpression(const Time& time) const {
 
   return rval;
 }
-
-// A*(exp(log((A^-1)*B)*alpha))
+/// \brief forms slerp interpolation into a binary expression with 2 leafs and binds alpha into it,
+///        uses break down of expression into its operations
+///        \f[ T = A(A^{-1}B)^{\alpha} \f]
 gtsam::Expression<typename SlerpSE3Curve::ValueType> SlerpSE3Curve::getEvalExpression2(const Time& time) const {
   typedef typename SlerpSE3Curve::ValueType ValueType;
   using namespace gtsam;

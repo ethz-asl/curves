@@ -14,6 +14,9 @@ class SlerpSE3Evaluator; // Forward declaration
 
 namespace curves {
 
+/// Implements the Slerp (Spherical linear interpolation) curve class.
+/// The Slerp interpolation function is defined as, with the respective Jacobians regarding  A and B:
+/// \f[ T = A(A^{-1}B)^{\alpha} \f]
 class SlerpSE3Curve : public SE3Curve {
  public:
   typedef SE3Curve::ValueType ValueType;
@@ -141,8 +144,5 @@ class SlerpSE3Curve : public SE3Curve {
 };
 
 } // namespace curves
-
-//#include "SlerpSE3Evaluator.hpp"
-//#include "SlerpSE3Curve-inl.hpp"
 
 #endif /* CURVES_SLERP_SE3_CURVE_HPP */
