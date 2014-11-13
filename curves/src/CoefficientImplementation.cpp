@@ -1,3 +1,9 @@
+/*
+ * @file CoefficientImplementation.cpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale
+ */
+
 #include <curves/CoefficientImplementation.hpp>
 #include <iostream>
 

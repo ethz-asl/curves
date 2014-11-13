@@ -1,3 +1,9 @@
+/*
+ * @file Coefficient.cpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale
+ */
+
 #include <curves/Coefficient.hpp>
 #include <curves/VectorSpaceCoefficientImplementation.hpp>
 #include <glog/logging.h>

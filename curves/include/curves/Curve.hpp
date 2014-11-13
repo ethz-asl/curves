@@ -1,3 +1,9 @@
+/*
+ * @file Curve.hpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale, Renaud Dube
+ */
+
 #ifndef CURVES_CURVE_HPP
 #define CURVES_CURVE_HPP
 

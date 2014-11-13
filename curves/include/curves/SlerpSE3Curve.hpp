@@ -1,3 +1,9 @@
+/*
+ * @file SlerpSE3Curve.hpp
+ * @date Oct 10, 2014
+ * @author Renaud Dube, Abel Gawel
+ */
+
 #ifndef CURVES_SLERP_SE3_CURVE_HPP
 #define CURVES_SLERP_SE3_CURVE_HPP
 

@@ -1,3 +1,9 @@
+/*
+ * @file LinearInterpolationVectorSpaceCurve.hpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale, Abel Gawel, Renaud Dube
+ */
+
 #include <curves/LinearInterpolationVectorSpaceCurve.hpp>
 #include <iostream>
 #include "gtsam_unstable/nonlinear/Expression.h"

@@ -1,3 +1,9 @@
+/*
+ * @file SE3CoefficientImplementation.cpp
+ * @date Oct 10, 2014
+ * @author Renaud Dube, Abel Gawel
+ */
+
 #include <curves/SE3CoefficientImplementation.hpp>
 #include <iostream>
 #include <glog/logging.h>

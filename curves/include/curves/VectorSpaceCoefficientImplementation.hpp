@@ -1,3 +1,9 @@
+/*
+ * @file VectorSpaceCoefficientImplementation.hpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale
+ */
+
 #ifndef CT_VECTOR_SPACE_COEFFICIENT_IMPLEMENTATION_HPP
 #define CT_VECTOR_SPACE_COEFFICIENT_IMPLEMENTATION_HPP
 

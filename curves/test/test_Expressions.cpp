@@ -1,3 +1,9 @@
+/*
+ * @file test_Expressions.cpp
+ * @date Oct 31, 2014
+ * @author Renaud Dube, Abel Gawel
+ */
+
 #include <gtest/gtest.h>
 #include <curves/LinearInterpolationVectorSpaceCurve.hpp>
 #include "gtsam_unstable/nonlinear/Expression.h"

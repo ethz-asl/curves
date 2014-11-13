@@ -1,3 +1,9 @@
+/*
+ * @file SlerpSE3Evaluator.hpp
+ * @date Oct 10, 2014
+ * @author Renaud Dube
+ */
+
 #ifndef CURVES_SLERP_SE3_EVALUATOR_HPP
 #define CURVES_SLERP_SE3_EVALUATOR_HPP
 

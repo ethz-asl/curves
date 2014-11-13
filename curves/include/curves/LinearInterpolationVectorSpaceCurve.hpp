@@ -1,3 +1,9 @@
+/*
+ * @file LinearInterpolationVectorSpaceCurve-Inl.hpp
+ * @date Oct 31, 2014
+ * @author Renaud Dube
+ */
+
 #ifndef CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_CURVE_HPP
 #define CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_CURVE_HPP
 

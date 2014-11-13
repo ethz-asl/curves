@@ -1,3 +1,9 @@
+/*
+ * @file VectorSpaceCurve.hpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale, Renaud Dube
+ */
+
 #ifndef CT_VECTOR_SPACE_CURVE_HPP
 #define CT_VECTOR_SPACE_CURVE_HPP
 

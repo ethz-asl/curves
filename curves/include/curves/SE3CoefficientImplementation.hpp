@@ -1,3 +1,9 @@
+/*
+ * @file SE3CoefficientImplementation.hpp
+ * @date Oct 10, 2014
+ * @author Renaud Dube, Mike Bosse, Abel Gawel
+ */
+
 #ifndef CT_SE3_COEFFICIENT_IMPLEMENTATION_HPP
 #define CT_SE3_COEFFICIENT_IMPLEMENTATION_HPP
 

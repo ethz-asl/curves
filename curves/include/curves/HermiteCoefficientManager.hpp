@@ -1,3 +1,9 @@
+/*
+ * @file HermiteCoefficientManager.hpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale, Abel Gawel, Renaud Dube
+ */
+
 #ifndef CT_HERMITE_COEFFICIENT_MANAGER_HPP
 #define CT_HERMITE_COEFFICIENT_MANAGER_HPP
 

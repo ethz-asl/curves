@@ -1,3 +1,9 @@
+/*
+ * @file SlerpSE3Curve.cpp
+ * @date Oct 10, 2014
+ * @author Renaud Dube, Abel Gawel
+ */
+
 #include <curves/SlerpSE3Curve.hpp>
 #include <curves/SE3CoefficientImplementation.hpp>
 #include <iostream>

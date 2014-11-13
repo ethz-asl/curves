@@ -1,3 +1,9 @@
+/*
+ * @file test_HermiteCoefficientManager.cpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale
+ */
+
 #include <gtest/gtest.h>
 #include <curves/HermiteCoefficientManager.hpp>
 #include <curves/VectorSpaceCoefficientImplementation.hpp>

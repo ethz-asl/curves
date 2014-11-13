@@ -1,3 +1,9 @@
+/*
+ * @file SlerpSE3Evaluator.cpp
+ * @date Oct 10, 2014
+ * @author Renaud Dube
+ */
+
 #include <curves/SlerpSE3Evaluator.hpp>
 #include <curves/Coefficients.hpp>
 #include <iostream>

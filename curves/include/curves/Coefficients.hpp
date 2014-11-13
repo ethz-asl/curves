@@ -1,3 +1,9 @@
+/*
+ * @file Coefficients.hpp
+ * @date Oct 03, 2014
+ * @author Paul Furgale
+ */
+
 #ifndef COEFFICIENTS_H_
 #define COEFFICIENTS_H_
 

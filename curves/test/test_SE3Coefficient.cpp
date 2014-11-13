@@ -1,3 +1,9 @@
+/*
+ * @file test_SE3Coefficient.cpp
+ * @date Oct 10, 2014
+ * @author Mike Bosse
+ */
+
 #include <gtest/gtest.h>
 #include <curves/Coefficient.hpp>
 #include <curves/SE3CoefficientImplementation.hpp>

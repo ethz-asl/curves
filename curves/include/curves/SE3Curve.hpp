@@ -1,3 +1,9 @@
+/*
+ * @file SE3Curve.hpp
+ * @date Oct 03, 2014
+ * @author Paul Furgale, Renaud Dube
+ */
+
 #ifndef SE3_CURVE_H_
 #define SE3_CURVE_H_
 

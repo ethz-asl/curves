@@ -1,3 +1,9 @@
+/*
+ * @file Coefficient.hpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale, Mike Bosse
+ */
+
 #ifndef CURVES_COEFFICIENT_HPP
 #define CURVES_COEFFICIENT_HPP
 

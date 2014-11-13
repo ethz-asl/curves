@@ -1,3 +1,9 @@
+/*
+ * @file KeyGenerator.hpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale
+ */
+
 #ifndef CT_KEYGENERATOR_HPP
 #define CT_KEYGENERATOR_HPP
 

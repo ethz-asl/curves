@@ -1,3 +1,9 @@
+/*
+ * @file CurveBase.hpp
+ * @date Aug 19, 2014
+ * @author Paul Furgale
+ */
+
 #ifndef CURVES_CURVE_BASE_HPP
 #define CURVES_CURVE_BASE_HPP
 

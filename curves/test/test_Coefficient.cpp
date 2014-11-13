@@ -1,3 +1,9 @@
+/*
+ * @file test_Coefficient.cpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale
+ */
+
 #include <gtest/gtest.h>
 #include <curves/Coefficient.hpp>
 #include <curves/VectorSpaceCoefficientImplementation.hpp>

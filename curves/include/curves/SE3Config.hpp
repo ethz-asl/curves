@@ -1,3 +1,9 @@
+/*
+ * @file SE3Config.hpp
+ * @date Oct 03, 2014
+ * @author Paul Furgale
+ */
+
 #ifndef SE3CONFIG_H_
 #define SE3CONFIG_H_
 

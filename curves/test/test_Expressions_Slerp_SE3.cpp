@@ -1,3 +1,9 @@
+/*
+ * @file test_Expressions_Slerp_SE3.cpp
+ * @date Nov 05, 2014
+ * @author Abel Gawel, Renaud Dube
+ */
+
 #include <gtest/gtest.h>
 #include <curves/SlerpSE3Curve.hpp>
 #include <curves/SE3CoefficientImplementation.hpp>
