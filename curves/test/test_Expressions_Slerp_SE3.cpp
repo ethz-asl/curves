@@ -83,7 +83,6 @@ struct DefaultChart<SE3> {
 
 
 // Wrapper to enable numerical differentiation on SlerpSE3Evaluator::evaluate
-
 class ExpressionValueWrapper {
  private:
   Expression<ValueType> expression_;
@@ -138,6 +137,7 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   const double t[] = {0, 10};
   const double evalTime = 5;
 
+  // setup two SE3 objects
   ValueType poseA(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
   ValueType poseB(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(2,2,2));
 
@@ -146,27 +146,30 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   values.push_back(poseA);
   values.push_back(poseB);
 
+  // interpolate curve
   curve.fitCurve(times, values);
 
   KeyCoefficientTime *rval0, *rval1;
   curve.getCoefficientsAt(evalTime, &rval0, &rval1);
 
+  // get expression at evaluation time
   Expression<ValueType> expression = curve.getEvalExpression(evalTime);
-
   std::set<Key> keys = expression.keys();
 
   // Check keys
   ASSERT_EQ(*(keys.begin()), rval0->key);
   ASSERT_EQ(*(++(keys.begin())), rval1->key);
 
+  // get coefficients from curve
   ValueType val0(SO3(rval0->coefficient.getValue()(3),rval0->coefficient.getValue().segment<3>(4)),rval0->coefficient.getValue().head<3>());
   ValueType val1(SO3(rval1->coefficient.getValue()(3),rval1->coefficient.getValue().segment<3>(4)),rval1->coefficient.getValue().head<3>());
 
+  // fill retrieved coefficients in gtsam values container
   Values gtsamValues;
   gtsamValues.insert(rval0->key, val0);
   gtsamValues.insert(rval1->key, val1);
 
-  Eigen::MatrixXd H = Eigen::Matrix3d::Zero();
+  // initialize objects
   std::vector<size_t> dimensions;
   dimensions.push_back(DIM);
   dimensions.push_back(DIM);
@@ -174,10 +177,13 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   VerticalBlockMatrix Ab(dimensions, Dim);
   FastVector<Key> key = boost::assign::list_of(rval0->key)(rval1->key);
   JacobianMap actualMap(key,Ab);
+
+  // read out SE3 object from values container
   ValueType result = expression.value(gtsamValues, actualMap);
   Eigen::Vector3d resultPos = result.getPosition();
   Eigen::Vector4d resultRot = result.getRotation().vector();
 
+  // assert return values are as expected
   ASSERT_EQ(resultPos, Eigen::Vector3d(1,1,1));
   ASSERT_NEAR(resultRot(0),0.9238795325112867,1e-6);
   ASSERT_NEAR(resultRot(1),0.0,1e-6);
@@ -185,25 +191,32 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   ASSERT_NEAR(resultRot(3),0.0,1e-6);
 }
 
+// compare 2 types of expressions for Slerp SE3 interpolation:
+// 1. Full Jacobian derivation & interpolation within 1 Expression (classic approach)
+// 2. Assembly of expression by atomic Jacobians and operations (composition, inverse, exponential)
 TEST(CurvesTestSuite, compareEvalExpressions1and2) {
   SlerpSE3Curve curve;
   const double t[] = {0, 10};
   const double evalTime = 5;
 
-//  ValueType poseA(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
-    ValueType poseA(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(1,1,1));
+  // setup two SE3 objects
+  // ValueType poseA(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
+  ValueType poseA(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(1,1,1));
   ValueType poseB(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(2,2,2));
+
 
   std::vector<Time> times(t,t+2);
   std::vector<ValueType> values;
   values.push_back(poseA);
   values.push_back(poseB);
 
+  // interpolate curve
   curve.fitCurve(times, values);
 
   KeyCoefficientTime *rval0, *rval1;
   curve.getCoefficientsAt(evalTime, &rval0, &rval1);
 
+  // get expression at evaluation time
   Expression<ValueType> expression1 = curve.getEvalExpression(evalTime);
   Expression<ValueType> expression2 = curve.getEvalExpression2(evalTime);
 
@@ -216,14 +229,16 @@ TEST(CurvesTestSuite, compareEvalExpressions1and2) {
   ASSERT_EQ(*(keys2.begin()), rval0->key);
   ASSERT_EQ(*(++(keys2.begin())), rval1->key);
 
+  // get coefficients from curve
   ValueType val0(SO3(rval0->coefficient.getValue()(3),rval0->coefficient.getValue().segment<3>(4)),rval0->coefficient.getValue().head<3>());
   ValueType val1(SO3(rval1->coefficient.getValue()(3),rval1->coefficient.getValue().segment<3>(4)),rval1->coefficient.getValue().head<3>());
 
+  // fill retrieved coefficients in gtsam values container
   Values gtsamValues, gtsamValues2;
   gtsamValues.insert(rval0->key, val0);
   gtsamValues.insert(rval1->key, val1);
 
-  Eigen::MatrixXd H = Eigen::Matrix3d::Zero();
+  // initialize objects
   std::vector<size_t> dimensions;
   dimensions.push_back(DIM);
   dimensions.push_back(DIM);
@@ -232,28 +247,9 @@ TEST(CurvesTestSuite, compareEvalExpressions1and2) {
   Ab.matrix().setZero();
   FastVector<Key> key = boost::assign::list_of(rval0->key)(rval1->key);
   JacobianMap actualMap(key,Ab);
-
-  //  ValueType result1 = expression1.value(gtsamValues, actualMap);
-  //  Eigen::Vector3d resultPos1 = result1.getPosition();
-  //  Eigen::Vector4d resultRot1 = result1.getRotation().vector();
-
   ValueType result2 = expression2.value(gtsamValues, actualMap);
-  Eigen::Vector3d resultPos2 = result2.getPosition();
-  Eigen::Vector4d resultRot2 = result2.getRotation().vector();
-
-  cout << "resultPos2:" << endl << resultPos2 << endl;
-  cout << "resultRot2:" << endl << resultRot2 << endl;
-
-
-  //  ASSERT_EQ(resultPos1, resultPos2);
-  //  ASSERT_NEAR(resultRot1(0), resultRot2(0), 1e-6);
-  //  ASSERT_NEAR(resultRot1(1), resultRot2(1), 1e-6);
-  //  ASSERT_NEAR(resultRot1(2), resultRot2(2), 1e-6);
-  //  ASSERT_NEAR(resultRot1(3), resultRot2(3), 1e-6);
-
 
   // Test the jacobians
-
   // Call analytical calculation of Jacobians (using BAD)
   ExpressionValueWrapper expressionValueWrapper(expression2,gtsamValues);
   // Call numerical calculation of Jacobians
@@ -268,17 +264,11 @@ TEST(CurvesTestSuite, compareEvalExpressions1and2) {
   cout << "expectedH1:" << endl << expectedH1 << endl;
   cout << "actualMap(rval1->key)" << endl << actualMap(rval1->key) << endl;
 
-  //  ASSERT_EQ(resultPos1, Eigen::Vector3d(1,1,1));
-  //  ASSERT_NEAR(resultRot1(0),0.9238795325112867,1e-6);
-  //  ASSERT_NEAR(resultRot1(1),0.0,1e-6);
-  //  ASSERT_NEAR(resultRot1(2),-0.3826834323650897,1e-6);
-  //  ASSERT_NEAR(resultRot1(3),0.0,1e-6);
-  //
-  //  ASSERT_EQ(resultPos2, Eigen::Vector3d(1,1,1));
-  //  ASSERT_NEAR(resultRot2(0),0.9238795325112867,1e-6);
-  //  ASSERT_NEAR(resultRot2(1),0.0,1e-6);
-  //  ASSERT_NEAR(resultRot2(2),-0.3826834323650897,1e-6);
-  //  ASSERT_NEAR(resultRot2(3),0.0,1e-6);
+  // assert equality of Jacobians
+  gtsam::Matrix analytical(actualMap(rval0->key));
+  for (int i=0; i<analytical.size(); ++i){
+    ASSERT_NEAR(expectedH0(i), analytical(i), 1e-3);
+  }
 }
 
 // test basic gtsam interface of Slerp SE3 curves
@@ -290,7 +280,6 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
   const double t[] = {0, 45, 90};
   std::vector<Time> times(t,t+3);
   std::vector<ValueType> coefficients;
-
   coefficients.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
   coefficients.push_back(ValueType(SO3(0.9238795325112867,SO3::Vector3(0,-0.3826834323650897,0)),SE3::Position(4.5,4.5,4.5)));
   coefficients.push_back(ValueType(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(9,9,9)));
@@ -299,7 +288,6 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
   const double tmeas[] = {20, 40, 60, 80};
   std::vector<Time> measTimes(tmeas,tmeas+4);
   std::vector<ValueType> measurements;
-
   measurements.push_back(ValueType(SO3(0.984807753012208, SO3::Vector3(0,-0.17364817766693036,0)),SE3::Position(2,2,2)));
   measurements.push_back(ValueType(SO3(0.9396926207859083,SO3::Vector3(0,-0.3420201433256687,0)),SE3::Position(4,4,4)));
   measurements.push_back(ValueType(SO3(0.8660254037844386,SO3::Vector3(0,-0.5,0)),SE3::Position(6,6,6)));
@@ -314,8 +302,6 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
   for(int i=0; i< coefficients.size(); i++) {
     curve.getCoefficientsAt(times[i], &rval0, &rval1);
     Key key;
-    // todo use another method for getting the keys
-    // here a if is necessary since t=maxtime the coef is in rval1
     if (i == coefficients.size() - 1) {
       key = rval1->key;
     } else {
@@ -365,8 +351,6 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionDynamicKeys){
   const double t[] = {0, 45, 90, 135};
   std::vector<Time> times(t,t+4);
   std::vector<ValueType> coefficients;
-
-  // create a set of coefficients
   coefficients.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
   coefficients.push_back(ValueType(SO3(0.9238795325112867,SO3::Vector3(0,-0.3826834323650897,0)),SE3::Position(4.5,4.5,4.5)));
   coefficients.push_back(ValueType(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(9,9,9)));
@@ -391,8 +375,6 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionDynamicKeys){
   for(int i=0; i< coefficients.size(); i++) {
     curve.getCoefficientsAt(times[i], &rval0, &rval1);
     Key key;
-    // todo use another method for getting the keys
-    // here a if is necessary since t=maxtime the coef is in rval1
     if (i == coefficients.size() - 1) {
       key = rval1->key;
     } else {
