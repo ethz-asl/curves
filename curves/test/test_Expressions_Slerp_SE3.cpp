@@ -258,12 +258,6 @@ TEST(CurvesTestSuite, compareEvalExpressions1and2) {
   gtsam::Matrix expectedH1 = gtsam::numericalDerivative11<ChartValue<ValueType>, ChartValue<ValueType> >
   (boost::bind(&ExpressionValueWrapper::evaluate, &expressionValueWrapper, _1, 1), convertToChartValue<ValueType>(val1), 1e-3);
 
-  cout << "expectedH0:" << endl << expectedH0 << endl;
-  cout << "actualMap(rval0->key)" << endl << actualMap(rval0->key) << endl;
-
-  cout << "expectedH1:" << endl << expectedH1 << endl;
-  cout << "actualMap(rval1->key)" << endl << actualMap(rval1->key) << endl;
-
   // assert equality of Jacobians
   gtsam::Matrix analytical(actualMap(rval0->key));
   for (int i=0; i<analytical.size(); ++i){
