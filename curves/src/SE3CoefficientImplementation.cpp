@@ -54,17 +54,17 @@ void SE3CoefficientImplementation::retract(const Eigen::VectorXd& thisCoeff,
   // \todo PTF Add check for dimension.
   CHECK_NOTNULL(outIncrementedCoeff);
 
-//  // SO x R3 retract
-//  SO3 thisSO3(SO3::Vector4(thisCoeff.segment<4>(3)));
-//  SE3::Position thisSE3Position = thisCoeff.head<3>();
-//  SO3 updatedRotation = SO3(delta.tail<3>().eval())*thisSO3;
-//  SE3::Position updatedTranslation = SE3::Position(delta.head<3>().eval()) + thisSE3Position;
-//  (*outIncrementedCoeff) << updatedTranslation, updatedRotation.vector();
+  //  // SO x R3 retract
+  //  SO3 thisSO3(SO3::Vector4(thisCoeff.segment<4>(3)));
+  //  SE3::Position thisSE3Position = thisCoeff.head<3>();
+  //  SO3 updatedRotation = SO3(delta.tail<3>().eval())*thisSO3;
+  //  SE3::Position updatedTranslation = SE3::Position(delta.head<3>().eval()) + thisSE3Position;
+  //  (*outIncrementedCoeff) << updatedTranslation, updatedRotation.vector();
 
   // SE3 retract
   // the position is stored in the first 3 dimenstions, and the quaternion is in the next 4 or the coeff vector
   SE3 thisSE3(SO3(thisCoeff[3], thisCoeff.segment<3>(4)),thisCoeff.head<3>());
-//  SE3 thisSE3(SO3(SO3::Vector4(thisCoeff.segment<4>(3))),thisCoeff.head<3>());
+  //  SE3 thisSE3(SO3(SO3::Vector4(thisCoeff.segment<4>(3))),thisCoeff.head<3>());
   // the SE3 constructor with a 6D vector is the exponential map
   SE3 updated = SE3(delta.head<6>().eval())*thisSE3;
   (*outIncrementedCoeff) << updated.getPosition(), updated.getRotation().vector();
@@ -78,7 +78,7 @@ void SE3CoefficientImplementation::retract(const SE3& thisSE3,
   CHECK_NOTNULL(outIncrementedSE3);
 
   // the position is stored in the first 3 dimenstions, and the quaternion is in the next 4 or the coeff vector
-    // the SE3 constructor with a 6D vector is the exponential map
+  // the SE3 constructor with a 6D vector is the exponential map
   SE3 updated = SE3(delta)*thisSE3;
   (*outIncrementedSE3) = updated;
 }
@@ -89,15 +89,15 @@ void SE3CoefficientImplementation::localCoordinates(const Eigen::VectorXd& thisC
   // \todo PTF Add check for dimension.
   CHECK_NOTNULL(outLocalCoordinates);
 
-//  // SO x R3 local coordinates
-//  SO3 thisSO3(SO3::Vector4(thisCoeff.segment<4>(3)));
-//  SO3 otherSO3(SO3::Vector4(otherCoeff.segment<4>(3)));
-//  SE3::Position thisPosition(thisCoeff.head<3>());
-//  SE3::Position otherPosition(otherCoeff.head<3>());
-//  SO3 deltaRotation = otherSO3 * thisSO3.inverted();
-//  AngleAxis deltaRotationAA(deltaRotation);
-//  SE3::Position deltaPosition = otherPosition - thisPosition;
-//  (*outLocalCoordinates) << deltaPosition, deltaRotationAA.axis()*deltaRotationAA.angle();
+  //  // SO x R3 local coordinates
+  //  SO3 thisSO3(SO3::Vector4(thisCoeff.segment<4>(3)));
+  //  SO3 otherSO3(SO3::Vector4(otherCoeff.segment<4>(3)));
+  //  SE3::Position thisPosition(thisCoeff.head<3>());
+  //  SE3::Position otherPosition(otherCoeff.head<3>());
+  //  SO3 deltaRotation = otherSO3 * thisSO3.inverted();
+  //  AngleAxis deltaRotationAA(deltaRotation);
+  //  SE3::Position deltaPosition = otherPosition - thisPosition;
+  //  (*outLocalCoordinates) << deltaPosition, deltaRotationAA.axis()*deltaRotationAA.angle();
 
   // SE3 local coordinates
   SE3 thisSE3(SO3(thisCoeff[3], thisCoeff.segment<3>(4)),thisCoeff.head<3>());
@@ -118,7 +118,16 @@ void SE3CoefficientImplementation::localCoordinates(const SE3& thisSE3,
   // local coordinates are defined to be on the left side of the transformation,
   // ie other = [delta]^ A
   SE3 delta = otherSE3*thisSE3.inverted();
-  (*outLocalCoordinates) = delta.log();
+  Eigen::Matrix<double,6,1> dlog = delta.log();
+  for (int i = 3; i<6; ++i) {
+    if (dlog[i] >= M_PI) {
+      dlog[i] = 2 * M_PI - dlog[i];
+    }
+    else if (dlog[i] <= - M_PI) {
+      dlog[i] = 2*M_PI + dlog[i];
+    }
+  }
+  (*outLocalCoordinates) = dlog;
 }
 
 } // namespace curves

@@ -11,10 +11,6 @@
 
 namespace curves {
 
-typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
-typedef SE3::Rotation SO3;
-typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
-
 SlerpSE3Curve::SlerpSE3Curve() : SE3Curve() {}
 
 SlerpSE3Curve::~SlerpSE3Curve() {}
@@ -211,7 +207,7 @@ SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
 
 /// \brief \f[T^{\alpha}\f]
 SE3 transformationPower(SE3  T, double alpha,
-                        boost::optional<Eigen::Matrix<double,6,6>&>H=boost::none) {
+                        boost::optional<Eigen::Matrix<double,6,6>&>H) {
   typedef Eigen::Matrix3d Matrix3d;
 
   SO3 R(T.getRotation());
@@ -242,8 +238,8 @@ SE3 transformationPower(SE3  T, double alpha,
 
 /// \brief \f[A*B\f]
 SE3 composeTransformations(SE3 A, SE3 B,
-                           boost::optional<Eigen::Matrix<double,6,6>&>H1=boost::none,
-                           boost::optional<Eigen::Matrix<double,6,6>&>H2=boost::none) {
+                           boost::optional<Eigen::Matrix<double,6,6>&>H1,
+                           boost::optional<Eigen::Matrix<double,6,6>&>H2) {
   // todo compute jacobians
   if (H1) {
     (*H1) = Eigen::Matrix<double,6,6>::Identity();
@@ -266,7 +262,7 @@ SE3 composeTransformations(SE3 A, SE3 B,
 }
 
 /// \brief \f[T^{-1}\f]
-SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H=boost::none) {
+SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H) {
   // todo compute jacobian
   if (H) {
     Eigen::Matrix3d J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
@@ -321,7 +317,6 @@ SlerpSE3Curve::getEvalExpression2(const Time& time) const {
   Expression<ValueType> inverted(inverseTransformation, leaf1);
   Expression<ValueType> composed(composeTransformations, inverted, leaf2);
   Expression<ValueType> powered(boost::bind(&transformationPower,_1,alpha,_2), composed);
-
   return Expression<ValueType>(composeTransformations, leaf1, powered);
 }
 

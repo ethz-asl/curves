@@ -125,8 +125,8 @@ ValueType relativeMeasurementExpression(const ValueType& interp1,
                                         const ValueType& interp2,
                                         boost::optional<Eigen::Matrix<double,6,6>&>H1=boost::none,
                                         boost::optional<Eigen::Matrix<double,6,6>&>H2=boost::none) {
-  if (H1) { *H1 = Eigen::Matrix<double,6,6>::Identity(); }
-  if (H2) { *H2 = - Eigen::Matrix<double,6,6>::Identity(); }
+  if (H1) { *H1 = - Eigen::Matrix<double,6,6>::Identity(); }
+  if (H2) { *H2 = Eigen::Matrix<double,6,6>::Identity(); }
 
   return ValueType(gtsam::DefaultChart<ValueType>::local(interp1, interp2));
 }

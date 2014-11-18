@@ -24,3 +24,6 @@
 .project
 .cproject
 .settings
+
+# Result files
+*optimized*
