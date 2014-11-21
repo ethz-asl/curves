@@ -1,14 +1,22 @@
 /*
- * @file test_SE3_Sinus_Circle.cpp
+ * @file test_MITb_dataset.cpp
  * @date Nov 05, 2014
  * @author Abel Gawel, Renaud Dube
  *
  *  Note : this test should eventually be transfered to trajectory maintainer
+ *  Dataset source: www.lucacarlone.com/index.php/resources/datasets
+ *
+ *  This test performs pose graph SLAM on the MITb dataset, using GTSAM Expressions
+ *  and curve library
+ *
+ *  See DEFINITIONS section for adjusting parameters
  */
 
 #include <gtest/gtest.h>
 #include <curves/SlerpSE3Curve.hpp>
 #include <curves/SE3CoefficientImplementation.hpp>
+#include "test_Helpers.hpp"
+
 #include "gtsam_unstable/nonlinear/Expression.h"
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
@@ -46,8 +54,6 @@ struct equals<SE3> {
   typedef bool result_type;
   bool operator()(const SE3& a, const SE3& b, double tol) {
     Eigen::Matrix<double,6,1> delta;
-
-    cout << "error " << (a.log() -b.log()).cwiseAbs().maxCoeff() << endl;
     return (a.log() -b.log()).cwiseAbs().maxCoeff() < tol;
   }
 };
@@ -93,146 +99,88 @@ struct DefaultChart<SE3> {
 
 } //namespace gtsam
 
-//// Expression to calculate relative measurement between 2 SE3 values
-//// \todo AG move this to trajectory maintainer at some point (this replaces relative pose factor functionality)
-
-// test a greater example of using more factors, creating gtsam factor graph and optimizing it
 TEST(CurvesTestSuite, test_MITb) {
+
+  /// **************** \\\
+  ///    DEFINITIONS   \\\
+  /// **************** \\\
+
+  gtsam::Vector6 loopNoise;
+  loopNoise << 0.1, 0.1, 0.001, 0.2*M_PI/180, 0.2*M_PI/180, 1*M_PI/180;
+  gtsam::Vector6 measNoise;
+  measNoise << 0.1, 0.1, 0.001, 0.1*M_PI/180, 0.1*M_PI/180, 0.5*M_PI/180;
+  gtsam::Vector6 priNoise;
+  priNoise << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+  bool recordCsv = false;
+
+  // parameters for LM optimizer
+  gtsam::LevenbergMarquardtParams params;
+  params.setRelativeErrorTol(1e-5);
+  params.setlambdaUpperBound(1e5);
+  params.setlambdaLowerBound(1e-5);
+  params.setAbsoluteErrorTol(-1e5);
+  params.setErrorTol(1);
+  params.setMaxIterations(50);
+  params.setVerbosity("ERROR");
+
+  // filename/location for storing resultfiles
+  std::string filename = "/home/johnny/projects/ctsm/src/curves/curves/test/dump/optimized_coefficients_MITb";
 
   typedef SlerpSE3Curve::ValueType ValueType;
   typedef SlerpSE3Curve::EvaluatorTypePtr EvaluatorTypePtr;
 
-  // read the absolute measurements from file
-  curves::Time timestampVertex;
-  std::string valueVertex;
-  std::ifstream absoluteData ("MITb_vertex_initials.csv");
-  CHECK(absoluteData.good()) << "error in csv read in";
-  getline(absoluteData, valueVertex, ','); // initial comma
-  std::vector<Time> measTimesVertex;
-  std::vector<ValueType> measValuesVertex;
-  Eigen::VectorXd m(13);
-  double val;
+  /// **************** \\\
+  ///   DATA READ-IN   \\\
+  /// **************** \\\
+
+  // read the absolute measurements (initials) from file
+  std::vector<curves::Time> measTimesVertex, measTimesEdge, measTimesLoopA, measTimesLoopB, expectedTimesVertex;
+  std::vector<Eigen::VectorXd> outValues;
+  std::vector<ValueType> measValuesVertex, measValuesEdge, measValuesLoop, expectedValuesVertex;
+  CurvesTestHelpers::loadTimeVectorCSV("MITb_vertex_initials.csv", &measTimesVertex, &outValues);
   SE3 pose;
-  int nMeasVertex = 808;
-  int counterMeas = 0;
-  while (absoluteData.good() && counterMeas< nMeasVertex) {
-    getline (absoluteData, valueVertex, ',');
-    timestampVertex = atof(valueVertex.c_str());
-    measTimesVertex.push_back(timestampVertex);
-
-    for (int i=0; i<7; ++i){
-      getline (absoluteData, valueVertex, ',');
-      val = atof(valueVertex.c_str());
-      m[i] = val;
-    }
-    pose = SE3(SO3(m[3], m[4], m[5], m[6]),(SE3::Position() << m[0],m[1],m[2]).finished());
+  for (int i=0; i<outValues.size();++i){
+    pose = SE3(SO3(outValues[i][4], outValues[i][5], outValues[i][6], outValues[i][7]),
+               (SE3::Position() << outValues[i][1], outValues[i][2], outValues[i][3]).finished());
     measValuesVertex.push_back(pose);
-    counterMeas++;
   }
-  absoluteData.close();
-
-  // read the relative measurements from file
-  curves::Time timestamp;
-  std::string value;
-  std::ifstream relativeData ("MITb_edges_measurements.csv");
-  CHECK(relativeData.good()) << "error in csv read in";
-  getline(relativeData, value, ','); // initial comma
-  Eigen::Matrix<double,6,1> measCov;
-  std::vector<Eigen::Matrix<double,6,1> > measCovariances;
-  std::vector<Time> measTimes;
-  std::vector<ValueType> measValues;
-  int nMeas = 807;
-  counterMeas = 0;
-  while (relativeData.good() && counterMeas< nMeas) {
-    getline (relativeData, value, ',');
-    timestamp = atof(value.c_str());
-    measTimes.push_back(timestamp);
-
-    for (int i=0; i<13; ++i){
-      getline (relativeData, value, ',');
-      val = atof(value.c_str());
-      m[i] = val;
-    }
-    pose = SE3(SO3(m[3], m[4], m[5], m[6]),(SE3::Position() << m[0],m[1],m[2]).finished());
-    measValues.push_back(pose);
-    measCov << m[7], m[8], m[9], m[10], m[11], m[12];
-    measCovariances.push_back(measCov);
-    counterMeas++;
+  // read the relative measurements (odometry) from file
+  CurvesTestHelpers::loadTimeVectorCSV("MITb_edges_measurements.csv", &measTimesEdge, &outValues);
+  for (int i=0; i<outValues.size();++i){
+    pose = SE3(SO3(outValues[i][4], outValues[i][5], outValues[i][6], outValues[i][7]),
+               (SE3::Position() << outValues[i][1], outValues[i][2], outValues[i][3]).finished());
+    measValuesEdge.push_back(pose);
   }
-  relativeData.close();
-
-
-  // read the loop closure measurements from file
-  std::ifstream loopData ("MITb_loop_closure.csv");
-  CHECK(loopData.good()) << "error in csv read in";
-  getline(loopData, value, ','); // initial comma
-  std::vector<Time> loopTimesA, loopTimesB;
-  curves::Time timestampA, timestampB;
-  std::vector<ValueType> loopValues;
-  Eigen::Matrix<double,6,1> loopCov;
-  std::vector<Eigen::Matrix<double,6,1> > loopCovariances;
-  int nLoop = 20;
-  counterMeas = 0;
-  while (loopData.good() && counterMeas< nLoop) {
-    getline (loopData, value, ',');
-    timestampA = atof(value.c_str());
-    loopTimesA.push_back(timestampA);
-    getline (loopData, value, ',');
-    timestampB = atof(value.c_str());
-    loopTimesB.push_back(timestampB);
-
-    for (int i=0; i<13; ++i){
-      getline (loopData, value, ',');
-      val = atof(value.c_str());
-      m[i] = val;
-    }
-    pose = SE3(SO3(m[3], m[4], m[5], m[6]),(SE3::Position() << m[0],m[1],m[2]).finished());
-    loopValues.push_back(pose);
-    loopCov << m[7], m[8], m[9], m[10], m[11], m[12];
-    loopCovariances.push_back(loopCov);
-
-    counterMeas++;
+  // read the loop measurements from file
+  CurvesTestHelpers::loadTimeTimeVectorCSV("MITb_loop_closure.csv", &measTimesLoopA, &measTimesLoopB, &outValues);
+  for (int i=0; i<outValues.size();++i){
+    pose = SE3(SO3(outValues[i][4], outValues[i][5], outValues[i][6], outValues[i][7]),
+               (SE3::Position() << outValues[i][1], outValues[i][2], outValues[i][3]).finished());
+    measValuesLoop.push_back(pose);
   }
-  loopData.close();
+  // read the expected values from file
+  CurvesTestHelpers::loadTimeVectorCSV("MITb_expected_result.csv", &expectedTimesVertex, &outValues);
+  for (int i=0; i<outValues.size();++i){
+    pose = SE3(SO3(outValues[i][0], outValues[i][1], outValues[i][2], outValues[i][3]),
+               (SE3::Position() << outValues[i][4], outValues[i][5], outValues[i][6]).finished());
+    expectedValuesVertex.push_back(pose);
+  }
+
+  /// **************** \\\
+  ///   CREATE CURVE   \\\
+  /// **************** \\\
 
   // fit curve to the coefficients (only time spacing is important here, but constructor demands coefficients as well)
   // create coefficients, one more than the number of measurements
   vector<Time> coefTimes;
-  vector<ValueType> coefValues;
+  vector<ValueType> coefValues, expectedValues;
   for(int i=0; i < measTimesVertex.size(); i++) {
     coefTimes.push_back(measTimesVertex[i]);
     coefValues.push_back(measValuesVertex[i]);
-    std::cout << measTimesVertex[i] <<std::endl;
-    //    std::cout << "Position: " << i << " "<< measValuesVertex[i].getPosition() << std::endl;
-    //    std::cout << "Rotation: " << i << " " << measValuesVertex[i].getRotation() <<std::endl;
-    //    coefValues.push_back(SE3(SO3(1, 0, 0, 0),(SE3::Position(0,0,0))));
+    expectedValues.push_back(expectedValuesVertex[i]);
   }
-
-
   SlerpSE3Curve curve;
   curve.fitCurve(coefTimes, coefValues);
-
-  // noise models
-//  gtsam::noiseModel::Diagonal::shared_ptr measNoiseModel = gtsam::noiseModel::Diagonal::
-//      Sigmas((gtsam::Vector(DIM) << 0.2, 0.2, 0.2, 0.2, 0.2, 0.2)); //noise model for GPS
-  gtsam::noiseModel::Diagonal::shared_ptr priorNoise = gtsam::noiseModel::Diagonal::
-      Sigmas((gtsam::Vector(DIM) << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)); //noise model for prior
-
-  // factor graph
-  gtsam::NonlinearFactorGraph graph;
-
-  // prior factor (an SE3AbsolutePoseFactor at the good first coefficient)
-  SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
-
-  Expression<ChartValue<ValueType> > predictedPrior(convertToChartValue<ValueType>,
-                                                    curve.getEvalExpression2(coefTimes[0]));
-
-  ExpressionFactor<ChartValue<ValueType> > f(priorNoise,
-                                             ChartValue<ValueType>(prior),
-                                             predictedPrior);
-
-  // \todo give reasonable prior
-  graph.add(f);
 
   // Populate GTSAM values
   KeyCoefficientTime *rval0, *rval1;
@@ -248,88 +196,105 @@ TEST(CurvesTestSuite, test_MITb) {
       key = rval0->key;
     }
     initials.insert(key,coefValues[i]);
-    //        initials.insert(key,ValueType(SO3(1,SO3::Vector3(0.0,0.0,0.0)),SE3::Position(0.0,0.0,0.0)));
-    //expected.insert(key,valuesCoef[i]);
-    //        initials.print("initials:");
-
-    //    std::cout << "diff: " << relativeMeasurementExpressionX(coefValues[i],coefValues[i+1]).getPosition() <<std::endl;
+    expected.insert(key,expectedValues[i]);
   }
-  for (int i=0; i < measValues.size(); ++i) {
 
+  /// **************** \\\
+  ///   NOISE MODELS   \\\
+  /// **************** \\\
 
-    //    Expression<ChartValue<ValueType> > relative(::relativeMeasurementExpressionX, curve.getEvalExpression2(measTimes[i]), curve.getEvalExpression2(measTimes[i]+1));
-    gtsam::noiseModel::Diagonal::shared_ptr measNoiseModel = gtsam::noiseModel::Diagonal::
-              Sigmas((gtsam::Vector(DIM) << (measCovariances[i])[5], (measCovariances[i])[3], 0, 0, 0, (measCovariances[i])[1])); //noise model for GPS
+  //noise model for prior
+  gtsam::noiseModel::Diagonal::shared_ptr priorNoise = gtsam::noiseModel::Diagonal::
+      Sigmas(priNoise);
+  // noise model for odometry measurements
+  gtsam::noiseModel::Diagonal::shared_ptr measNoiseModel = gtsam::noiseModel::Diagonal::
+      Sigmas(measNoise);
+  // noise model for loop closure ("odometry"-like) measurements
+  gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModel = gtsam::noiseModel::Diagonal::
+      Sigmas(loopNoise);
 
-    Expression<ValueType> TA(curve.getEvalExpression2(measTimes[i]));
-    Expression<ValueType> TB(curve.getEvalExpression2(measTimes[i]+1));
+  /// **************** \\\
+  ///      FACTORS     \\\
+  /// **************** \\\
+
+  // factor graph
+  gtsam::NonlinearFactorGraph graph;
+
+  // prior
+  SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
+  Expression<ChartValue<ValueType> > predictedPrior(convertToChartValue<ValueType>,
+                                                    curve.getEvalExpression2(coefTimes[0]));
+  ExpressionFactor<ChartValue<ValueType> > f(priorNoise,
+                                             ChartValue<ValueType>(prior),
+                                             predictedPrior);
+  graph.add(f);
+
+  // odometry
+  for (int i=0; i < measValuesEdge.size(); ++i) {
+    Expression<ValueType> TA(curve.getEvalExpression2(measTimesEdge[i]));
+    Expression<ValueType> TB(curve.getEvalExpression2(measTimesEdge[i]+1));
     Expression<ValueType> iTA(curves::inverseTransformation, TA);
     Expression<ValueType> relative(curves::composeTransformations, iTA, TB);
-
     Expression<ChartValue<ValueType> >predicted(gtsam::convertToChartValue<ValueType>, relative);
-    ExpressionFactor<ChartValue<ValueType> > factor(measNoiseModel,ChartValue<ValueType>(measValues[i]), predicted);
-    //    std::cout << "i: " << i << " "<< factor.unwhitenedError(initials).transpose() <<std::endl;
+    ExpressionFactor<ChartValue<ValueType> > factor(measNoiseModel,ChartValue<ValueType>(measValuesEdge[i]), predicted);
     graph.add(factor);
   }
 
-  for (int i = 0; i<loopValues.size(); ++i) {
-//  for (int i = 10; i<16; ++i) {
-
-//    std::cout << "covariances: " <<(loopCovariances[i])[0] << " " << (loopCovariances[i])[3] << " " <<(loopCovariances[i])[5] << std::endl;
-    gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModel = gtsam::noiseModel::Diagonal::
-          Sigmas((gtsam::Vector(DIM) << 5*(loopCovariances[i])[5], (loopCovariances[i])[3], 0, 0, 0, (loopCovariances[i])[1])); //noise model for GPS
-//    gtsam::Matrix6 covariance;
-//    covariance << (loopCovariances[i])[0],(loopCovariances[i])[1],0,0,0,0,
-//                (-loopCovariances[i])[1], (loopCovariances[i])[3], 0, 0, 0, 0,
-//                0, 0, 0, 0, 0, 0,
-//                0, 0, 0, 0, 0, 0,
-//                0, 0, 0, 0, 0, 0,
-//                0, 0, 0, 0, 0, (loopCovariances[i])[5];
-//    gtsam::noiseModel::Gaussian::shared_ptr loopNoiseModel = gtsam::noiseModel::Gaussian::Covariance
-//        (covariance); //noise model for GPS
-    Expression<ValueType> TA(curve.getEvalExpression2(loopTimesA[i]));
-    Expression<ValueType> TB(curve.getEvalExpression2(loopTimesB[i]));
+  // loop closures
+  for (int i = 0; i < measValuesLoop.size(); ++i) {
+    Expression<ValueType> TA(curve.getEvalExpression2(measTimesLoopA[i]));
+    Expression<ValueType> TB(curve.getEvalExpression2(measTimesLoopB[i]));
     Expression<ValueType> iTA(curves::inverseTransformation, TA);
     Expression<ValueType> relative(curves::composeTransformations, iTA, TB);
-
     Expression<ChartValue<ValueType> >predicted(gtsam::convertToChartValue<ValueType>, relative);
-    ExpressionFactor<ChartValue<ValueType> > factor(loopNoiseModel,ChartValue<ValueType>(loopValues[i]), predicted);
+    ExpressionFactor<ChartValue<ValueType> > factor(loopNoiseModel,ChartValue<ValueType>(measValuesLoop[i]), predicted);
     graph.add(factor);
-    factor.print("loop factor");
   }
-  //initials.print("initials:");
-  //graph.print("graph");
 
-  //  std::cout << "c6: " << coefValues[6].getPosition() <<std::endl;
-  //    std::cout << "c7: " << coefValues[7].getPosition() <<std::endl;
-  //    std::cout << "diff 6 - 7: " << relativeMeasurementExpressionX(coefValues[6], coefValues[7]).getPosition() <<std::endl;
+  // iterate to incrementally narrow down noise of loop closures
+  for (int i=0; i<12; ++i) {
 
+    /// **************** \\\
+    ///  RECORD RESULTS  \\\
+    /// **************** \\\
 
-
-  std::cout << __LINE__ << " " << __FILE__ << std::endl;
-
-  //
-  // optimize the trajectory
-  gtsam::LevenbergMarquardtParams params;
-  params.setVerbosity("ERROR");
-  //  params.setVerbosity("LINEAR");
-  gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, initials, params).optimize();
-
-  std::ofstream resultFile;
-  resultFile.open("optimized_coefficients_MITb.csv");
-  for(int i=0; i<coefValues.size(); i++) {
-    curve.getCoefficientsAt(coefTimes[i], &rval0, &rval1);
-    Key key;
-    // todo use another method for getting the keys
-    // here a if is necessary since t=maxtime the coef is in rval1
-    if (i == coefValues.size() - 1) {
-      key = rval1->key;
-    } else {
-      key = rval0->key;
+    if(recordCsv) {
+      std::stringstream ss;
+      ss << filename << i << ".csv";
+      std::ofstream resultFile;
+      resultFile.open(ss.str().c_str());
+      for(int i2=0; i2<coefValues.size(); ++i2) {
+        curve.getCoefficientsAt(coefTimes[i2], &rval0, &rval1);
+        Key key;
+        // todo use another method for getting the keys
+        // here a if is necessary since t=maxtime the coef is in rval1
+        if (i2 == coefValues.size() - 1) {
+          key = rval1->key;
+        } else {
+          key = rval0->key;
+        }
+        Eigen::Vector3d val = initials.at<ValueType>(key).getPosition();
+        SO3 val2 = initials.at<ValueType>(key).getRotation();
+        resultFile << measTimesVertex[i] << ", "
+                   << val2.w() << ", " << val2.x() << ", " << val2.y() << ", " << val2.z()<< ", "
+                   << val[0] << ", " << val[1] << ", " << val[2] << std::endl;
+      }
     }
-    Eigen::Vector3d val = result.at<ValueType>(key).getPosition();
-    resultFile << val[0] << ", " << val[1] << ", " << val[2] << std::endl;
+
+    /// **************** \\\
+    ///   OPTIMIZATION   \\\
+    /// **************** \\\
+
+    // catch last iteration (only for writing results, if activated)
+    if(i<11) {
+      // narrow down noise model for loop closures
+      gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModelX = gtsam::noiseModel::Diagonal::
+          Sigmas(loopNoise*(101-(i*10)));
+      // update noise model of loop closures
+      *loopNoiseModel = *loopNoiseModelX;
+      // optimize graph
+      initials = gtsam::LevenbergMarquardtOptimizer(graph, initials, params).optimize();
+    }
   }
-  //    cout << val[0] << " " << val[1] << " " << val[2] << endl;
-  //  ASSERT_TRUE(expected.equals(result, 0.5));
+    CHECK(initials.equals(expected, 1)) << "results don't match the expected";
 }
