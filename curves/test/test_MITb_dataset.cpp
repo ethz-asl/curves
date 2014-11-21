@@ -12,8 +12,11 @@
 #include "gtsam_unstable/nonlinear/Expression.h"
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
+#include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include "gtsam_unstable/nonlinear/ExpressionFactor.h"
 #include <gtsam/base/numericalDerivative.h>
+
+
 
 #include <Eigen/Core>
 #include <boost/assign/list_of.hpp>
@@ -93,8 +96,33 @@ struct DefaultChart<SE3> {
 
 } //namespace gtsam
 
-//// Expression to calculate relative measurement between 2 SE3 values
-//// \todo AG move this to trajectory maintainer at some point (this replaces relative pose factor functionality)
+
+ValueType setRotZero(const ValueType& val,
+                     boost::optional<Eigen::Matrix<double,6,6>&>H) {
+  if (H) {
+
+    Eigen::Matrix<double,6,6> newH = Eigen::Matrix<double,6,6>::Identity();
+    newH(3,3)= 0;
+    newH(4,4)= 0;
+    newH(5,5)= 0;
+    (*H) = newH;
+  }
+  ValueType rval(SO3(1,0,0,0),val.getPosition());
+
+  return rval;
+}
+
+ValueType twoDJacobi(const ValueType& val,
+                     boost::optional<Eigen::Matrix<double,6,6>&>H) {
+  if (H) {
+    Eigen::Matrix<double,6,6> newH = Eigen::Matrix<double,6,6>::Identity();
+    newH(2,2)= 0;
+    newH(3,3)= 0;
+    newH(4,4)= 0;
+    (*H) = newH;
+  }
+  return val;
+}
 
 // test a greater example of using more factors, creating gtsam factor graph and optimizing it
 TEST(CurvesTestSuite, test_MITb) {
@@ -186,7 +214,8 @@ TEST(CurvesTestSuite, test_MITb) {
       val = atof(value.c_str());
       m[i] = val;
     }
-    pose = SE3(SO3(m[3], m[4], m[5], m[6]),(SE3::Position() << m[0],m[1],m[2]).finished());
+    pose = SE3(SO3(1, 0, 0, 0),(SE3::Position() << m[0],m[1],m[2]).finished());
+//    pose = SE3(SO3(m[3], m[4], m[5], m[6]),(SE3::Position() << m[0],m[1],m[2]).finished());
     loopValues.push_back(pose);
     loopCov << m[7], m[8], m[9], m[10], m[11], m[12];
     loopCovariances.push_back(loopCov);
@@ -202,21 +231,23 @@ TEST(CurvesTestSuite, test_MITb) {
   for(int i=0; i < measTimesVertex.size(); i++) {
     coefTimes.push_back(measTimesVertex[i]);
     coefValues.push_back(measValuesVertex[i]);
-    std::cout << measTimesVertex[i] <<std::endl;
+    //    std::cout << measTimesVertex[i] <<std::endl;
     //    std::cout << "Position: " << i << " "<< measValuesVertex[i].getPosition() << std::endl;
     //    std::cout << "Rotation: " << i << " " << measValuesVertex[i].getRotation() <<std::endl;
     //    coefValues.push_back(SE3(SO3(1, 0, 0, 0),(SE3::Position(0,0,0))));
   }
 
-
   SlerpSE3Curve curve;
   curve.fitCurve(coefTimes, coefValues);
 
   // noise models
-//  gtsam::noiseModel::Diagonal::shared_ptr measNoiseModel = gtsam::noiseModel::Diagonal::
-//      Sigmas((gtsam::Vector(DIM) << 0.2, 0.2, 0.2, 0.2, 0.2, 0.2)); //noise model for GPS
-  gtsam::noiseModel::Diagonal::shared_ptr priorNoise = gtsam::noiseModel::Diagonal::
-      Sigmas((gtsam::Vector(DIM) << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)); //noise model for prior
+
+
+//  gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::
+//      Sigmas((gtsam::Vector(DIM) << 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001)); //noise model for prior
+
+    gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::
+        All(DIM);
 
   // factor graph
   gtsam::NonlinearFactorGraph graph;
@@ -256,10 +287,28 @@ TEST(CurvesTestSuite, test_MITb) {
   }
   for (int i=0; i < measValues.size(); ++i) {
 
+//    gtsam::Matrix6 covMatrix;
+//    covMatrix << measCovariances[i][0], 0, 0, 0, 0, 0,
+//        0, measCovariances[i][3], 0, 0, 0, 0,
+//        0, 0, 0, 0, 0, 0,
+//        0, 0, 0, 0, 0, 0,
+//        0, 0, 0, 0, 0, 0,
+////        0, 0, 0, 0, 0, 0;
+//        0, 0, 0, 0, 0, measCovariances[i][5];
+//
+//    gtsam::noiseModel::Gaussian::shared_ptr measNoiseModel = gtsam::noiseModel::Gaussian::Information(covMatrix);
 
-    //    Expression<ChartValue<ValueType> > relative(::relativeMeasurementExpressionX, curve.getEvalExpression2(measTimes[i]), curve.getEvalExpression2(measTimes[i]+1));
-    gtsam::noiseModel::Diagonal::shared_ptr measNoiseModel = gtsam::noiseModel::Diagonal::
-              Sigmas((gtsam::Vector(DIM) << (measCovariances[i])[5], (measCovariances[i])[3], 0, 0, 0, (measCovariances[i])[1])); //noise model for GPS
+      gtsam::noiseModel::Diagonal::shared_ptr measNoiseModel = gtsam::noiseModel::Diagonal::
+          Sigmas((gtsam::Vector(DIM) << 0.2, 0.2, 999999, 999999, 999999, 0.2)); //noise model for prior
+
+//    gtsam::Vector precisions(6);
+//    precisions <<  measCovariances[i][0], measCovariances[i][3], 0, 0, 0, measCovariances[i][5];
+//    gtsam::noiseModel::Diagonal::shared_ptr measNoiseModel = gtsam::noiseModel::Diagonal::Precisions(precisions);
+
+//    gtsam::noiseModel::mEstimator::Cauchy::shared_ptr robust = gtsam::noiseModel::mEstimator::Cauchy::Create(1);
+//
+//    gtsam::noiseModel::Robust::shared_ptr cauchyNoiseModel = gtsam::noiseModel::Robust::Create
+//        (robust, measNoiseModel);
 
     Expression<ValueType> TA(curve.getEvalExpression2(measTimes[i]));
     Expression<ValueType> TB(curve.getEvalExpression2(measTimes[i]+1));
@@ -272,31 +321,129 @@ TEST(CurvesTestSuite, test_MITb) {
     graph.add(factor);
   }
 
-  for (int i = 0; i<loopValues.size(); ++i) {
-//  for (int i = 10; i<16; ++i) {
+  // optimize the trajectory
+  gtsam::GaussNewtonParams params;
+  gtsam::LevenbergMarquardtParams paramsLM;
+   params.setVerbosity("ERROR");
+   paramsLM.setVerbosity("ERROR");
+//   paramsLM.setMaxIterations(100);
+//   paramsLM.setRelativeErrorTol(0);
+//   paramsLM.setAbsoluteErrorTol(-1e+99);
+//   params.setMaxIterations(100);
+//   params.setRelativeErrorTol(0);
+//   params.setAbsoluteErrorTol(-1e+99);
 
-//    std::cout << "covariances: " <<(loopCovariances[i])[0] << " " << (loopCovariances[i])[3] << " " <<(loopCovariances[i])[5] << std::endl;
-    gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModel = gtsam::noiseModel::Diagonal::
-          Sigmas((gtsam::Vector(DIM) << 5*(loopCovariances[i])[5], (loopCovariances[i])[3], 0, 0, 0, (loopCovariances[i])[1])); //noise model for GPS
-//    gtsam::Matrix6 covariance;
-//    covariance << (loopCovariances[i])[0],(loopCovariances[i])[1],0,0,0,0,
-//                (-loopCovariances[i])[1], (loopCovariances[i])[3], 0, 0, 0, 0,
-//                0, 0, 0, 0, 0, 0,
-//                0, 0, 0, 0, 0, 0,
-//                0, 0, 0, 0, 0, 0,
-//                0, 0, 0, 0, 0, (loopCovariances[i])[5];
-//    gtsam::noiseModel::Gaussian::shared_ptr loopNoiseModel = gtsam::noiseModel::Gaussian::Covariance
-//        (covariance); //noise model for GPS
-    Expression<ValueType> TA(curve.getEvalExpression2(loopTimesA[i]));
-    Expression<ValueType> TB(curve.getEvalExpression2(loopTimesB[i]));
-    Expression<ValueType> iTA(curves::inverseTransformation, TA);
-    Expression<ValueType> relative(curves::composeTransformations, iTA, TB);
 
-    Expression<ChartValue<ValueType> >predicted(gtsam::convertToChartValue<ValueType>, relative);
-    ExpressionFactor<ChartValue<ValueType> > factor(loopNoiseModel,ChartValue<ValueType>(loopValues[i]), predicted);
-    graph.add(factor);
-    factor.print("loop factor");
+
+  //  params.setVerbosity("LINEAR");
+  gtsam::Values result = initials;
+  cout << __LINE__ << endl;
+  Eigen::Matrix<double,15,1> goodLC;
+  goodLC << 1, 2, 3, 4, 5, 6,7,8,9,10,11,12,13,14,15;
+  cout << "loopTimesA" << loopTimesA.size() << endl;
+  cout << "loopTimesB" << loopTimesB.size() << endl;
+  cout << "goodLC" << goodLC << endl;
+  cout << "loopCovariances size" << loopCovariances.size() << endl;
+  int nFactor = graph.size();
+
+  for( int z1 = 0; z1 <= 10; z1++) {
+    //  int nL = 0.00+10*(10-z1);
+      double nL = exp((10-double(z1))/2) - 0.9999;
+      cout << "nL" << nL << endl;
+
+
+    //
+      gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModel = gtsam::noiseModel::Diagonal::
+          Sigmas((gtsam::Vector(DIM) << nL, nL, 999999, 999999, 999999, 999999)); //noise model for GPS
+//            gtsam::noiseModel::Diagonal::shared_ptr LCNoiseModel = gtsam::noiseModel::Diagonal::
+//                Sigmas((gtsam::Vector(DIM) << 0.2, 0.2, 0.2, 0.2, 0.2, 0.2)); //noise model for GPS
+
+////    gtsam::noiseModel::mEstimator::Cauchy::shared_ptr robust2 = gtsam::noiseModel::mEstimator::Cauchy::Create(10*(10-z1)+1);
+//      double cauchyLevel = 1 + z1*5;
+////      double cauchyLevel = exp(exp(double(z1)/5)-1)-0.999;
+//      cout << "cauchyLevel" << cauchyLevel << endl;
+//      gtsam::noiseModel::mEstimator::Cauchy::shared_ptr robust2 = gtsam::noiseModel::mEstimator::Cauchy::Create(10);
+    for (int z = 0; z<goodLC.size(); ++z) {
+      int i = goodLC[z]-1;
+
+//      gtsam::Matrix6 covMatrix;
+//      covMatrix << loopCovariances[i][0], 0, 0, 0, 0, 0,
+//          0, loopCovariances[i][3], 0, 0, 0, 0,
+//          0, 0, 0, 0, 0, 0,
+//          0, 0, 0, 0, 0, 0,
+//          0, 0, 0, 0, 0, 0,
+//          0, 0, 0, 0, 0, 0;
+////          0, 0, 0, 0, 0, loopCovariances[i][5];
+//
+//      covMatrix *= (10-z1)*10+1;
+//
+//      gtsam::noiseModel::Gaussian::shared_ptr loopNoiseModel = gtsam::noiseModel::Gaussian::Information(covMatrix);
+
+//      gtsam::Vector precisions(6);
+//      precisions <<  loopCovariances[i][0], loopCovariances[i][3], 0, 0, 0, 0;
+//      precisions /= (10-z1)*2+1;
+//      gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModel = gtsam::noiseModel::Diagonal::Precisions(precisions);
+
+
+
+//      gtsam::noiseModel::Robust::shared_ptr cauchy2NoiseModel = gtsam::noiseModel::Robust::Create
+//          (robust2, loopNoiseModel);
+      if (z1 > 0){
+        graph.remove(nFactor+1+z);
+      }
+
+      Expression<ValueType> TA(curve.getEvalExpression2(loopTimesA[i]));
+      Expression<ValueType> TB(curve.getEvalExpression2(loopTimesB[i]));
+      Expression<ValueType> iTA(curves::inverseTransformation, TA);
+      Expression<ValueType> relative(curves::composeTransformations, iTA, TB);
+
+      Expression<ChartValue<ValueType> >predicted(gtsam::convertToChartValue<ValueType>, relative);
+      ExpressionFactor<ChartValue<ValueType> > factor(loopNoiseModel,ChartValue<ValueType>(loopValues[i]), predicted);
+      graph.add(factor);
+
+    }
+//    graph.print(" asdf");
+    result = gtsam::LevenbergMarquardtOptimizer(graph, initials, paramsLM).optimize();
+
+    std::stringstream ss;
+    ss << "/home/renaud/MATLAB/MITb/optimized_coefficients_MITb " << z1 << ".csv";
+
+    std::ofstream resultFile;
+    resultFile.open(ss.str().c_str());
+    for(int i=0; i<coefValues.size(); i++) {
+      curve.getCoefficientsAt(coefTimes[i], &rval0, &rval1);
+      Key key;
+      // todo use another method for getting the keys
+      // here a if is necessary since t=maxtime the coef is in rval1
+      if (i == coefValues.size() - 1) {
+        key = rval1->key;
+      } else {
+        key = rval0->key;
+      }
+      Eigen::Vector3d val = result.at<ValueType>(key).getPosition();
+      resultFile << val[0] << ", " << val[1] << ", " << val[2] << std::endl;
+    }
+
   }
+
+
+
+  //  for (int i = 10; i<16; ++i) {
+
+  //    std::cout << "covariances: " <<(loopCovariances[i])[0] << " " << (loopCovariances[i])[3] << " " <<(loopCovariances[i])[5] << std::endl;
+  //    gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModel = gtsam::noiseModel::Diagonal::
+  //          Sigmas((gtsam::Vector(DIM) << 5*(loopCovariances[i])[5], (loopCovariances[i])[3], 0, 0, 0, (loopCovariances[i])[1])); //noise model for GPS
+  //    gtsam::Matrix6 covariance;
+  //    covariance << (loopCovariances[i])[0],(loopCovariances[i])[1],0,0,0,0,
+  //                (-loopCovariances[i])[1], (loopCovariances[i])[3], 0, 0, 0, 0,
+  //                0, 0, 0, 0, 0, 0,
+  //                0, 0, 0, 0, 0, 0,
+  //                0, 0, 0, 0, 0, 0,
+  //                0, 0, 0, 0, 0, (loopCovariances[i])[5];
+  //    gtsam::noiseModel::Gaussian::shared_ptr loopNoiseModel = gtsam::noiseModel::Gaussian::Covariance
+  //        (covariance); //noise model for GPS
+
+
   //initials.print("initials:");
   //graph.print("graph");
 
@@ -306,30 +453,6 @@ TEST(CurvesTestSuite, test_MITb) {
 
 
 
-  std::cout << __LINE__ << " " << __FILE__ << std::endl;
-
-  //
-  // optimize the trajectory
-  gtsam::LevenbergMarquardtParams params;
-  params.setVerbosity("ERROR");
-  //  params.setVerbosity("LINEAR");
-  gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, initials, params).optimize();
-
-  std::ofstream resultFile;
-  resultFile.open("optimized_coefficients_MITb.csv");
-  for(int i=0; i<coefValues.size(); i++) {
-    curve.getCoefficientsAt(coefTimes[i], &rval0, &rval1);
-    Key key;
-    // todo use another method for getting the keys
-    // here a if is necessary since t=maxtime the coef is in rval1
-    if (i == coefValues.size() - 1) {
-      key = rval1->key;
-    } else {
-      key = rval0->key;
-    }
-    Eigen::Vector3d val = result.at<ValueType>(key).getPosition();
-    resultFile << val[0] << ", " << val[1] << ", " << val[2] << std::endl;
-  }
   //    cout << val[0] << " " << val[1] << " " << val[2] << endl;
   //  ASSERT_TRUE(expected.equals(result, 0.5));
 }
