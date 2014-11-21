@@ -111,7 +111,7 @@ TEST(CurvesTestSuite, test_MITb) {
   measNoise << 0.1, 0.1, 0.001, 0.1*M_PI/180, 0.1*M_PI/180, 0.5*M_PI/180;
   gtsam::Vector6 priNoise;
   priNoise << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-  bool recordCsv = true;
+  bool recordCsv = false;
 
   // parameters for LM optimizer
   gtsam::LevenbergMarquardtParams params;
