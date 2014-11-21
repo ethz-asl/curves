@@ -36,7 +36,6 @@ catkin_add_gtest(${PROJECT_NAME}_tests
   test/test_HermiteCoefficientManager.cpp
   test/test_Coefficient.cpp
   test/test_Expressions.cpp
-  test/test_Expressions_Laser.cpp
   test/test_Expressions_Slerp_SE3.cpp
   #test/test_SE3_Sinus_Circle.cpp
   test/test_MITb_dataset.cpp
