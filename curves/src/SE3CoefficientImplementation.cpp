@@ -64,8 +64,6 @@ void SE3CoefficientImplementation::retract(const Eigen::VectorXd& thisCoeff,
   // SE3 retract
   // the position is stored in the first 3 dimenstions, and the quaternion is in the next 4 or the coeff vector
   SE3 thisSE3(SO3(thisCoeff[3], thisCoeff.segment<3>(4)),thisCoeff.head<3>());
-  //  SE3 thisSE3(SO3(SO3::Vector4(thisCoeff.segment<4>(3))),thisCoeff.head<3>());
-  // the SE3 constructor with a 6D vector is the exponential map
   SE3 updated = SE3(delta.head<6>().eval())*thisSE3;
   (*outIncrementedCoeff) << updated.getPosition(), updated.getRotation().vector();
 }
@@ -118,16 +116,7 @@ void SE3CoefficientImplementation::localCoordinates(const SE3& thisSE3,
   // local coordinates are defined to be on the left side of the transformation,
   // ie other = [delta]^ A
   SE3 delta = otherSE3*thisSE3.inverted();
-  Eigen::Matrix<double,6,1> dlog = delta.log();
-  for (int i = 3; i<6; ++i) {
-    if (dlog[i] >= M_PI) {
-      dlog[i] = 2 * M_PI - dlog[i];
-    }
-    else if (dlog[i] <= - M_PI) {
-      dlog[i] = 2*M_PI + dlog[i];
-    }
-  }
-  (*outLocalCoordinates) = dlog;
+  (*outLocalCoordinates) = delta.log();
 }
 
 } // namespace curves

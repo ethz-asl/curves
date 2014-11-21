@@ -304,20 +304,26 @@ SlerpSE3Curve::getEvalExpression(const Time& time) const {
 ///        \f[ T = A(A^{-1}B)^{\alpha} \f]
 gtsam::Expression<typename SlerpSE3Curve::ValueType>
 SlerpSE3Curve::getEvalExpression2(const Time& time) const {
-  typedef typename SlerpSE3Curve::ValueType ValueType;
-  using namespace gtsam;
-  KeyCoefficientTime *rval0, *rval1;
-  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
+ typedef typename SlerpSE3Curve::ValueType ValueType;
+ using namespace gtsam;
+ KeyCoefficientTime *rval0, *rval1;
+ bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
 
-  double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
+ double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
 
-  Expression<ValueType> leaf1(rval0->key);
-  Expression<ValueType> leaf2(rval1->key);
-
-  Expression<ValueType> inverted(inverseTransformation, leaf1);
-  Expression<ValueType> composed(composeTransformations, inverted, leaf2);
-  Expression<ValueType> powered(boost::bind(&transformationPower,_1,alpha,_2), composed);
-  return Expression<ValueType>(composeTransformations, leaf1, powered);
+ Expression<ValueType> leaf1(rval0->key);
+ Expression<ValueType> leaf2(rval1->key);
+//  std::cout << "alpha" << alpha << std::endl;
+ if (alpha == 0) {
+   return leaf1;
+ } else if (alpha == 1) {
+   return leaf2;
+ } else {
+   Expression<ValueType> inverted(inverseTransformation, leaf1);
+   Expression<ValueType> composed(composeTransformations, inverted, leaf2);
+   Expression<ValueType> powered(boost::bind(&transformationPower,_1,alpha,_2), composed);
+   return Expression<ValueType>(composeTransformations, leaf1, powered);
+ }
 }
 
 
