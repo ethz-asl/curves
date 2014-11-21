@@ -54,9 +54,6 @@ void SlerpSE3Curve::getCoefficientsAt(const Time& time,
                                       KeyCoefficientTime** outCoefficient1) const {
   CHECK_NOTNULL(&outCoefficient0);
   CHECK_NOTNULL(&outCoefficient1);
-  if (time == this->getMaxTime()) {
-    std::cout <<"max time reached" <<std::endl;
-  }
   bool success = manager_.getCoefficientsAt(time, outCoefficient0, outCoefficient1);
   CHECK(success) << "Unable to get the coefficients at time " << time;
 }

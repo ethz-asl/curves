@@ -20,8 +20,11 @@
 #include "gtsam_unstable/nonlinear/Expression.h"
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
+#include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include "gtsam_unstable/nonlinear/ExpressionFactor.h"
 #include <gtsam/base/numericalDerivative.h>
+
+
 
 #include <Eigen/Core>
 #include <boost/assign/list_of.hpp>
@@ -121,7 +124,7 @@ TEST(CurvesTestSuite, test_MITb) {
   params.setAbsoluteErrorTol(-1e5);
   params.setErrorTol(1);
   params.setMaxIterations(50);
-  params.setVerbosity("ERROR");
+  params.setVerbosity("SILENT");
 
   // filename/location for storing resultfiles
   std::string filename = "/home/johnny/projects/ctsm/src/curves/curves/test/dump/optimized_coefficients_MITb";
