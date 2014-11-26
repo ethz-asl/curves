@@ -110,8 +110,18 @@ void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
 void SlerpSE3Curve::extend(const std::vector<Time>& times,
                            const std::vector<ValueType>& values) {
 
-  /// \todo is this function needed anymore?
-  CHECK(false) << "SlerpSE3Curve::extend not implemented";
+  CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
+  std::vector<Key> outKeys;
+  Eigen::VectorXd val(7);
+  std::vector<Coefficient> coefficients(values.size());
+  for (size_t i = 0; i < values.size(); ++i) {
+    CoefficientImplementation::Ptr impl(new SE3CoefficientImplementation);
+    boost::dynamic_pointer_cast<SE3CoefficientImplementation>(impl)->makeValue(values[i],
+                                                                               &val);
+    Coefficient c1(impl,val);
+    coefficients[i] = c1;
+  }
+  manager_.insertCoefficients(times, coefficients, &outKeys);
 }
 
 typename SlerpSE3Curve::ValueType
@@ -301,26 +311,26 @@ SlerpSE3Curve::getEvalExpression(const Time& time) const {
 ///        \f[ T = A(A^{-1}B)^{\alpha} \f]
 gtsam::Expression<typename SlerpSE3Curve::ValueType>
 SlerpSE3Curve::getEvalExpression2(const Time& time) const {
- typedef typename SlerpSE3Curve::ValueType ValueType;
- using namespace gtsam;
- KeyCoefficientTime *rval0, *rval1;
- bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
+  typedef typename SlerpSE3Curve::ValueType ValueType;
+  using namespace gtsam;
+  KeyCoefficientTime *rval0, *rval1;
+  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
 
- double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
+  double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
 
- Expression<ValueType> leaf1(rval0->key);
- Expression<ValueType> leaf2(rval1->key);
-//  std::cout << "alpha" << alpha << std::endl;
- if (alpha == 0) {
-   return leaf1;
- } else if (alpha == 1) {
-   return leaf2;
- } else {
-   Expression<ValueType> inverted(inverseTransformation, leaf1);
-   Expression<ValueType> composed(composeTransformations, inverted, leaf2);
-   Expression<ValueType> powered(boost::bind(&transformationPower,_1,alpha,_2), composed);
-   return Expression<ValueType>(composeTransformations, leaf1, powered);
- }
+  Expression<ValueType> leaf1(rval0->key);
+  Expression<ValueType> leaf2(rval1->key);
+  //  std::cout << "alpha" << alpha << std::endl;
+  if (alpha == 0) {
+    return leaf1;
+  } else if (alpha == 1) {
+    return leaf2;
+  } else {
+    Expression<ValueType> inverted(inverseTransformation, leaf1);
+    Expression<ValueType> composed(composeTransformations, inverted, leaf2);
+    Expression<ValueType> powered(boost::bind(&transformationPower,_1,alpha,_2), composed);
+    return Expression<ValueType>(composeTransformations, leaf1, powered);
+  }
 }
 
 
