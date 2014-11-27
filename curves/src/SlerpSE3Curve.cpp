@@ -124,13 +124,6 @@ void SlerpSE3Curve::extend(const std::vector<Time>& times,
   manager_.insertCoefficients(times, coefficients, &outKeys);
 }
 
-typename SlerpSE3Curve::ValueType
-SlerpSE3Curve::evaluate(Time time) const {
-
-  /// \todo is this function needed anymore?
-  CHECK(false) << "SlerpSE3Curve::evaluate not implemented";
-}
-
 typename SlerpSE3Curve::DerivativeType
 SlerpSE3Curve::evaluateDerivative(Time time,
                                   unsigned derivativeOrder) const {
@@ -331,6 +324,25 @@ SlerpSE3Curve::getEvalExpression2(const Time& time) const {
     Expression<ValueType> powered(boost::bind(&transformationPower,_1,alpha,_2), composed);
     return Expression<ValueType>(composeTransformations, leaf1, powered);
   }
+}
+
+
+typename SlerpSE3Curve::ValueType
+SlerpSE3Curve::evaluate(Time time) const {
+  typedef typename SlerpSE3Curve::ValueType ValueType;
+  KeyCoefficientTime *rval0, *rval1;
+  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
+  double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
+
+  Eigen::Matrix<double,7,1> v0 = rval0->coefficient.getValue();
+  Eigen::Matrix<double,7,1> v1 = rval1->coefficient.getValue();
+
+  SE3 pose0(SO3(v0[3],v0[4],v0[5],v0[6]),SE3::Position(v0[0],v0[1],v0[2]));
+  SE3 pose1(SO3(v1[3],v1[4],v1[5],v1[6]),SE3::Position(v1[0],v1[1],v1[2]));
+
+  ValueType composed = composeTransformations(inverseTransformation(pose0),pose1);
+
+  return composeTransformations(transformationPower(composed,alpha),pose0);
 }
 
 
