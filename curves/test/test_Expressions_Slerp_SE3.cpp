@@ -191,6 +191,58 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   ASSERT_NEAR(resultRot(3),0.0,1e-6);
 }
 
+// test for correct keys and evaluation function in Slerp SE3 curves
+TEST(CurvesTestSuite, testSlerpSE3CurveEvaluate) {
+  SlerpSE3Curve curve;
+  const double t[] = {0, 10};
+
+  // setup two SE3 objects
+  ValueType poseA(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
+  ValueType poseB(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(2,2,2));
+
+  std::vector<Time> times(t,t+2);
+  std::vector<ValueType> values;
+  values.push_back(poseA);
+  values.push_back(poseB);
+
+  // interpolate curve
+  curve.fitCurve(times, values);
+
+  // read out SE3 object from values container
+  ValueType result = curve.evaluate(5);
+  Eigen::Vector3d resultPos = result.getPosition();
+  Eigen::Vector4d resultRot = result.getRotation().vector();
+
+  // assert return values are as expected
+  ASSERT_EQ(resultPos, Eigen::Vector3d(1,1,1));
+  ASSERT_NEAR(resultRot(0),0.9238795325112867,1e-6);
+  ASSERT_NEAR(resultRot(1),0.0,1e-6);
+  ASSERT_NEAR(resultRot(2),-0.3826834323650897,1e-6);
+  ASSERT_NEAR(resultRot(3),0.0,1e-6);
+
+  result = curve.evaluate(0);
+  resultPos = result.getPosition();
+  resultRot = result.getRotation().vector();
+
+  ASSERT_EQ(resultPos, Eigen::Vector3d(0,0,0));
+  ASSERT_NEAR(resultRot(0),1,1e-6);
+  ASSERT_NEAR(resultRot(1),0,1e-6);
+  ASSERT_NEAR(resultRot(2),0,1e-6);
+  ASSERT_NEAR(resultRot(3),0,1e-6);
+
+  result = curve.evaluate(10);
+  resultPos = result.getPosition();
+  resultRot = result.getRotation().vector();
+
+  ASSERT_EQ(resultPos, Eigen::Vector3d(2,2,2));
+  ASSERT_NEAR(resultRot(0),0.7071067811865476,1e-6);
+  ASSERT_NEAR(resultRot(1),0,1e-6);
+  ASSERT_NEAR(resultRot(2),-0.7071067811865476,1e-6);
+  ASSERT_NEAR(resultRot(3),0,1e-6);
+
+}
+
+
 // compare 2 types of expressions for Slerp SE3 interpolation:
 // 1. Full Jacobian derivation & interpolation within 1 Expression (classic approach)
 // 2. Assembly of expression by atomic Jacobians and operations (composition, inverse, exponential)
