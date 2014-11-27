@@ -104,15 +104,6 @@ class ExpressionValueWrapper {
     Values values(initialCoefficients_);
     values.update(key,x.value());
 
-    std::vector<size_t> dimensions;
-    dimensions.push_back(DIM);
-    dimensions.push_back(DIM);
-    static const int Dim = traits::dimension<ValueType>::value;
-    VerticalBlockMatrix Ab(dimensions, Dim);
-    FastVector<Key> keys = boost::assign::list_of(*(expression_.keys().begin()))(*(++expression_.keys().begin()));
-    JacobianMap actualMap(keys,Ab);
-
-    //ValueType result = expression_.value(values, actualMap);
     ValueType result = expression_.value(values);
 
     return convertToChartValue<ValueType>(result);
@@ -170,17 +161,7 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   gtsamValues.insert(rval0->key, val0);
   gtsamValues.insert(rval1->key, val1);
 
-  // initialize objects
-  std::vector<size_t> dimensions;
-  dimensions.push_back(DIM);
-  dimensions.push_back(DIM);
-  static const int Dim = traits::dimension<ValueType>::value;
-  VerticalBlockMatrix Ab(dimensions, Dim);
-  FastVector<Key> key = boost::assign::list_of(rval0->key)(rval1->key);
-  JacobianMap actualMap(key,Ab);
-
   // read out SE3 object from values container
-  //ValueType result = expression.value(gtsamValues, actualMap);
   ValueType result = expression.value(gtsamValues);
   Eigen::Vector3d resultPos = result.getPosition();
   Eigen::Vector4d resultRot = result.getRotation().vector();
