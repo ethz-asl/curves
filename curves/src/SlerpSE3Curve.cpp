@@ -7,7 +7,6 @@
 #include <curves/SlerpSE3Curve.hpp>
 #include <curves/SE3CoefficientImplementation.hpp>
 #include <iostream>
-#include "gtsam_unstable/nonlinear/Expression.h"
 
 namespace curves {
 

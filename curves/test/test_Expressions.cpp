@@ -6,7 +6,7 @@
 
 #include <gtest/gtest.h>
 #include <curves/LinearInterpolationVectorSpaceCurve.hpp>
-#include "gtsam_unstable/nonlinear/Expression.h"
+#include "gtsam/nonlinear/Expression.h"
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
 #include "gtsam_unstable/nonlinear/ExpressionFactor.h"
@@ -76,14 +76,7 @@ TEST(CurvesTestSuite, testExpressionKeysAndEvaluation) {
   gtsamValues.insert(rval1->key, ValueType(rval1->coefficient.getValue()));
 
   // read out interpolated value from gtsam Values container via expression
-  std::vector<size_t> dimensions;
-  dimensions.push_back(DIM);
-  dimensions.push_back(DIM);
-  static const int Dim = traits::dimension<ValueType>::value;
-  VerticalBlockMatrix Ab(dimensions, Dim);
-  FastVector<Key> key = boost::assign::list_of(rval0->key)(rval1->key);
-  JacobianMap actualMap(key,Ab);
-  ValueType result = expression.value(gtsamValues, actualMap);
+  ValueType result = expression.value(gtsamValues);
 
   // Check evaluation result
   ASSERT_EQ(result, Eigen::Vector3d(1,1,1));

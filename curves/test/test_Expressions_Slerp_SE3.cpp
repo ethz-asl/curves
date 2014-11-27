@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 #include <curves/SlerpSE3Curve.hpp>
 #include <curves/SE3CoefficientImplementation.hpp>
-#include "gtsam_unstable/nonlinear/Expression.h"
+#include "gtsam/nonlinear/Expression.h"
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
 #include "gtsam_unstable/nonlinear/ExpressionFactor.h"
@@ -112,7 +112,8 @@ class ExpressionValueWrapper {
     FastVector<Key> keys = boost::assign::list_of(*(expression_.keys().begin()))(*(++expression_.keys().begin()));
     JacobianMap actualMap(keys,Ab);
 
-    ValueType result = expression_.value(values, actualMap);
+    //ValueType result = expression_.value(values, actualMap);
+    ValueType result = expression_.value(values);
 
     return convertToChartValue<ValueType>(result);
   }
@@ -179,7 +180,8 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   JacobianMap actualMap(key,Ab);
 
   // read out SE3 object from values container
-  ValueType result = expression.value(gtsamValues, actualMap);
+  //ValueType result = expression.value(gtsamValues, actualMap);
+  ValueType result = expression.value(gtsamValues);
   Eigen::Vector3d resultPos = result.getPosition();
   Eigen::Vector4d resultRot = result.getRotation().vector();
 
@@ -239,15 +241,12 @@ TEST(CurvesTestSuite, compareEvalExpressions1and2) {
   gtsamValues.insert(rval1->key, val1);
 
   // initialize objects
-  std::vector<size_t> dimensions;
-  dimensions.push_back(DIM);
-  dimensions.push_back(DIM);
-  static const int Dim = traits::dimension<ValueType>::value;
-  VerticalBlockMatrix Ab(dimensions, Dim);
-  Ab.matrix().setZero();
   FastVector<Key> key = boost::assign::list_of(rval0->key)(rval1->key);
-  JacobianMap actualMap(key,Ab);
-  ValueType result2 = expression2.value(gtsamValues, actualMap);
+  std::vector<gtsam::Matrix> analyticals;
+  for (unsigned i=0; i<key.size(); ++i) {
+    analyticals.push_back(gtsam::Matrix());
+  }
+  ValueType result2 = expression2.value(gtsamValues, boost::optional<std::vector<gtsam::Matrix>&>(analyticals));
 
   // Test the jacobians
   // Call analytical calculation of Jacobians (using BAD)
@@ -259,9 +258,11 @@ TEST(CurvesTestSuite, compareEvalExpressions1and2) {
   (boost::bind(&ExpressionValueWrapper::evaluate, &expressionValueWrapper, _1, 1), convertToChartValue<ValueType>(val1), 1e-3);
 
   // assert equality of Jacobians
-  gtsam::Matrix analytical(actualMap(rval0->key));
-  for (int i=0; i<analytical.size(); ++i){
-    ASSERT_NEAR(expectedH0(i), analytical(i), 1e-3);
+  for (int i=0; i<analyticals[0].size(); ++i){
+    ASSERT_NEAR(expectedH0(i), analyticals[0](i), 1e-3);
+  }
+  for (int i=0; i<analyticals[1].size(); ++i){
+    ASSERT_NEAR(expectedH1(i), analyticals[1](i), 1e-3);
   }
 }
 

@@ -6,7 +6,6 @@
 
 #include <curves/LinearInterpolationVectorSpaceCurve.hpp>
 #include <iostream>
-#include "gtsam_unstable/nonlinear/Expression.h"
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 
