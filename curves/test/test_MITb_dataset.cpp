@@ -17,7 +17,7 @@
 #include <curves/SE3CoefficientImplementation.hpp>
 #include "test_Helpers.hpp"
 
-#include "gtsam_unstable/nonlinear/Expression.h"
+#include "gtsam/nonlinear/Expression.h"
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
 #include <gtsam/nonlinear/GaussNewtonOptimizer.h>

@@ -9,7 +9,7 @@
 #include <gtest/gtest.h>
 #include <curves/SlerpSE3Curve.hpp>
 #include <curves/SE3CoefficientImplementation.hpp>
-#include "gtsam_unstable/nonlinear/Expression.h"
+#include "gtsam/nonlinear/Expression.h"
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
 #include "gtsam_unstable/nonlinear/ExpressionFactor.h"

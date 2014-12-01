@@ -10,7 +10,7 @@
 #include "CurveBase.hpp"
 #include "Evaluator.hpp"
 
-#include "gtsam_unstable/nonlinear/Expression.h"
+#include "gtsam/nonlinear/Expression.h"
 
 namespace curves {
 
