@@ -12,6 +12,8 @@
 namespace curves {
 
 struct KeyCoefficientTimePrior : public KeyCoefficientTime {
+  /// \todo change example double to instead store
+  /// the matrices and vectors required by the prior
   double extraPriorInfo;
 
   KeyCoefficientTimePrior(Key key, const Coefficient& coefficient, Time time, double extraPriorInfo) :
@@ -28,6 +30,7 @@ struct KeyCoefficientTimePrior : public KeyCoefficientTime {
 class SdeGaussianProcessCoefficientManager : public Support2CoefficientManager {
  public:
 
+  /// Initialize a coefficient manager
   SdeGaussianProcessCoefficientManager();
   virtual ~SdeGaussianProcessCoefficientManager();
 

@@ -91,14 +91,14 @@ Key CoefficientManagerBase::insertCoefficient(Time time, const Coefficient& coef
     key = KeyGenerator::getNextKey();
     std::pair<iterator, bool> success = coefficients_.insert(
         std::make_pair(key, instantiateNewContainer(key, coefficient, time)));
-        //std::make_pair(key, boost::make_shared<KeyCoefficientTime>(key, coefficient, time)));
     timeToCoefficient_[time] = success.first->second;
   }
   return key;
 }
 
 /// Make new Coefficient container.
-/// Derived coefficient managers may override this function to use derivatives of KeyCoefficientTime
+/// Derived coefficient managers may override this
+/// function to use derivatives of KeyCoefficientTime
 boost::shared_ptr<KeyCoefficientTime> CoefficientManagerBase::instantiateNewContainer(Key key, Coefficient coefficient, Time time) {
   return boost::make_shared<KeyCoefficientTime>(key, coefficient, time);
 }

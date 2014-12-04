@@ -123,7 +123,8 @@ class CoefficientManagerBase {
 
  private:
   /// Make new Coefficient container.
-  /// Derived coefficient managers may override this function to use derivatives of KeyCoefficientTime
+  /// Derived coefficient managers may override this
+  /// function to use derivatives of KeyCoefficientTime
   virtual boost::shared_ptr<KeyCoefficientTime> instantiateNewContainer(Key key, Coefficient coefficient, Time time);
 };
 

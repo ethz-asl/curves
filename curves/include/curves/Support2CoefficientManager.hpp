@@ -13,6 +13,8 @@ namespace curves {
 
 class Support2CoefficientManager : public CoefficientManagerBase {
  public:
+
+  /// Initialize a coefficient manager
   Support2CoefficientManager();
   virtual ~Support2CoefficientManager();
 
