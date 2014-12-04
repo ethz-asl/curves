@@ -1,26 +1,26 @@
 /*
- * @file HermiteCoefficientManager.cpp
+ * @file Support2CoefficientManager.cpp
  * @date Aug 17, 2014
  * @author Paul Furgale, Abel Gawel, Renaud Dube
  */
 
-#include <curves/HermiteCoefficientManager.hpp>
+#include <curves/Support2CoefficientManager.hpp>
 #include <curves/KeyGenerator.hpp>
 #include <glog/logging.h>
 
 namespace curves {
 
-HermiteCoefficientManager::HermiteCoefficientManager() {
+Support2CoefficientManager::Support2CoefficientManager() {
 }
-HermiteCoefficientManager::~HermiteCoefficientManager() {
+Support2CoefficientManager::~Support2CoefficientManager() {
 }
 
-void HermiteCoefficientManager::print(const std::string& str) const {
+void Support2CoefficientManager::print(const std::string& str) const {
   // \todo (Abel or Renaud)
 }
 
 /// \brief Get the coefficients that are active at a certain time.
-bool HermiteCoefficientManager::getCoefficientsAt(Time time, 
+bool Support2CoefficientManager::getCoefficientsAt(Time time,
                                                   KeyCoefficientTime** outCoefficient0,
                                                   KeyCoefficientTime** outCoefficient1) const {
   CHECK_NOTNULL(outCoefficient0);

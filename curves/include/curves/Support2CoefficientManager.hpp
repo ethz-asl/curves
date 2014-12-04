@@ -1,20 +1,20 @@
 /*
- * @file HermiteCoefficientManager.hpp
+ * @file Support2CoefficientManager.hpp
  * @date Aug 17, 2014
  * @author Paul Furgale, Abel Gawel, Renaud Dube
  */
 
-#ifndef CT_HERMITE_COEFFICIENT_MANAGER_HPP
-#define CT_HERMITE_COEFFICIENT_MANAGER_HPP
+#ifndef CURVES_SUPPORT_2_COEFFICIENT_MANAGER_HPP
+#define CURVES_SUPPORT_2_COEFFICIENT_MANAGER_HPP
 
 #include "CoefficientManagerBase.hpp"
 
 namespace curves {
 
-class HermiteCoefficientManager : public CoefficientManagerBase {
+class Support2CoefficientManager : public CoefficientManagerBase {
  public:
-  HermiteCoefficientManager();
-  virtual ~HermiteCoefficientManager();
+  Support2CoefficientManager();
+  virtual ~Support2CoefficientManager();
 
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
@@ -32,5 +32,4 @@ class HermiteCoefficientManager : public CoefficientManagerBase {
 
 } // namespace curves
 
-
-#endif /* CT_HERMITE_COEFFICIENT_MANAGER_HPP */
+#endif /* CURVES_SUPPORT_2_COEFFICIENT_MANAGER_HPP */

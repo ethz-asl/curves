@@ -21,7 +21,7 @@ cs_add_library(${PROJECT_NAME}
   src/Coefficient.cpp
   src/KeyGenerator.cpp
   src/CoefficientManagerBase.cpp
-  src/HermiteCoefficientManager.cpp
+  src/Support2CoefficientManager.cpp
   src/EvaluatorBase.cpp
   src/Coefficients.cpp
   src/SlerpSE3Curve.cpp
