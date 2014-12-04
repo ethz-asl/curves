@@ -20,6 +20,7 @@ cs_add_library(${PROJECT_NAME}
   src/CurveBase.cpp
   src/Coefficient.cpp
   src/KeyGenerator.cpp
+  src/CoefficientManagerBase.cpp
   src/HermiteCoefficientManager.cpp
   src/EvaluatorBase.cpp
   src/Coefficients.cpp
