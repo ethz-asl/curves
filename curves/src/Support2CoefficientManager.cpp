@@ -5,8 +5,6 @@
  */
 
 #include <curves/Support2CoefficientManager.hpp>
-#include <curves/KeyGenerator.hpp>
-#include <glog/logging.h>
 
 namespace curves {
 

@@ -8,7 +8,7 @@
 #define CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_CURVE_HPP
 
 #include "VectorSpaceCurve.hpp"
-#include "HermiteCoefficientManager.hpp"
+#include "Support2CoefficientManager.hpp"
 
 namespace curves {
 template<int N>
@@ -87,7 +87,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   virtual void setTimeRange(Time minTime, Time maxTime);
 
  private:
-  HermiteCoefficientManager manager_;
+  Support2CoefficientManager manager_;
 };
 
 } // namespace curves

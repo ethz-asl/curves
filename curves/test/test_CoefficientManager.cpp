@@ -5,10 +5,10 @@
  */
 
 #include <gtest/gtest.h>
-#include <curves/HermiteCoefficientManager.hpp>
+#include <curves/Support2CoefficientManager.hpp>
 #include <curves/VectorSpaceCoefficientImplementation.hpp>
 
-class HermiteCoeffManagerTest : public ::testing::Test {
+class CoeffManagerTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
     N = 50;
@@ -42,12 +42,12 @@ class HermiteCoeffManagerTest : public ::testing::Test {
   std::vector<curves::Time> times2;
   std::vector<curves::Key> keys1;
   std::vector<curves::Key> keys2;
-  curves::HermiteCoefficientManager manager1;
-  curves::HermiteCoefficientManager manager2;
+  curves::Support2CoefficientManager manager1;
+  curves::Support2CoefficientManager manager2;
   
 };
 
-TEST_F(HermiteCoeffManagerTest, testInsert) {
+TEST_F(CoeffManagerTest, testInsert) {
   
   ASSERT_EQ(N, manager1.size());
   ASSERT_EQ(N, manager2.size());
@@ -68,7 +68,7 @@ TEST_F(HermiteCoeffManagerTest, testInsert) {
 }
 
 
-TEST_F(HermiteCoeffManagerTest, testTimes) {
+TEST_F(CoeffManagerTest, testTimes) {
   curves::KeyCoefficientTime *bracket0;
   curves::KeyCoefficientTime *bracket1;
   bool success = false;
@@ -117,15 +117,15 @@ TEST_F(HermiteCoeffManagerTest, testTimes) {
 }
 
 
-TEST_F(HermiteCoeffManagerTest, testGetCoefficientsInRange) {
+TEST_F(CoeffManagerTest, testGetCoefficientsInRange) {
   // \todo Abel and Renaud
 }
 
 
-TEST_F(HermiteCoeffManagerTest, testSetCoefficients) {
+TEST_F(CoeffManagerTest, testSetCoefficients) {
   // \todo Abel and Renaud
 }
 
-TEST_F(HermiteCoeffManagerTest, testRemoveCoefficients) {
+TEST_F(CoeffManagerTest, testRemoveCoefficients) {
   // \todo Abel and Renaud
 }

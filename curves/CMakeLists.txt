@@ -22,6 +22,7 @@ cs_add_library(${PROJECT_NAME}
   src/KeyGenerator.cpp
   src/CoefficientManagerBase.cpp
   src/Support2CoefficientManager.cpp
+  src/SdeGaussianProcessCoefficientManager.cpp
   src/EvaluatorBase.cpp
   src/Coefficients.cpp
   src/SlerpSE3Curve.cpp
@@ -34,7 +35,7 @@ target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 catkin_add_gtest(${PROJECT_NAME}_tests 
   test/test_main.cpp
-  test/test_HermiteCoefficientManager.cpp
+  test/test_CoefficientManager.cpp
   test/test_Coefficient.cpp
   test/test_Expressions.cpp
   test/test_Expressions_Slerp_SE3.cpp

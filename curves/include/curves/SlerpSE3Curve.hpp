@@ -8,7 +8,7 @@
 #define CURVES_SLERP_SE3_CURVE_HPP
 
 #include "SE3Curve.hpp"
-#include "HermiteCoefficientManager.hpp"
+#include "Support2CoefficientManager.hpp"
 
 class SlerpSE3Evaluator; // Forward declaration
 
@@ -140,7 +140,7 @@ class SlerpSE3Curve : public SE3Curve {
   virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
 
  private:
-  HermiteCoefficientManager manager_;
+  Support2CoefficientManager manager_;
 };
 
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
