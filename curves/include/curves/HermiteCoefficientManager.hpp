@@ -92,6 +92,7 @@ class HermiteCoefficientManager {
   bool getCoefficientsAt(Time time, 
                          KeyCoefficientTime** outCoefficient0, KeyCoefficientTime** outCoefficient1) const;
 
+  std::vector<KeyCoefficientTime> getCoefficientsAt(Time time) const;
 
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
   void getCoefficientsInRange(Time startTime, 

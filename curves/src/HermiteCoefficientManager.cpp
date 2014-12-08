@@ -180,6 +180,24 @@ bool HermiteCoefficientManager::getCoefficientsAt(Time time,
   return true;
 }
 
+std::vector<KeyCoefficientTime> HermiteCoefficientManager::getCoefficientsAt(Time time) const {
+  std::vector<KeyCoefficientTime> rval;
+  CHECK(!timeToCoefficient_.empty()) << "No coefficients";
+
+  if(hasCoefficientAtTime(time)) {
+    std::map<Time, KeyCoefficientTime*>::const_iterator it;
+    it = timeToCoefficient_.upper_bound(time);
+    --it;
+    rval.push_back(*(it->second));
+  } else {
+    KeyCoefficientTime *rval0, *rval1;
+    getCoefficientsAt(time, &rval0, &rval1);
+    rval.push_back(*rval0);
+    rval.push_back(*rval1);
+  }
+  return rval;
+}
+
 /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
 void HermiteCoefficientManager::getCoefficientsInRange(
     Time startTime, Time endTime, Coefficient::Map* outCoefficients) const {

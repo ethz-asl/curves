@@ -57,6 +57,10 @@ void SlerpSE3Curve::getCoefficientsAt(const Time& time,
   CHECK(success) << "Unable to get the coefficients at time " << time;
 }
 
+std::vector<KeyCoefficientTime> SlerpSE3Curve::getActiveCoefficientsAt(const Time& time) const {
+  return manager_.getCoefficientsAt(time);
+}
+
 void SlerpSE3Curve::getCoefficientsInRange(Time startTime,
                                            Time endTime,
                                            Coefficient::Map* outCoefficients) const {
@@ -83,11 +87,16 @@ Time SlerpSE3Curve::getMinTime() const {
   return manager_.getMinTime();
 }
 
+bool SlerpSE3Curve::isEmpty() const {
+  std::vector<Time> outTimes;
+  manager_.getTimes(&outTimes);
+  return outTimes.empty();
+}
+
 void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
                              const std::vector<ValueType>& values,
                              std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size());
-
   if(times.size() > 0) {
     Eigen::VectorXd val(7);
     manager_.clear();
