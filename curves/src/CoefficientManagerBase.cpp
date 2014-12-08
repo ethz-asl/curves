@@ -111,7 +111,6 @@ Key CoefficientManagerBase::insertCoefficient(Time time, const Coefficient& coef
     this->setCoefficientByKey(it->second->key, coefficient);
     key = it->second->key;
   } else {
-    typedef boost::unordered_map<Key, boost::shared_ptr<KeyCoefficientTime> >::iterator iterator;
     key = KeyGenerator::getNextKey();
     this->insertNewCoefficient(key, time, coefficient);
   }
@@ -119,6 +118,7 @@ Key CoefficientManagerBase::insertCoefficient(Time time, const Coefficient& coef
 }
 
 void CoefficientManagerBase::insertNewCoefficient(Key key, Time time, const Coefficient& coefficient) {
+  typedef boost::unordered_map<Key, boost::shared_ptr<KeyCoefficientTime> >::iterator iterator;
   std::pair<iterator, bool> success = coefficients_.insert(
       std::make_pair(key, makeContainer(key, coefficient, time)));
   timeToCoefficient_[time] = success.first->second;

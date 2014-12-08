@@ -121,12 +121,13 @@ class CoefficientManagerBase {
   /// Time to coefficient mapping
   std::map<Time, boost::shared_ptr<KeyCoefficientTime> > timeToCoefficient_;
 
-  bool hasCoefficientAtTime(Time time, std::map<Time, boost::shared_ptr<KeyCoefficientTime> >::iterator *it);
-
- private:
   /// \brief insert a coefficient that does not exist yet
   virtual void insertNewCoefficient(Key key, Time time, const Coefficient& coefficient);
 
+  /// \brief check if a coefficient exists at time, return bool success and iterator
+  bool hasCoefficientAtTime(Time time, std::map<Time, boost::shared_ptr<KeyCoefficientTime> >::iterator *it);
+
+ private:
   /// Make new Coefficient container.
   /// Derived coefficient managers may override this
   /// function to use derivatives of KeyCoefficientTime
