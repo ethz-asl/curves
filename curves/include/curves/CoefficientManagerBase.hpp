@@ -18,6 +18,8 @@ namespace curves {
 class CoefficientManagerBase {
  public:
   CoefficientManagerBase();
+  CoefficientManagerBase(const CoefficientManagerBase& rhs);
+  CoefficientManagerBase& operator= (CoefficientManagerBase rhs);
   virtual ~CoefficientManagerBase();
 
   /// Compare this Coefficient with another for equality.
@@ -54,12 +56,12 @@ class CoefficientManagerBase {
   /// \brief Remove the coefficient with this key.
   ///
   /// It is an error if the key does not exist.
-  void removeCoefficientWithKey(Key key);
+  virtual void removeCoefficientWithKey(Key key);
 
   /// \brief Remove the coefficient at this time
   ///
   /// It is an error if there is no coefficient at this time.
-  void removeCoefficientAtTime(Time time);
+  virtual void removeCoefficientAtTime(Time time);
 
   /// \brief return true if there is a coefficient at this time
   bool hasCoefficientAtTime(Time time) const;
@@ -122,10 +124,13 @@ class CoefficientManagerBase {
   bool hasCoefficientAtTime(Time time, std::map<Time, boost::shared_ptr<KeyCoefficientTime> >::iterator *it);
 
  private:
+  /// \brief insert a coefficient that does not exist yet
+  virtual void insertNewCoefficient(Key key, Time time, const Coefficient& coefficient);
+
   /// Make new Coefficient container.
   /// Derived coefficient managers may override this
   /// function to use derivatives of KeyCoefficientTime
-  virtual boost::shared_ptr<KeyCoefficientTime> instantiateNewContainer(Key key, Coefficient coefficient, Time time);
+  virtual boost::shared_ptr<KeyCoefficientTime> makeContainer(Key key, Coefficient coefficient, Time time);
 };
 
 } // namespace curves

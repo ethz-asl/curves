@@ -116,6 +116,17 @@ TEST_F(CoeffManagerTest, testTimes) {
     
 }
 
+TEST_F(CoeffManagerTest, testCopy) {
+  // Check copy constructor
+  curves::Support2CoefficientManager managerCopied(manager1);
+  ASSERT_EQ(manager1.size(), managerCopied.size());
+  ASSERT_TRUE(manager1.equals(managerCopied));
+
+  // Check assignment operator
+  curves::Support2CoefficientManager managerAssign;
+  managerAssign = manager1;
+  ASSERT_TRUE(manager1.equals(managerAssign));
+}
 
 TEST_F(CoeffManagerTest, testGetCoefficientsInRange) {
   // \todo Abel and Renaud

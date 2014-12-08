@@ -11,15 +11,15 @@
 
 namespace curves {
 
-struct KeyCoefficientTimePrior : public KeyCoefficientTime {
+struct KeyCoefficientTimePrior : public KeyCoefficientTime_CRTP<KeyCoefficientTimePrior> {
   /// \todo change example double to instead store
   /// the matrices and vectors required by the prior
   double extraPriorInfo;
 
   KeyCoefficientTimePrior(Key key, const Coefficient& coefficient, Time time, double extraPriorInfo) :
-    KeyCoefficientTime(key, coefficient, time), extraPriorInfo(extraPriorInfo) {}
+    KeyCoefficientTime_CRTP<KeyCoefficientTimePrior>(key, coefficient, time), extraPriorInfo(extraPriorInfo) {}
   KeyCoefficientTimePrior(Key key, const Coefficient& coefficient, Time time) :
-    KeyCoefficientTime(key, coefficient, time) {}
+    KeyCoefficientTime_CRTP<KeyCoefficientTimePrior>(key, coefficient, time) {}
   KeyCoefficientTimePrior() {}
 
   virtual bool equals(const KeyCoefficientTimePrior& other) const {
@@ -37,9 +37,26 @@ class SdeGaussianProcessCoefficientManager : public Support2CoefficientManager {
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
 
+  /// \brief Remove the coefficient with this key.
+  ///
+  /// It is an error if the key does not exist.
+  /// Relative prior information between this coefficient
+  /// and others is removed.
+  virtual void removeCoefficientWithKey(Key key);
+
+  /// \brief Remove the coefficient at this time
+  ///
+  /// It is an error if there is no coefficient at this time.
+  /// Relative prior information between this coefficient
+  /// and others is removed.
+  virtual void removeCoefficientAtTime(Time time);
+
  private:
+  /// \brief insert a coefficient that does not exist yet
+  virtual void insertNewCoefficient(Key key, Time time, const Coefficient& coefficient);
+
   /// Instantiate a new container using the structure KeyCoefficientTimePrior.
-  virtual boost::shared_ptr<KeyCoefficientTime> instantiateNewContainer(Key key, Coefficient coefficient, Time time);
+  virtual boost::shared_ptr<KeyCoefficientTime> makeContainer(Key key, Coefficient coefficient, Time time);
 };
 
 } // namespace curves

@@ -13,6 +13,30 @@ namespace curves {
 
 CoefficientManagerBase::CoefficientManagerBase() {
 }
+
+CoefficientManagerBase::CoefficientManagerBase(const CoefficientManagerBase& rhs) {
+  // Iterate over sorted rhs map
+  std::map<Time, boost::shared_ptr<KeyCoefficientTime> >::const_iterator rhsIter = rhs.timeToCoefficient_.begin();
+  std::map<Time, boost::shared_ptr<KeyCoefficientTime> >::iterator hintIter = this->timeToCoefficient_.begin();
+  for( ; rhsIter != rhs.timeToCoefficient_.end(); ++rhsIter) {
+    // Deep copy the shared_ptr and clone() for possible inheritences of KeyCoefficientTime
+    boost::shared_ptr<KeyCoefficientTime> temp = boost::shared_ptr<KeyCoefficientTime>(rhsIter->second->clone());
+    CHECK_EQ(rhsIter->first, temp->time);
+
+    // Insert into maps
+    hintIter = this->timeToCoefficient_.insert(hintIter, std::make_pair(rhsIter->first, temp));
+    typedef boost::unordered_map<Key, boost::shared_ptr<KeyCoefficientTime> >::iterator iterator;
+    std::pair<iterator, bool> success = this->coefficients_.insert(std::make_pair(temp->key, temp));
+    CHECK(success.second);
+  }
+}
+
+CoefficientManagerBase& CoefficientManagerBase::operator= (CoefficientManagerBase rhs) {
+    std::swap(this->coefficients_,      rhs.coefficients_);
+    std::swap(this->timeToCoefficient_, rhs.timeToCoefficient_);
+    return *this;
+}
+
 CoefficientManagerBase::~CoefficientManagerBase() {
 }
 
@@ -89,17 +113,18 @@ Key CoefficientManagerBase::insertCoefficient(Time time, const Coefficient& coef
   } else {
     typedef boost::unordered_map<Key, boost::shared_ptr<KeyCoefficientTime> >::iterator iterator;
     key = KeyGenerator::getNextKey();
-    std::pair<iterator, bool> success = coefficients_.insert(
-        std::make_pair(key, instantiateNewContainer(key, coefficient, time)));
-    timeToCoefficient_[time] = success.first->second;
+    this->insertNewCoefficient(key, time, coefficient);
   }
   return key;
 }
 
-/// Make new Coefficient container.
-/// Derived coefficient managers may override this
-/// function to use derivatives of KeyCoefficientTime
-boost::shared_ptr<KeyCoefficientTime> CoefficientManagerBase::instantiateNewContainer(Key key, Coefficient coefficient, Time time) {
+void CoefficientManagerBase::insertNewCoefficient(Key key, Time time, const Coefficient& coefficient) {
+  std::pair<iterator, bool> success = coefficients_.insert(
+      std::make_pair(key, makeContainer(key, coefficient, time)));
+  timeToCoefficient_[time] = success.first->second;
+}
+
+boost::shared_ptr<KeyCoefficientTime> CoefficientManagerBase::makeContainer(Key key, Coefficient coefficient, Time time) {
   return boost::make_shared<KeyCoefficientTime>(key, coefficient, time);
 }
 
