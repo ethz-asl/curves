@@ -71,6 +71,10 @@ void SlerpSE3Curve::getCoefficients(Coefficient::Map* outCoefficients) const {
   manager_.getCoefficients(outCoefficients);
 }
 
+void SlerpSE3Curve::getTimes(std::vector<Time>* outTimes) const {
+  return manager_.getTimes(outTimes);
+}
+
 void SlerpSE3Curve::setCoefficient(Key key, const Coefficient& value) {
   manager_.setCoefficientByKey(key, value);
 }

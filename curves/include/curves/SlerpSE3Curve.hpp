@@ -50,6 +50,9 @@ class SlerpSE3Curve : public SE3Curve {
   /// \brief Get all of the curve's coefficients.
   virtual void getCoefficients(Coefficient::Map* outCoefficients) const;
 
+  /// \brief Get all of the curve's coefficients timestamps.
+  virtual void getTimes(std::vector<Time>* outTimes) const;
+
   /// \brief Set a coefficient.
   virtual void setCoefficient(Key key, const Coefficient& value);
 
