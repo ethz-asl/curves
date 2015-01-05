@@ -68,6 +68,9 @@ class SlerpSE3Curve : public SE3Curve {
 
   bool isEmpty() const;
 
+  // return number of coefficients curve is composed of
+  int size() const;
+
   /// Extend the curve so that it can be evaluated at these times.
   /// Try to make the curve fit to the values.
   /// Underneath the curve should have some default policy for fitting.

@@ -4,6 +4,7 @@
  * @author Paul Furgale, Abel Gawel, Renaud Dube
  */
 
+#include <iostream>
 #include <curves/HermiteCoefficientManager.hpp>
 #include <curves/KeyGenerator.hpp>
 #include <glog/logging.h>
@@ -194,6 +195,9 @@ std::vector<KeyCoefficientTime> HermiteCoefficientManager::getCoefficientsAt(Tim
     getCoefficientsAt(time, &rval0, &rval1);
     rval.push_back(*rval0);
     rval.push_back(*rval1);
+    double sum = pow(rval0->coefficient[3],2) +pow(rval0->coefficient[4],2) + pow(rval0->coefficient[5],2) + pow(rval0->coefficient[6],2);
+
+    std::cout << "sum "<< sum << std::endl;
   }
   return rval;
 }

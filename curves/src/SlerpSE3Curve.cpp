@@ -97,6 +97,10 @@ bool SlerpSE3Curve::isEmpty() const {
   return outTimes.empty();
 }
 
+int SlerpSE3Curve::size() const {
+  return manager_.size();
+}
+
 void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
                              const std::vector<ValueType>& values,
                              std::vector<Key>* outKeys) {
@@ -292,6 +296,22 @@ SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H) {
   }
 
   return T.inverted();
+}
+
+Eigen::Vector3d transformPoint(SE3 A, Eigen::Vector3d p, boost::optional<Eigen::Matrix<double,3,6>&>H) {
+
+  Eigen::Vector3d Tp = A * p;
+  if (H) {
+    Eigen::Matrix3d J_tA, J_rA;
+    Eigen::Matrix<double, 3, 6> J_A;
+    J_tA = Eigen::Matrix3d::Identity();
+    //todo: is J_tp_tT maybe Identity?
+    J_rA = -crossOperator(Tp);
+
+    J_A << J_tA, J_rA;
+    (*H) = J_A;
+  }
+  return Tp;
 }
 
 /// \brief forms slerp interpolation into a binary expression with 2 leafs and binds alpha into it
