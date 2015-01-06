@@ -1,3 +1,9 @@
+/*
+ * @file test_main.cpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale
+ */
+
 #include <gtest/gtest.h>
 #include <glog/logging.h>
 

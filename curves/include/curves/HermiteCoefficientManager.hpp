@@ -1,3 +1,9 @@
+/*
+ * @file HermiteCoefficientManager.hpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale, Abel Gawel, Renaud Dube
+ */
+
 #ifndef CT_HERMITE_COEFFICIENT_MANAGER_HPP
 #define CT_HERMITE_COEFFICIENT_MANAGER_HPP
 
@@ -116,9 +122,6 @@ class HermiteCoefficientManager {
   /// If doExit is true, the function will call exit(0) at
   /// the end. This is useful for gtest death tests
   void checkInternalConsistency(bool doExit = false) const;
-
-  /// Returns the Key-Coefficient-Time relationship
-  boost::unordered_map<Key, KeyCoefficientTime> getKeyCoefficientTime() const;
 
  private:
   /// Key to coefficient mapping

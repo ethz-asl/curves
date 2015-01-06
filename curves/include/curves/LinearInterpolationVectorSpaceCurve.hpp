@@ -1,22 +1,25 @@
+/*
+ * @file LinearInterpolationVectorSpaceCurve-Inl.hpp
+ * @date Oct 31, 2014
+ * @author Renaud Dube
+ */
+
 #ifndef CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_CURVE_HPP
 #define CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_CURVE_HPP
 
 #include "VectorSpaceCurve.hpp"
 #include "HermiteCoefficientManager.hpp"
 
-class LinearInterpolationVectorSpaceEvaluator; // Forward declaration
-
 namespace curves {
-
-class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
+template<int N>
+class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
  public:
-  typedef VectorSpaceCurve::ValueType ValueType;
-  typedef VectorSpaceCurve::DerivativeType DerivativeType;
-  typedef VectorSpaceCurve::EvaluatorType EvaluatorType;
-  typedef VectorSpaceCurve::EvaluatorTypePtr EvaluatorTypePtr;
+  typedef VectorSpaceCurve<N> Parent;
+  typedef typename Parent::ValueType ValueType;
+  typedef typename Parent::DerivativeType DerivativeType;
 
   /// \brief Initialize with the dimension of the vector space
-  LinearInterpolationVectorSpaceCurve(size_t dimension);
+  LinearInterpolationVectorSpaceCurve();
   virtual ~LinearInterpolationVectorSpaceCurve();
 
   /// Print the value of the coefficient, for debugging and unit tests
@@ -67,7 +70,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
                         std::vector<Key>* outKeys = NULL);
 
   /// Evaluate the ambient space of the curve.
-  virtual Eigen::VectorXd evaluate(Time time) const;
+  virtual ValueType evaluate(Time time) const;
 
   /// Evaluate the curve derivatives.
   /// linear 1st derivative has following behaviour:
@@ -76,10 +79,10 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
   /// - time is on coefficient (not last coefficient) --> take slope between coefficient and next coefficients
   /// - time is on last coefficient --> take slope between last-1 and last coefficient
   /// derivatives of order >1 equal 0
-  virtual Eigen::VectorXd evaluateDerivative(Time time, unsigned derivativeOrder) const;
+  virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
-  /// \brief Get an evaluator at this time
-  EvaluatorTypePtr getEvaluator(const Time& time) const;
+  /// \brief Get an Expression evaluating the curve at this time
+  virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
 
   virtual void setTimeRange(Time minTime, Time maxTime);
 
@@ -89,6 +92,6 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve {
 
 } // namespace curves
 
-#include "LinearInterpolationVectorSpaceEvaluator.hpp"
+#include "LinearInterpolationVectorSpaceCurve-inl.hpp"
 
 #endif /* CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_CURVE_HPP */

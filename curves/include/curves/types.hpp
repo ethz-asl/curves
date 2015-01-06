@@ -1,3 +1,9 @@
+/*
+ * @file types.hpp
+ * @date Aug 19, 2014
+ * @author Paul Furgale
+ */
+
 #include <boost/cstdint.hpp>
 
 namespace curves {

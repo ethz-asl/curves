@@ -1,3 +1,9 @@
+/*
+ * @file VectorSpaceCurve.hpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale, Renaud Dube
+ */
+
 #ifndef CT_VECTOR_SPACE_CURVE_HPP
 #define CT_VECTOR_SPACE_CURVE_HPP
 
@@ -6,20 +12,21 @@
 
 namespace curves {
 
-class VectorSpaceCurve : public Curve<VectorSpaceConfig>
+template <int N>
+class VectorSpaceCurve : public Curve<VectorSpaceConfig<N> >
 {
  public:
-  typedef Curve<VectorSpaceConfig> Parent;
-  typedef Parent::ValueType ValueType;
-  typedef Parent::DerivativeType DerivativeType;
-  typedef Parent::EvaluatorType EvaluatorType;
-  typedef Parent::EvaluatorTypePtr EvaluatorTypePtr;
+  typedef Curve<VectorSpaceConfig<N> > Parent;
+  typedef typename Parent::ValueType ValueType;
+  typedef typename Parent::DerivativeType DerivativeType;
 
-  VectorSpaceCurve(size_t dimension);
-  virtual ~VectorSpaceCurve();
+  VectorSpaceCurve() : dimension_(N) { }
+  virtual ~VectorSpaceCurve() {}
 
   /// \brief Get the dimension of this curve
-  virtual size_t dim() const;
+  virtual size_t dim() const {
+    return N;
+  }
  
  private:
   /// The dimension of the vector space.

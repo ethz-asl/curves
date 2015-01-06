@@ -1,3 +1,9 @@
+/*
+ * @file EvaluatorBase.hpp
+ * @date Aug 19, 2014
+ * @author Paul Furgale
+ */
+
 #ifndef CURVES_EVALUATOR_HPP
 #define CURVES_EVALUATOR_HPP
 

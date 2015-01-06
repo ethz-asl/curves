@@ -1,3 +1,9 @@
+/*
+ * @file KeyCoefficientTime.hpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale
+ */
+
 #ifndef CT_KEY_COEFFICIENT_HPP
 #define CT_KEY_COEFFICIENT_HPP
 

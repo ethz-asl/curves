@@ -1,3 +1,9 @@
+/*
+ * @file Coefficient.hpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale, Mike Bosse
+ */
+
 #ifndef CURVES_COEFFICIENT_HPP
 #define CURVES_COEFFICIENT_HPP
 
@@ -68,6 +74,9 @@ class Coefficient
   /// coefficient's chosen chart of the value on which this function is called.
   /// @return The coordinates of \c value in the chart.
   Eigen::VectorXd localCoordinates(const Coefficient& value) const;
+
+  // todo: wouldn't something like this be more efficient?:
+  //void localCoordinates(const Coefficient& value, Eigen::VectorXd* local) const;
 
   /// Get the value of the underlying coefficient
   const Eigen::VectorXd& getValue() const;

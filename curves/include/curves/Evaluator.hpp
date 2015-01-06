@@ -1,3 +1,9 @@
+/*
+ * @file Evaluator.hpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale, Renaud Dube
+ */
+
 #ifndef CURVES_TYPED_EVALUATOR_HPP
 #define CURVES_TYPED_EVALUATOR_HPP
 
@@ -36,10 +42,10 @@ class Evaluator : public EvaluatorBase
                                         std::vector<Eigen::MatrixXd>* jacobians) const = 0;
 
   /// Evaluate the curve derivatives (functional form).
-  virtual Eigen::VectorXd evaluateDerivative(unsigned derivativeOrder, const std::vector<Coefficient>& coefficients) const = 0;
+  virtual ValueType evaluateDerivative(unsigned derivativeOrder, const std::vector<Coefficient>& coefficients) const = 0;
   
   /// Evaluate the curve derivatives (functional form).
-  virtual Eigen::VectorXd evaluateDerivativeAndJacobian(unsigned derivativeOrder,
+  virtual ValueType evaluateDerivativeAndJacobian(unsigned derivativeOrder,
                                                         const std::vector<Coefficient>& coefficients,
                                                         std::vector<Eigen::MatrixXd>* outJacobian) const = 0;
   /// Evaluate the ambient space of the curve

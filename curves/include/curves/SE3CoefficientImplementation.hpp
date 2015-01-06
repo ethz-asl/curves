@@ -1,25 +1,31 @@
 /*
- * @file VectorSpaceCoefficientImplementation.hpp
- * @date Aug 17, 2014
- * @author Paul Furgale
+ * @file SE3CoefficientImplementation.hpp
+ * @date Oct 10, 2014
+ * @author Renaud Dube, Mike Bosse, Abel Gawel
  */
 
-#ifndef CT_VECTOR_SPACE_COEFFICIENT_IMPLEMENTATION_HPP
-#define CT_VECTOR_SPACE_COEFFICIENT_IMPLEMENTATION_HPP
+#ifndef CT_SE3_COEFFICIENT_IMPLEMENTATION_HPP
+#define CT_SE3_COEFFICIENT_IMPLEMENTATION_HPP
 
 #include "CoefficientImplementation.hpp"
+#include "kindr/minimal/quat-transformation.h"
 
 namespace curves {
 
-class VectorSpaceCoefficientImplementation : public CoefficientImplementation
+class SE3CoefficientImplementation : public CoefficientImplementation
 {
+ private:
+  typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
+  typedef SE3::Rotation SO3;
+  typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
  public:
   /// \brief Initialize this with the dimension of
   ///        the vector space.
-  VectorSpaceCoefficientImplementation(unsigned dimension);
+  SE3CoefficientImplementation();
 
-  virtual ~VectorSpaceCoefficientImplementation();
+  virtual ~SE3CoefficientImplementation();
 
+  void makeValue(const SE3& pose, Eigen::VectorXd *outValue) const;
 
   /// Compare this Coeficient with another for equality.
   virtual bool equals(const Eigen::VectorXd& thisCoeff, 
@@ -44,12 +50,12 @@ class VectorSpaceCoefficientImplementation : public CoefficientImplementation
   /// the dimensionality of \c delta passed into retract() and of the vector
   /// returned by localCoordinates().
   /// @return The dimension of the chart
-  virtual size_t dim() const;
+  virtual size_t dim() const { return 6u; }
 
   /// Return the dimensionality of the ambient space for this coefficient.  
   /// This is the dimensionality the actual coefficient vector.
   /// @return The dimension of the ambient space
-  virtual size_t ambientDim() const;
+  virtual size_t ambientDim() const { return 7u; }
 
   /// Increment the value, by mapping from the vector delta in the
   /// chart of the coefficient back to the manifold to produce a new,
@@ -64,6 +70,11 @@ class VectorSpaceCoefficientImplementation : public CoefficientImplementation
                        const Eigen::VectorXd& delta,
                        Eigen::VectorXd* outIncrementedCoeff) const;
 
+  /// chart-friendly overload of retract
+  static void retract(const SE3& thisSE3,
+               const Eigen::Matrix<double,6,1>& delta,
+               SE3* outIncrementedSE3);
+
   /// Compute the coordinates in the chart assigned to this coefficient that
   /// retract() would map to \c value.
   /// @param value The value whose coordinates should be determined in this
@@ -72,11 +83,12 @@ class VectorSpaceCoefficientImplementation : public CoefficientImplementation
                                 const Eigen::VectorXd& otherCoeff,
                                 Eigen::VectorXd* outLocalCoordinates) const;
 
- private:
-  size_t dimension_;
+  /// chart-friendly overload of localCoordinates
+  static void localCoordinates(const SE3& thisSE3,
+                        const SE3& otherSE3,
+                        Eigen::Matrix<double,6,1>* outLocalCoordinates);
 };
-
 
 } // namespace curves
 
-#endif /* CT_VECTOR_SPACE_COEFFICIENT_IMPLEMENTATION_HPP */
+#endif /* CT_SE3_COEFFICIENT_IMPLEMENTATION_HPP */

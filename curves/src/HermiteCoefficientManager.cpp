@@ -1,3 +1,9 @@
+/*
+ * @file HermiteCoefficientManager.cpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale, Abel Gawel, Renaud Dube
+ */
+
 #include <curves/HermiteCoefficientManager.hpp>
 #include <curves/KeyGenerator.hpp>
 #include <glog/logging.h>
@@ -270,10 +276,6 @@ void HermiteCoefficientManager::checkInternalConsistency(bool doExit) const {
   if (doExit) {
     exit(0);
   }
-}
-
-boost::unordered_map<Key, KeyCoefficientTime> HermiteCoefficientManager::getKeyCoefficientTime() const {
-  return coefficients_;
 }
 
 void HermiteCoefficientManager::removeCoefficientWithKey(Key key) {

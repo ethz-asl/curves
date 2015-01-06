@@ -1,3 +1,9 @@
+/*
+ * @file CoefficientImplementation.cpp
+ * @date Aug 17, 2014
+ * @author Paul Furgale, Sean Anderson
+ */
+
 #ifndef CT_COEFFICIENT_IMPLEMENTATION_HPP
 #define CT_COEFFICIENT_IMPLEMENTATION_HPP
 
