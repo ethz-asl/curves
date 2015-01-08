@@ -39,6 +39,9 @@ class SlerpSE3Curve : public SE3Curve {
                          KeyCoefficientTime** outCoefficient0,
                          KeyCoefficientTime** outCoefficient1) const;
 
+  /// \brief Get the KeyCoefficientTimes that are (really) active at a certain time.
+  std::vector<KeyCoefficientTime> getActiveCoefficientsAt(const Time& time) const;
+
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
   virtual void getCoefficientsInRange(Time startTime, 
                                       Time endTime, 
@@ -46,6 +49,9 @@ class SlerpSE3Curve : public SE3Curve {
 
   /// \brief Get all of the curve's coefficients.
   virtual void getCoefficients(Coefficient::Map* outCoefficients) const;
+
+  /// \brief Get all of the curve's coefficients timestamps.
+  virtual void getTimes(std::vector<Time>* outTimes) const;
 
   /// \brief Set a coefficient.
   virtual void setCoefficient(Key key, const Coefficient& value);
@@ -59,6 +65,11 @@ class SlerpSE3Curve : public SE3Curve {
 
   /// The one past the last valid time for the curve.
   virtual Time getMaxTime() const;
+
+  bool isEmpty() const;
+
+  // return number of coefficients curve is composed of
+  int size() const;
 
   /// Extend the curve so that it can be evaluated at these times.
   /// Try to make the curve fit to the values.

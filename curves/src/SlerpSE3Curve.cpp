@@ -57,6 +57,10 @@ void SlerpSE3Curve::getCoefficientsAt(const Time& time,
   CHECK(success) << "Unable to get the coefficients at time " << time;
 }
 
+std::vector<KeyCoefficientTime> SlerpSE3Curve::getActiveCoefficientsAt(const Time& time) const {
+  return manager_.getCoefficientsAt(time);
+}
+
 void SlerpSE3Curve::getCoefficientsInRange(Time startTime,
                                            Time endTime,
                                            Coefficient::Map* outCoefficients) const {
@@ -65,6 +69,10 @@ void SlerpSE3Curve::getCoefficientsInRange(Time startTime,
 
 void SlerpSE3Curve::getCoefficients(Coefficient::Map* outCoefficients) const {
   manager_.getCoefficients(outCoefficients);
+}
+
+void SlerpSE3Curve::getTimes(std::vector<Time>* outTimes) const {
+  return manager_.getTimes(outTimes);
 }
 
 void SlerpSE3Curve::setCoefficient(Key key, const Coefficient& value) {
@@ -83,11 +91,20 @@ Time SlerpSE3Curve::getMinTime() const {
   return manager_.getMinTime();
 }
 
+bool SlerpSE3Curve::isEmpty() const {
+  std::vector<Time> outTimes;
+  manager_.getTimes(&outTimes);
+  return outTimes.empty();
+}
+
+int SlerpSE3Curve::size() const {
+  return manager_.size();
+}
+
 void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
                              const std::vector<ValueType>& values,
                              std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size());
-
   if(times.size() > 0) {
     Eigen::VectorXd val(7);
     manager_.clear();
@@ -213,7 +230,9 @@ SE3 transformationPower(SE3  T, double alpha,
   SE3::Position t(T.getPosition());
 
   AngleAxis angleAxis(R);
+  angleAxis.setUnique();
   angleAxis.setAngle( angleAxis.angle()*alpha);
+  angleAxis.setUnique();
 
   if(H) {
     Matrix3d J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
@@ -279,6 +298,22 @@ SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H) {
   return T.inverted();
 }
 
+Eigen::Vector3d transformPoint(SE3 A, Eigen::Vector3d p, boost::optional<Eigen::Matrix<double,3,6>&>H) {
+
+  Eigen::Vector3d Tp = A * p;
+  if (H) {
+    Eigen::Matrix3d J_tA, J_rA;
+    Eigen::Matrix<double, 3, 6> J_A;
+    J_tA = Eigen::Matrix3d::Identity();
+    //todo: is J_tp_tT maybe Identity?
+    J_rA = -crossOperator(Tp);
+
+    J_A << J_tA, J_rA;
+    (*H) = J_A;
+  }
+  return Tp;
+}
+
 /// \brief forms slerp interpolation into a binary expression with 2 leafs and binds alpha into it
 ///        \f[ T = A(A^{-1}B)^{\alpha} \f]
 gtsam::Expression<typename SlerpSE3Curve::ValueType>
@@ -326,22 +361,20 @@ SlerpSE3Curve::getEvalExpression2(const Time& time) const {
 }
 
 
-typename SlerpSE3Curve::ValueType
-SlerpSE3Curve::evaluate(Time time) const {
-  typedef typename SlerpSE3Curve::ValueType ValueType;
-  KeyCoefficientTime *rval0, *rval1;
-  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
-  double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
+SE3 SlerpSE3Curve::evaluate(Time time) const {
+  KeyCoefficientTime *a, *b;
+  bool success = manager_.getCoefficientsAt(time, &a, &b);
+  double alpha = double(time - a->time)/double(b->time - a->time);
 
-  Eigen::Matrix<double,7,1> v0 = rval0->coefficient.getValue();
-  Eigen::Matrix<double,7,1> v1 = rval1->coefficient.getValue();
+  Eigen::Matrix<double,7,1> va = a->coefficient.getValue();
+  Eigen::Matrix<double,7,1> vb = b->coefficient.getValue();
 
-  SE3 pose0(SO3(v0[3],v0[4],v0[5],v0[6]),SE3::Position(v0[0],v0[1],v0[2]));
-  SE3 pose1(SO3(v1[3],v1[4],v1[5],v1[6]),SE3::Position(v1[0],v1[1],v1[2]));
+  SE3 pose0(SO3(va[3],va[4],va[5],va[6]),SE3::Position(va[0],va[1],va[2]));
+  SE3 pose1(SO3(vb[3],vb[4],vb[5],vb[6]),SE3::Position(vb[0],vb[1],vb[2]));
 
-  ValueType composed = composeTransformations(inverseTransformation(pose0),pose1);
+  SE3 delta = composeTransformations(inverseTransformation(pose0),pose1);
 
-  return composeTransformations(transformationPower(composed,alpha),pose0);
+  return composeTransformations(pose0, transformationPower(delta,alpha));
 }
 
 

@@ -4,6 +4,7 @@
  * @author Paul Furgale, Abel Gawel, Renaud Dube
  */
 
+#include <iostream>
 #include <curves/HermiteCoefficientManager.hpp>
 #include <curves/KeyGenerator.hpp>
 #include <glog/logging.h>
@@ -178,6 +179,27 @@ bool HermiteCoefficientManager::getCoefficientsAt(Time time,
   *outCoefficient1 = (++it)->second;
 
   return true;
+}
+
+std::vector<KeyCoefficientTime> HermiteCoefficientManager::getCoefficientsAt(Time time) const {
+  std::vector<KeyCoefficientTime> rval;
+  CHECK(!timeToCoefficient_.empty()) << "No coefficients";
+
+  if(hasCoefficientAtTime(time)) {
+    std::map<Time, KeyCoefficientTime*>::const_iterator it;
+    it = timeToCoefficient_.upper_bound(time);
+    --it;
+    rval.push_back(*(it->second));
+  } else {
+    KeyCoefficientTime *rval0, *rval1;
+    getCoefficientsAt(time, &rval0, &rval1);
+    rval.push_back(*rval0);
+    rval.push_back(*rval1);
+    double sum = pow(rval0->coefficient[3],2) +pow(rval0->coefficient[4],2) + pow(rval0->coefficient[5],2) + pow(rval0->coefficient[6],2);
+
+    std::cout << "sum "<< sum << std::endl;
+  }
+  return rval;
 }
 
 /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
