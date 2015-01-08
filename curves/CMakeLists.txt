@@ -17,10 +17,9 @@ endif()
 cs_add_library(${PROJECT_NAME} 
   src/CoefficientImplementation.cpp
   src/VectorSpaceCoefficientImplementation.cpp
-  src/CurveBase.cpp
   src/Coefficient.cpp
   src/KeyGenerator.cpp
-  src/HermiteCoefficientManager.cpp
+  src/LocalSupport2CoefficientManager.cpp
   src/EvaluatorBase.cpp
   src/Coefficients.cpp
   src/SlerpSE3Curve.cpp
@@ -33,7 +32,7 @@ target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 catkin_add_gtest(${PROJECT_NAME}_tests 
   test/test_main.cpp
-  test/test_HermiteCoefficientManager.cpp
+  test/test_LocalSupport2CoefficientManager.cpp
   test/test_Coefficient.cpp
   test/test_Expressions.cpp
   #test/test_Expressions_Slerp_SE3.cpp

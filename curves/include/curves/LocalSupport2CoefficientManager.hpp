@@ -1,5 +1,5 @@
 /*
- * @file HermiteCoefficientManager.hpp
+ * @file LocalSupport2CoefficientManager.hpp
  * @date Aug 17, 2014
  * @author Paul Furgale, Abel Gawel, Renaud Dube
  */
@@ -15,13 +15,16 @@
 
 namespace curves {
 
-class HermiteCoefficientManager {
+//template <class Coefficient>
+class LocalSupport2CoefficientManager {
  public:
-  HermiteCoefficientManager();
-  virtual ~HermiteCoefficientManager();
+  typedef Coefficient CoefficientType;
 
-  /// Compare this Coeficient with another for equality.
-  bool equals(const HermiteCoefficientManager& other, double tol = 1e-9) const;
+  LocalSupport2CoefficientManager();
+  virtual ~LocalSupport2CoefficientManager();
+
+  /// Compare this Coefficient manager with another for equality.
+  bool equals(const LocalSupport2CoefficientManager& other, double tol = 1e-9) const;
 
   /// Print the value of the coefficient, for debugging and unit tests
   void print(const std::string& str = "") const;

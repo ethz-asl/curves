@@ -1,23 +1,23 @@
 /*
- * @file HermiteCoefficientManager.cpp
+ * @file LocalSupport2CoefficientManager.cpp
  * @date Aug 17, 2014
  * @author Paul Furgale, Abel Gawel, Renaud Dube
  */
 
 #include <iostream>
-#include <curves/HermiteCoefficientManager.hpp>
+#include <curves/LocalSupport2CoefficientManager.hpp>
 #include <curves/KeyGenerator.hpp>
 #include <glog/logging.h>
 
 namespace curves {
 
-HermiteCoefficientManager::HermiteCoefficientManager() {
+LocalSupport2CoefficientManager::LocalSupport2CoefficientManager() {
 }
-HermiteCoefficientManager::~HermiteCoefficientManager() {
+LocalSupport2CoefficientManager::~LocalSupport2CoefficientManager() {
 }
 
 /// Compare this Coeficient with another for equality.
-bool HermiteCoefficientManager::equals(const HermiteCoefficientManager& other,
+bool LocalSupport2CoefficientManager::equals(const LocalSupport2CoefficientManager& other,
                                        double tol) const {
   bool equal = true;
   equal &= coefficients_.size() == other.coefficients_.size();
@@ -47,13 +47,13 @@ bool HermiteCoefficientManager::equals(const HermiteCoefficientManager& other,
   return equal;
 }
 
-void HermiteCoefficientManager::getKeys(std::vector<Key>* outKeys) const {
+void LocalSupport2CoefficientManager::getKeys(std::vector<Key>* outKeys) const {
   CHECK_NOTNULL(outKeys);
   outKeys->clear();
   appendKeys(outKeys);
 }
 
-void HermiteCoefficientManager::appendKeys(std::vector<Key>* outKeys) const {
+void LocalSupport2CoefficientManager::appendKeys(std::vector<Key>* outKeys) const {
   CHECK_NOTNULL(outKeys);
   outKeys->reserve(outKeys->size() + coefficients_.size());
   std::map<Time, KeyCoefficientTime*>::const_iterator it;
@@ -63,7 +63,7 @@ void HermiteCoefficientManager::appendKeys(std::vector<Key>* outKeys) const {
   }
 }
 
-void HermiteCoefficientManager::getTimes(std::vector<Time>* outTimes) const {
+void LocalSupport2CoefficientManager::getTimes(std::vector<Time>* outTimes) const {
   CHECK_NOTNULL(outTimes);
   outTimes->clear();
   outTimes->reserve(timeToCoefficient_.size());
@@ -74,11 +74,11 @@ void HermiteCoefficientManager::getTimes(std::vector<Time>* outTimes) const {
   }
 }
 
-void HermiteCoefficientManager::print(const std::string& str) const {
+void LocalSupport2CoefficientManager::print(const std::string& str) const {
   // \todo (Abel or Renaud)
 }
 
-Key HermiteCoefficientManager::insertCoefficient(Time time, const Coefficient& coefficient) {
+Key LocalSupport2CoefficientManager::insertCoefficient(Time time, const Coefficient& coefficient) {
   std::map<Time, KeyCoefficientTime*>::iterator it;
   Key key;
   if (this->hasCoefficientAtTime(time, &it)) {
@@ -95,7 +95,7 @@ Key HermiteCoefficientManager::insertCoefficient(Time time, const Coefficient& c
 }
 
 /// \brief insert coefficients. Optionally returns the keys for these coefficients
-void HermiteCoefficientManager::insertCoefficients(const std::vector<Time>& times,
+void LocalSupport2CoefficientManager::insertCoefficients(const std::vector<Time>& times,
                                                    const std::vector<Coefficient>& values,
                                                    std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size());
@@ -109,13 +109,13 @@ void HermiteCoefficientManager::insertCoefficients(const std::vector<Time>& time
 }
 
 /// \brief return true if there is a coefficient at this time
-bool HermiteCoefficientManager::hasCoefficientAtTime(Time time) const {
+bool LocalSupport2CoefficientManager::hasCoefficientAtTime(Time time) const {
   std::map<Time, KeyCoefficientTime*>::const_iterator it = timeToCoefficient_.find(time);
   return it != timeToCoefficient_.end();
 }
 
 /// \brief return true if there is a coefficient with this key
-bool HermiteCoefficientManager::hasCoefficientWithKey(Key key) const {
+bool LocalSupport2CoefficientManager::hasCoefficientWithKey(Key key) const {
   boost::unordered_map<Key, KeyCoefficientTime>::const_iterator it = coefficients_.find(key);
   return it != coefficients_.end();
 }
@@ -124,7 +124,7 @@ bool HermiteCoefficientManager::hasCoefficientWithKey(Key key) const {
 ///
 /// This function fails if there is no coefficient associated
 /// with this key.
-void HermiteCoefficientManager::setCoefficientByKey(Key key, const Coefficient& coefficient) {
+void LocalSupport2CoefficientManager::setCoefficientByKey(Key key, const Coefficient& coefficient) {
   boost::unordered_map<Key, KeyCoefficientTime>::iterator it = coefficients_.find(key);
   CHECK( it != coefficients_.end() ) << "Key " << key << " is not in the container.";
   it->second.coefficient = coefficient;
@@ -135,21 +135,21 @@ void HermiteCoefficientManager::setCoefficientByKey(Key key, const Coefficient& 
 ///
 /// This function fails if there is no coefficient associated
 /// with this key.
-void HermiteCoefficientManager::setCoefficientVectorByKey(Key key, const Eigen::VectorXd& vector) {
+void LocalSupport2CoefficientManager::setCoefficientVectorByKey(Key key, const Eigen::VectorXd& vector) {
   boost::unordered_map<Key, KeyCoefficientTime>::iterator it = coefficients_.find(key);
   CHECK( it != coefficients_.end() ) << "Key " << key << " is not in the container.";
   it->second.coefficient.setVector(vector);
 }
 
 /// \brief get the coefficient associated with this key
-Coefficient HermiteCoefficientManager::getCoefficientByKey(Key key) const {
+Coefficient LocalSupport2CoefficientManager::getCoefficientByKey(Key key) const {
   boost::unordered_map<Key, KeyCoefficientTime>::const_iterator it = coefficients_.find(key);
   CHECK( it != coefficients_.end() ) << "Key " << key << " is not in the container.";
   return it->second.coefficient;
 }
 
 /// \brief Get the coefficients that are active at a certain time.
-bool HermiteCoefficientManager::getCoefficientsAt(Time time, 
+bool LocalSupport2CoefficientManager::getCoefficientsAt(Time time,
                                                   KeyCoefficientTime** outCoefficient0,
                                                   KeyCoefficientTime** outCoefficient1) const {
   CHECK_NOTNULL(outCoefficient0);
@@ -181,7 +181,7 @@ bool HermiteCoefficientManager::getCoefficientsAt(Time time,
   return true;
 }
 
-std::vector<KeyCoefficientTime> HermiteCoefficientManager::getCoefficientsAt(Time time) const {
+std::vector<KeyCoefficientTime> LocalSupport2CoefficientManager::getCoefficientsAt(Time time) const {
   std::vector<KeyCoefficientTime> rval;
   CHECK(!timeToCoefficient_.empty()) << "No coefficients";
 
@@ -203,7 +203,7 @@ std::vector<KeyCoefficientTime> HermiteCoefficientManager::getCoefficientsAt(Tim
 }
 
 /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
-void HermiteCoefficientManager::getCoefficientsInRange(
+void LocalSupport2CoefficientManager::getCoefficientsInRange(
     Time startTime, Time endTime, Coefficient::Map* outCoefficients) const {
 
   if (startTime <= endTime && startTime <= this->getMaxTime()
@@ -231,7 +231,7 @@ void HermiteCoefficientManager::getCoefficientsInRange(
 }
 
 /// \brief Get all of the curve's coefficients.
-void HermiteCoefficientManager::getCoefficients(Coefficient::Map* outCoefficients) const {
+void LocalSupport2CoefficientManager::getCoefficients(Coefficient::Map* outCoefficients) const {
   CHECK_NOTNULL(outCoefficients);
   std::map<Time, KeyCoefficientTime*>::const_iterator it;
   it = timeToCoefficient_.begin();
@@ -243,7 +243,7 @@ void HermiteCoefficientManager::getCoefficients(Coefficient::Map* outCoefficient
 /// \brief Set coefficients.
 ///
 /// If any of these coefficients doen't exist, there is an error
-void HermiteCoefficientManager::setCoefficients(
+void LocalSupport2CoefficientManager::setCoefficients(
     const Coefficient::Map& coefficients) {
   boost::unordered_map<Key, Coefficient>::const_iterator it;
   it = coefficients.begin();
@@ -253,31 +253,31 @@ void HermiteCoefficientManager::setCoefficients(
 }
 
 /// \brief return the number of coefficients
-Key HermiteCoefficientManager::size() const {
+Key LocalSupport2CoefficientManager::size() const {
   return coefficients_.size();
 }
 
 /// \brief clear the coefficients
-void HermiteCoefficientManager::clear() {
+void LocalSupport2CoefficientManager::clear() {
   coefficients_.clear();
   timeToCoefficient_.clear();
 }
 
-Time HermiteCoefficientManager::getMinTime() const {
+Time LocalSupport2CoefficientManager::getMinTime() const {
   if (timeToCoefficient_.empty()) {
     return 0;
   }
   return timeToCoefficient_.begin()->first;
 }
 
-Time HermiteCoefficientManager::getMaxTime() const {
+Time LocalSupport2CoefficientManager::getMaxTime() const {
   if (timeToCoefficient_.empty()) {
     return 0;
   }
   return timeToCoefficient_.rbegin()->first;
 }
 
-void HermiteCoefficientManager::checkInternalConsistency(bool doExit) const {
+void LocalSupport2CoefficientManager::checkInternalConsistency(bool doExit) const {
   CHECK_EQ(coefficients_.size(), timeToCoefficient_.size());
   std::map<Time, KeyCoefficientTime*>::const_iterator it;
   it = timeToCoefficient_.begin();
@@ -300,17 +300,17 @@ void HermiteCoefficientManager::checkInternalConsistency(bool doExit) const {
   }
 }
 
-void HermiteCoefficientManager::removeCoefficientWithKey(Key key) {
+void LocalSupport2CoefficientManager::removeCoefficientWithKey(Key key) {
   CHECK(false) << "Not implemented";
   // todo Abel and Renaud
 }
 
-void HermiteCoefficientManager::removeCoefficientAtTime(Time time) {
+void LocalSupport2CoefficientManager::removeCoefficientAtTime(Time time) {
   CHECK(false) << "Not implemented";
   // todo Abel and Renaud
 }
 
-bool HermiteCoefficientManager::hasCoefficientAtTime(Time time, std::map<Time, KeyCoefficientTime*>::iterator *it) {
+bool LocalSupport2CoefficientManager::hasCoefficientAtTime(Time time, std::map<Time, KeyCoefficientTime*>::iterator *it) {
   *it = timeToCoefficient_.find(time);
   return *it != timeToCoefficient_.end();
 }

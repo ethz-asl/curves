@@ -1,11 +1,11 @@
 /*
- * @file test_HermiteCoefficientManager.cpp
+ * @file test_LocalSupport2CoefficientManager.cpp
  * @date Aug 17, 2014
  * @author Paul Furgale
  */
 
 #include <gtest/gtest.h>
-#include <curves/HermiteCoefficientManager.hpp>
+#include <curves/LocalSupport2CoefficientManager.hpp>
 #include <curves/VectorSpaceCoefficientImplementation.hpp>
 
 class HermiteCoeffManagerTest : public ::testing::Test {
@@ -42,8 +42,8 @@ class HermiteCoeffManagerTest : public ::testing::Test {
   std::vector<curves::Time> times2;
   std::vector<curves::Key> keys1;
   std::vector<curves::Key> keys2;
-  curves::HermiteCoefficientManager manager1;
-  curves::HermiteCoefficientManager manager2;
+  curves::LocalSupport2CoefficientManager manager1;
+  curves::LocalSupport2CoefficientManager manager2;
   
 };
 
