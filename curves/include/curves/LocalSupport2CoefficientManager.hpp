@@ -15,10 +15,11 @@
 
 namespace curves {
 
-//template <class Coefficient>
+template <class Coefficient>
 class LocalSupport2CoefficientManager {
  public:
   typedef Coefficient CoefficientType;
+  typedef KeyCoefficientTime<Coefficient> KeyCoefficientTime;
 
   LocalSupport2CoefficientManager();
   virtual ~LocalSupport2CoefficientManager();
@@ -111,7 +112,7 @@ class LocalSupport2CoefficientManager {
   void setCoefficients(const Coefficient::Map& coefficients);
 
   /// \brief return the number of coefficients
-  Key size() const;
+  size_t size() const;
 
   /// \brief clear the coefficients
   void clear();

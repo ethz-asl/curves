@@ -16,7 +16,10 @@ namespace curves {
 /// \brief Stores a key, coefficient, and time all together
 ///
 /// A helper struct for hermite-type curves
+template <class Coefficient>
 struct KeyCoefficientTime {
+  typedef Coefficient CoefficientType;
+
   Key key;
   Coefficient coefficient;
   Time time;

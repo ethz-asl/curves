@@ -8,7 +8,7 @@
 #define CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_CURVE_HPP
 
 #include "VectorSpaceCurve.hpp"
-#include "HermiteCoefficientManager.hpp"
+#include "LocalSupport2CoefficientManager.hpp"
 
 namespace curves {
 template<int N>
@@ -24,30 +24,6 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
 
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
-
-  /// \brief Get the coefficients that are active at a certain time.
-  virtual void getCoefficientsAt(const Time& time,
-                                 Coefficient::Map* outCoefficients) const;
-
-  /// \brief Get the KeyCoefficientTimes that are active at a certain time.
-  void getCoefficientsAt(const Time& time,
-                         KeyCoefficientTime** outCoefficient0,
-                         KeyCoefficientTime** outCoefficient1) const;
-
-  /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
-  virtual void getCoefficientsInRange(Time startTime, 
-                                      Time endTime, 
-                                      Coefficient::Map* outCoefficients) const;
-
-  /// \brief Get all of the curve's coefficients.
-  virtual void getCoefficients(Coefficient::Map* outCoefficients) const;
-
-  /// \brief Set a coefficient.
-  virtual void setCoefficient(Key key, const Coefficient& value);
-
-  /// \brief Set coefficients.
-  virtual void setCoefficients(const Coefficient::Map& coefficients);
-
 
   /// The first valid time for the curve.
   virtual Time getMinTime() const;
@@ -84,10 +60,9 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   /// \brief Get an Expression evaluating the curve at this time
   virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
 
-  virtual void setTimeRange(Time minTime, Time maxTime);
-
  private:
-  HermiteCoefficientManager manager_;
+  typedef Eigen::Matrix<double,N,1> Coefficient;
+  LocalSupport2CoefficientManager<Coefficient> manager_;
 };
 
 } // namespace curves

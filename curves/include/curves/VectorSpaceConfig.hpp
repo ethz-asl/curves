@@ -15,6 +15,7 @@ template <int N>
 struct VectorSpaceConfig {
   typedef Eigen::Matrix<double,N,1> ValueType;
   typedef Eigen::Matrix<double,N,1> DerivativeType;
+  enum {dimension = N};
 };
 
 } // namespace curves

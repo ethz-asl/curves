@@ -8,7 +8,7 @@
 #define CURVES_SLERP_SE3_CURVE_HPP
 
 #include "SE3Curve.hpp"
-#include "HermiteCoefficientManager.hpp"
+#include "LocalSupport2CoefficientManager.hpp"
 
 class SlerpSE3Evaluator; // Forward declaration
 
@@ -21,44 +21,13 @@ class SlerpSE3Curve : public SE3Curve {
  public:
   typedef SE3Curve::ValueType ValueType;
   typedef SE3Curve::DerivativeType DerivativeType;
-  typedef SE3Curve::EvaluatorType EvaluatorType;
-  typedef SE3Curve::EvaluatorTypePtr EvaluatorTypePtr;
+  typedef SE3 Coefficient;
 
   SlerpSE3Curve();
   virtual ~SlerpSE3Curve();
 
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
-
-  /// \brief Get the coefficients that are active at a certain time.
-  virtual void getCoefficientsAt(const Time& time,
-                                 Coefficient::Map* outCoefficients) const;
-
-  /// \brief Get the KeyCoefficientTimes that are active at a certain time.
-  void getCoefficientsAt(const Time& time,
-                         KeyCoefficientTime** outCoefficient0,
-                         KeyCoefficientTime** outCoefficient1) const;
-
-  /// \brief Get the KeyCoefficientTimes that are (really) active at a certain time.
-  std::vector<KeyCoefficientTime> getActiveCoefficientsAt(const Time& time) const;
-
-  /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
-  virtual void getCoefficientsInRange(Time startTime, 
-                                      Time endTime, 
-                                      Coefficient::Map* outCoefficients) const;
-
-  /// \brief Get all of the curve's coefficients.
-  virtual void getCoefficients(Coefficient::Map* outCoefficients) const;
-
-  /// \brief Get all of the curve's coefficients timestamps.
-  virtual void getTimes(std::vector<Time>* outTimes) const;
-
-  /// \brief Set a coefficient.
-  virtual void setCoefficient(Key key, const Coefficient& value);
-
-  /// \brief Set coefficients.
-  virtual void setCoefficients(const Coefficient::Map& coefficients);
-
 
   /// The first valid time for the curve.
   virtual Time getMinTime() const;
@@ -98,8 +67,6 @@ class SlerpSE3Curve : public SE3Curve {
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
   /// \brief Get an evaluator at this time
-  EvaluatorTypePtr getEvaluator(const Time& time) const;
-
   virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
 
   virtual gtsam::Expression<ValueType> getEvalExpression2(const Time& time) const;
@@ -151,7 +118,7 @@ class SlerpSE3Curve : public SE3Curve {
   virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
 
  private:
-  HermiteCoefficientManager manager_;
+  LocalSupport2CoefficientManager<Coefficient> manager_;
 };
 
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;

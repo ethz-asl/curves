@@ -43,49 +43,6 @@ void LinearInterpolationVectorSpaceCurve<N>::print(const std::string& str) const
 }
 
 template<int N>
-void LinearInterpolationVectorSpaceCurve<N>::getCoefficientsAt(const Time& time,
-                                                               Coefficient::Map* outCoefficients) const {
-  CHECK_NOTNULL(outCoefficients);
-  KeyCoefficientTime *rval0, *rval1;
-  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
-  CHECK(success) << "Unable to get the coefficients at time " << time;
-  (*outCoefficients)[rval0->key] = rval0->coefficient;
-  (*outCoefficients)[rval1->key] = rval1->coefficient;
-}
-
-template<int N>
-void LinearInterpolationVectorSpaceCurve<N>::getCoefficientsAt(const Time& time,
-                                                               KeyCoefficientTime** outCoefficient0,
-                                                               KeyCoefficientTime** outCoefficient1) const {
-  CHECK_NOTNULL(&outCoefficient0);
-  CHECK_NOTNULL(&outCoefficient1);
-  bool success = manager_.getCoefficientsAt(time, outCoefficient0, outCoefficient1);
-  CHECK(success) << "Unable to get the coefficients at time " << time;
-}
-
-template<int N>
-void LinearInterpolationVectorSpaceCurve<N>::getCoefficientsInRange(Time startTime,
-                                                                    Time endTime,
-                                                                    Coefficient::Map* outCoefficients) const {
-  manager_.getCoefficientsInRange(startTime, endTime, outCoefficients);
-}
-
-template<int N>
-void LinearInterpolationVectorSpaceCurve<N>::getCoefficients(Coefficient::Map* outCoefficients) const {
-  manager_.getCoefficients(outCoefficients);
-}
-
-template<int N>
-void LinearInterpolationVectorSpaceCurve<N>::setCoefficient(Key key, const Coefficient& value) {
-  manager_.setCoefficientByKey(key, value);
-}
-
-template<int N>
-void LinearInterpolationVectorSpaceCurve<N>::setCoefficients(const Coefficient::Map& coefficients) {
-  manager_.setCoefficients(coefficients);
-}
-
-template<int N>
 Time LinearInterpolationVectorSpaceCurve<N>::getMaxTime() const {
   return manager_.getMaxTime();
 }

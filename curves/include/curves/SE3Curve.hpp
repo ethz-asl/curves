@@ -27,9 +27,6 @@ class SE3Curve : public Curve<SE3Config> {
   typedef Curve<SE3Config> Parent;
   typedef Parent::ValueType ValueType;
   typedef Parent::DerivativeType DerivativeType;
-  typedef Parent::EvaluatorType EvaluatorType;
-  typedef Parent::EvaluatorTypePtr EvaluatorTypePtr;
-
 
   /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
   virtual Eigen::Vector3d evaluateAngularVelocityA(Time time) = 0;
@@ -76,7 +73,7 @@ class SE3Curve : public Curve<SE3Config> {
   virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time) = 0;
 
   /// \brief Get the dimension of this curve
-  virtual size_t dim() const;
+  //virtual size_t dim() const;
   ///@}
  private:
 };
