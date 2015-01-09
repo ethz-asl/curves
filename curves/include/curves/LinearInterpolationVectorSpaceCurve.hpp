@@ -60,8 +60,15 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   /// \brief Get an Expression evaluating the curve at this time
   virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
 
+  /// Initialize a GTSAM values structure with the desired keys
+  virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values);
+
+  // updates the relevant curve coefficients from the GTSAM values structure
+  virtual void updateFromGTSAMValues(const gtsam::Values& values);
+
  private:
   typedef Eigen::Matrix<double,N,1> Coefficient;
+  typedef LocalSupport2CoefficientManager<Coefficient>::KeyCoefficientTime KeyCoefficientTime;
   LocalSupport2CoefficientManager<Coefficient> manager_;
 };
 

@@ -440,5 +440,17 @@ Vector6d SlerpSE3Curve::evaluateDerivativeB(unsigned derivativeOrder, Time time)
   CHECK(false) << "Not implemented";
 }
 
+void SlerpSE3Curve::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) {
+  for (unsigned int i = 0; i < keys.size(); ++i) {
+    values->insert(keys[i],manager_.getCoefficientByKey(keys[i]));
+  }
+}
+
+void SlerpSE3Curve::updateFromGTSAMValues(const gtsam::Values& values) {
+  gtsam::Values::const_iterator iter;
+  for (iter = values.begin(); iter != values.end(); ++iter) {
+    manager_.setCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
+  }
+}
 
 } // namespace curves

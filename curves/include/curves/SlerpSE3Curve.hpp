@@ -117,6 +117,12 @@ class SlerpSE3Curve : public SE3Curve {
   ///        and the angular velocity (3,4,5).
   virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
 
+  /// Initialize a GTSAM values structure with the desired keys
+  virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values);
+
+  // updates the relevant curve coefficients from the GTSAM values structure
+  virtual void updateFromGTSAMValues(const gtsam::Values& values);
+
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
 };

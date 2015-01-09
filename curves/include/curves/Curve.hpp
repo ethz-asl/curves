@@ -7,11 +7,13 @@
 #ifndef CURVES_CURVE_HPP
 #define CURVES_CURVE_HPP
 
-#include "Evaluator.hpp"
-
 #include "gtsam/nonlinear/Expression.h"
+#include <boost/cstdint.hpp>
 
 namespace curves {
+
+typedef boost::int64_t Time;
+typedef size_t Key;
 
 template<typename CurveConfig>
 class Curve
@@ -61,14 +63,6 @@ class Curve
 
   /// \brief Get a gtsam::Expression which evaluates the derivative of the curve at this time.
   virtual gtsam::Expression<ValueType> getEvalDerivativeExpression(const Time& time) const = 0;
-
-  ///@}
-
-  /// \defgroup Time
-  /// \name Methods to deal with time.
-  ///@{
-
-
 
   ///@}
 

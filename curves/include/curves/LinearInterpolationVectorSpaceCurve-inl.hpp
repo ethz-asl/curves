@@ -160,9 +160,18 @@ LinearInterpolationVectorSpaceCurve<N>::getEvalExpression(const Time& time) cons
 }
 
 template<int N>
-void LinearInterpolationVectorSpaceCurve<N>::setTimeRange(Time minTime, Time maxTime) {
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
+void LinearInterpolationVectorSpaceCurve<N>::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) {
+  for (unsigned int i = 0; i < keys.size(); ++i) {
+    values->insert(keys[i],manager_.getCoefficientByKey(keys[i]));
+  }
+}
+
+template<int N>
+void LinearInterpolationVectorSpaceCurve<N>::updateFromGTSAMValues(const gtsam::Values& values) {
+  gtsam::Values::const_iterator iter;
+  for (iter = values.begin(); iter != values.end(); ++iter) {
+    manager_.setCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
+  }
 }
 
 } // namespace curves

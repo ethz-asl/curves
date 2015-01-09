@@ -14,7 +14,6 @@ namespace curves {
 struct ScalarCurveConfig {
   typedef double ValueType;
   typedef double DerivativeType;
-  enum { dimension = 6} ;
 };
 
 } // namespace curves
