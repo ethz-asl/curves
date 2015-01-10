@@ -7,11 +7,12 @@
 #ifndef CT_HERMITE_COEFFICIENT_MANAGER_HPP
 #define CT_HERMITE_COEFFICIENT_MANAGER_HPP
 
+#include <Eigen/Core>
 #include <boost/unordered_map.hpp>
 #include <vector>
 #include <map>
 
-#include "KeyCoefficientTime.hpp"
+#include "KeyCoefficientTimeTemplate.hpp"
 
 namespace curves {
 
@@ -19,7 +20,10 @@ template <class Coefficient>
 class LocalSupport2CoefficientManager {
  public:
   typedef Coefficient CoefficientType;
-  typedef KeyCoefficientTime<Coefficient> KeyCoefficientTime;
+  typedef KeyCoefficientTimeTemplate<Coefficient> KeyCoefficientTime;
+
+  /// Key/Coefficient pairs
+  typedef typename boost::unordered_map<size_t, Coefficient> CoefficientMap;
 
   LocalSupport2CoefficientManager();
   virtual ~LocalSupport2CoefficientManager();
@@ -101,15 +105,15 @@ class LocalSupport2CoefficientManager {
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
   void getCoefficientsInRange(Time startTime, 
                               Time endTime, 
-                              Coefficient::Map* outCoefficients) const;
+                              CoefficientMap* outCoefficients) const;
 
   /// \brief Get all of the curve's coefficients.
-  void getCoefficients(Coefficient::Map* outCoefficients) const;
+  void getCoefficients(CoefficientMap* outCoefficients) const;
 
   /// \brief Set coefficients.
   ///
   /// If any of these coefficients doen't exist, there is an error
-  void setCoefficients(const Coefficient::Map& coefficients);
+  void setCoefficients(const CoefficientMap& coefficients);
 
   /// \brief return the number of coefficients
   size_t size() const;
@@ -135,10 +139,11 @@ class LocalSupport2CoefficientManager {
   /// Time to coefficient mapping
   std::map<Time, KeyCoefficientTime*> timeToCoefficient_;
 
-  bool hasCoefficientAtTime(Time time, std::map<Time, KeyCoefficientTime*>::iterator *it);
+  bool hasCoefficientAtTime(Time time, typename std::map<Time, KeyCoefficientTime*>::iterator *it);
 };
 
 } // namespace curves
 
+#include "LocalSupport2CoefficientManager-inl.hpp"
 
 #endif /* CT_HERMITE_COEFFICIENT_MANAGER_HPP */

@@ -8,7 +8,7 @@
 #define SE3CONFIG_H_
 
 #include <Eigen/Core>
-#include "kindr/minimal/quat-transformation.h"
+#include "kindr/minimal/quat-transformation-gtsam.h"
 
 namespace curves {
 

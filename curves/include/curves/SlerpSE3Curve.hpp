@@ -10,8 +10,6 @@
 #include "SE3Curve.hpp"
 #include "LocalSupport2CoefficientManager.hpp"
 
-class SlerpSE3Evaluator; // Forward declaration
-
 namespace curves {
 
 /// Implements the Slerp (Spherical linear interpolation) curve class.
@@ -21,7 +19,8 @@ class SlerpSE3Curve : public SE3Curve {
  public:
   typedef SE3Curve::ValueType ValueType;
   typedef SE3Curve::DerivativeType DerivativeType;
-  typedef SE3 Coefficient;
+  typedef ValueType Coefficient;
+  typedef LocalSupport2CoefficientManager<Coefficient>::KeyCoefficientTime KeyCoefficientTime;
 
   SlerpSE3Curve();
   virtual ~SlerpSE3Curve();

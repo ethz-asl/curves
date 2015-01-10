@@ -5,7 +5,6 @@
  */
 
 #include <curves/SlerpSE3Curve.hpp>
-#include <curves/SE3CoefficientImplementation.hpp>
 #include <iostream>
 
 namespace curves {
@@ -30,57 +29,12 @@ void SlerpSE3Curve::print(const std::string& str) const {
   std::cout <<"=========================================" <<std::endl;
   for (size_t i = 0; i < manager_.size(); i++) {
     ss << "coefficient " << keys[i] << ": ";
-    manager_.getCoefficientByKey(keys[i]).print(ss.str());
+    gtsam::traits<Coefficient>::Print(manager_.getCoefficientByKey(keys[i]),ss.str());
     std::cout << " | time: " << times[i];
     std::cout << std::endl;
     ss.str("");
   }
   std::cout <<"=========================================" <<std::endl;
-}
-
-void SlerpSE3Curve::getCoefficientsAt(const Time& time,
-                                      Coefficient::Map* outCoefficients) const {
-  CHECK_NOTNULL(outCoefficients);
-  KeyCoefficientTime *rval0, *rval1;
-  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
-  CHECK(success) << "Unable to get the coefficients at time " << time;
-  (*outCoefficients)[rval0->key] = rval0->coefficient;
-  (*outCoefficients)[rval1->key] = rval1->coefficient;
-}
-
-void SlerpSE3Curve::getCoefficientsAt(const Time& time,
-                                      KeyCoefficientTime** outCoefficient0,
-                                      KeyCoefficientTime** outCoefficient1) const {
-  CHECK_NOTNULL(&outCoefficient0);
-  CHECK_NOTNULL(&outCoefficient1);
-  bool success = manager_.getCoefficientsAt(time, outCoefficient0, outCoefficient1);
-  CHECK(success) << "Unable to get the coefficients at time " << time;
-}
-
-std::vector<KeyCoefficientTime> SlerpSE3Curve::getActiveCoefficientsAt(const Time& time) const {
-  return manager_.getCoefficientsAt(time);
-}
-
-void SlerpSE3Curve::getCoefficientsInRange(Time startTime,
-                                           Time endTime,
-                                           Coefficient::Map* outCoefficients) const {
-  manager_.getCoefficientsInRange(startTime, endTime, outCoefficients);
-}
-
-void SlerpSE3Curve::getCoefficients(Coefficient::Map* outCoefficients) const {
-  manager_.getCoefficients(outCoefficients);
-}
-
-void SlerpSE3Curve::getTimes(std::vector<Time>* outTimes) const {
-  return manager_.getTimes(outTimes);
-}
-
-void SlerpSE3Curve::setCoefficient(Key key, const Coefficient& value) {
-  manager_.setCoefficientByKey(key, value);
-}
-
-void SlerpSE3Curve::setCoefficients(const Coefficient::Map& coefficients) {
-  manager_.setCoefficients(coefficients);
 }
 
 Time SlerpSE3Curve::getMaxTime() const {
@@ -106,20 +60,7 @@ void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
                              std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size());
   if(times.size() > 0) {
-    Eigen::VectorXd val(7);
-    manager_.clear();
-    std::vector<Key> outKeys;
-    outKeys.reserve(times.size());
-    std::vector<Coefficient> coefficients;
-    coefficients.reserve(times.size());
-    for(size_t i = 0; i < values.size(); ++i) {
-      CoefficientImplementation::Ptr impl(new SE3CoefficientImplementation);
-      boost::dynamic_pointer_cast<SE3CoefficientImplementation>(impl)->makeValue(values[i],
-                                                                                 &val);
-      Coefficient c1(impl,val);
-      coefficients.push_back(c1);
-    }
-    manager_.insertCoefficients(times,coefficients,&outKeys);
+    manager_.insertCoefficients(times,values, outKeys);
   }
 }
 
@@ -128,16 +69,8 @@ void SlerpSE3Curve::extend(const std::vector<Time>& times,
 
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
   std::vector<Key> outKeys;
-  Eigen::VectorXd val(7);
-  std::vector<Coefficient> coefficients(values.size());
-  for (size_t i = 0; i < values.size(); ++i) {
-    CoefficientImplementation::Ptr impl(new SE3CoefficientImplementation);
-    boost::dynamic_pointer_cast<SE3CoefficientImplementation>(impl)->makeValue(values[i],
-                                                                               &val);
-    Coefficient c1(impl,val);
-    coefficients[i] = c1;
-  }
-  manager_.insertCoefficients(times, coefficients, &outKeys);
+
+  manager_.insertCoefficients(times, values, &outKeys);
 }
 
 typename SlerpSE3Curve::DerivativeType
@@ -154,11 +87,12 @@ SlerpSE3Curve::evaluateDerivative(Time time,
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
   // first derivative
   if (derivativeOrder == 1) {
-    dCoeff = rval1->coefficient.getValue() - rval0->coefficient.getValue();
+    //todo Verify this
+    dCoeff = gtsam::traits<Coefficient>::Local(rval1->coefficient,rval0->coefficient);
     dt = rval1->time - rval0->time;
     return dCoeff/dt;
   } else { // order of derivative > 1 returns vector of zeros
-    const int dimension = rval0->coefficient.dim();
+    const int dimension = gtsam::traits<Coefficient>::dimension;
     return Eigen::VectorXd::Zero(dimension,1);
   }
 }
@@ -173,8 +107,8 @@ Eigen::Matrix3d crossOperator(Eigen::Vector3d vector){
 
 /// \brief Evaluation function in functional form. To be passed to the expression (full implementation)
 SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
-                       boost::optional<Eigen::Matrix<double,6,6>&>H1=boost::none,
-                       boost::optional<Eigen::Matrix<double,6,6>&>H2=boost::none) {
+                       gtsam::OptionalJacobian<6,6> H1,
+                       gtsam::OptionalJacobian<6,6> H2) {
 
   typedef Eigen::Matrix3d Matrix3d;
   SO3 w_R_a(v1.getRotation());
@@ -223,7 +157,7 @@ SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
 
 /// \brief \f[T^{\alpha}\f]
 SE3 transformationPower(SE3  T, double alpha,
-                        boost::optional<Eigen::Matrix<double,6,6>&>H) {
+                        gtsam::OptionalJacobian<6,6> H) {
   typedef Eigen::Matrix3d Matrix3d;
 
   SO3 R(T.getRotation());
@@ -256,8 +190,8 @@ SE3 transformationPower(SE3  T, double alpha,
 
 /// \brief \f[A*B\f]
 SE3 composeTransformations(SE3 A, SE3 B,
-                           boost::optional<Eigen::Matrix<double,6,6>&>H1,
-                           boost::optional<Eigen::Matrix<double,6,6>&>H2) {
+                           gtsam::OptionalJacobian<6,6> H1,
+                           gtsam::OptionalJacobian<6,6> H2) {
   // todo compute jacobians
   if (H1) {
     (*H1) = Eigen::Matrix<double,6,6>::Identity();
@@ -280,7 +214,7 @@ SE3 composeTransformations(SE3 A, SE3 B,
 }
 
 /// \brief \f[T^{-1}\f]
-SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H) {
+SE3 inverseTransformation(SE3 T, gtsam::OptionalJacobian<6,6> H) {
   // todo compute jacobian
   if (H) {
     Eigen::Matrix3d J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
@@ -298,7 +232,7 @@ SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H) {
   return T.inverted();
 }
 
-Eigen::Vector3d transformPoint(SE3 A, Eigen::Vector3d p, boost::optional<Eigen::Matrix<double,3,6>&>H) {
+Eigen::Vector3d transformPoint(SE3 A, Eigen::Vector3d p, gtsam::OptionalJacobian<3,6> H) {
 
   Eigen::Vector3d Tp = A * p;
   if (H) {
@@ -366,13 +300,7 @@ SE3 SlerpSE3Curve::evaluate(Time time) const {
   bool success = manager_.getCoefficientsAt(time, &a, &b);
   double alpha = double(time - a->time)/double(b->time - a->time);
 
-  Eigen::Matrix<double,7,1> va = a->coefficient.getValue();
-  Eigen::Matrix<double,7,1> vb = b->coefficient.getValue();
-
-  SE3 pose0(SO3(va[3],va[4],va[5],va[6]),SE3::Position(va[0],va[1],va[2]));
-  SE3 pose1(SO3(vb[3],vb[4],vb[5],vb[6]),SE3::Position(vb[0],vb[1],vb[2]));
-
-  SE3 delta = composeTransformations(inverseTransformation(pose0),pose1);
+  SE3 delta = composeTransformations(inverseTransformation(a->coefficient),b->coefficient);
 
   return composeTransformations(pose0, transformationPower(delta,alpha));
 }

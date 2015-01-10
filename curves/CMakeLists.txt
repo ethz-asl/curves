@@ -15,15 +15,8 @@ if(USE_GTSAM)
 endif()
 
 cs_add_library(${PROJECT_NAME} 
-  src/CoefficientImplementation.cpp
-  src/VectorSpaceCoefficientImplementation.cpp
-  src/Coefficient.cpp
   src/KeyGenerator.cpp
-  src/LocalSupport2CoefficientManager.cpp
-  src/EvaluatorBase.cpp
-  src/Coefficients.cpp
   src/SlerpSE3Curve.cpp
-  src/SE3CoefficientImplementation.cpp
   src/SE3Curve.cpp
 )
 
