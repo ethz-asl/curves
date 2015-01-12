@@ -83,13 +83,13 @@ SlerpSE3Curve::evaluateDerivative(Time time,
 
   Eigen::VectorXd dCoeff;
   Time dt;
-  KeyCoefficientTime *rval0, *rval1;
+  CoefficientIter rval0, rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
   // first derivative
   if (derivativeOrder == 1) {
     //todo Verify this
-    dCoeff = gtsam::traits<Coefficient>::Local(rval1->coefficient,rval0->coefficient);
-    dt = rval1->time - rval0->time;
+    dCoeff = gtsam::traits<Coefficient>::Local(rval1->second.coefficient,rval0->second.coefficient);
+    dt = rval1->first - rval0->first;
     return dCoeff/dt;
   } else { // order of derivative > 1 returns vector of zeros
     const int dimension = gtsam::traits<Coefficient>::dimension;
@@ -254,13 +254,13 @@ gtsam::Expression<typename SlerpSE3Curve::ValueType>
 SlerpSE3Curve::getEvalExpression(const Time& time) const {
   typedef typename SlerpSE3Curve::ValueType ValueType;
   using namespace gtsam;
-  KeyCoefficientTime *rval0, *rval1;
+  CoefficientIter rval0, rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
 
-  Expression<ValueType> leaf1(rval0->key);
-  Expression<ValueType> leaf2(rval1->key);
+  Expression<ValueType> leaf1(rval0->second.key);
+  Expression<ValueType> leaf2(rval1->second.key);
 
-  double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
+  double alpha = double(time - rval0->first)/double(rval1->first - rval0->first);
 
   Expression<ValueType> rval(boost::bind(&slerpInterpolation,_1,_2,alpha,_3,_4),
                              leaf1, leaf2);
@@ -274,12 +274,11 @@ gtsam::Expression<typename SlerpSE3Curve::ValueType>
 SlerpSE3Curve::getEvalExpression2(const Time& time) const {
   typedef typename SlerpSE3Curve::ValueType ValueType;
   using namespace gtsam;
-  KeyCoefficientTime *rval0, *rval1;
-
-  double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
-
-  Expression<ValueType> leaf1(rval0->key);
-  Expression<ValueType> leaf2(rval1->key);
+  CoefficientIter rval0, rval1;
+  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
+  Expression<ValueType> leaf1(rval0->second.key);
+  Expression<ValueType> leaf2(rval1->second.key);
+  double alpha = double(time - rval0->first)/double(rval1->first - rval0->first);
 
   if (alpha == 0) {
     return leaf1;
@@ -292,13 +291,13 @@ SlerpSE3Curve::getEvalExpression2(const Time& time) const {
 
 
 SE3 SlerpSE3Curve::evaluate(Time time) const {
-  KeyCoefficientTime *a, *b;
+  CoefficientIter a, b;
   bool success = manager_.getCoefficientsAt(time, &a, &b);
-  double alpha = double(time - a->time)/double(b->time - a->time);
+  double alpha = double(time - a->first)/double(b->first - a->first);
 
-  SE3 delta = composeTransformations(inverseTransformation(a->coefficient),b->coefficient);
+  SE3 delta = composeTransformations(inverseTransformation(a->second.coefficient),b->second.coefficient);
 
-  return composeTransformations(a->coefficient, transformationPower(delta,alpha));
+  return composeTransformations(a->second.coefficient, transformationPower(delta,alpha));
 }
 
 

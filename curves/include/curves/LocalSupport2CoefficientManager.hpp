@@ -16,12 +16,29 @@
 
 namespace curves {
 
+typedef boost::int64_t Time;   // RD Why was Types.hpp removed?
+typedef size_t Key;
+
 template <class Coefficient>
 class LocalSupport2CoefficientManager {
  public:
   typedef Coefficient CoefficientType;
-  typedef KeyCoefficientTimeTemplate<Coefficient> KeyCoefficientTime;
 
+  struct KeyCoefficient {
+    Key key;
+    CoefficientType coefficient;
+
+    KeyCoefficient(const Key key, const Coefficient& coefficient) :
+      key(key), coefficient(coefficient) {}
+    KeyCoefficient() {};
+    bool equals(const KeyCoefficient& other) const {
+      return key == other.key &&
+          gtsam::traits<Coefficient>::Equals(coefficient, other.coefficient, 1e-9);
+    }
+  };
+
+  typedef std::map<Time, KeyCoefficient> KeyCoefficientTimeMap;
+  typedef typename KeyCoefficientTimeMap::const_iterator CoefficientIter;
   /// Key/Coefficient pairs
   typedef typename boost::unordered_map<size_t, Coefficient> CoefficientMap;
 
@@ -82,10 +99,6 @@ class LocalSupport2CoefficientManager {
   void setCoefficientByKey(Key key, const Coefficient& coefficient);
 
   /// \brief set the coefficient associated with this key
-  ///
-  /// This function fails if there is no coefficient associated
-  /// with this key.
-  void setCoefficientVectorByKey(Key key, const Eigen::VectorXd& vector);
 
   /// \brief get the coefficient associated with this key
   Coefficient getCoefficientByKey(Key key) const;
@@ -98,9 +111,7 @@ class LocalSupport2CoefficientManager {
   ///
   /// @returns true if it was successful
   bool getCoefficientsAt(Time time, 
-                         KeyCoefficientTime** outCoefficient0, KeyCoefficientTime** outCoefficient1) const;
-
-  std::vector<KeyCoefficientTime> getCoefficientsAt(Time time) const;
+                         CoefficientIter* outCoefficient0, CoefficientIter* outCoefficient1) const;
 
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
   void getCoefficientsInRange(Time startTime, 
@@ -127,6 +138,14 @@ class LocalSupport2CoefficientManager {
   /// The one past the last valid time for the curve.
   Time getMaxTime() const;
 
+  CoefficientIter CoefficientBegin() const {
+    return timeToCoefficient_.begin();
+  }
+
+  CoefficientIter CoefficientEnd() const {
+    return timeToCoefficient_.end();
+  }
+
   /// Check the internal consistency of the data structure
   /// If doExit is true, the function will call exit(0) at
   /// the end. This is useful for gtest death tests
@@ -134,12 +153,12 @@ class LocalSupport2CoefficientManager {
 
  private:
   /// Key to coefficient mapping
-  boost::unordered_map<Key, KeyCoefficientTime> coefficients_;
+  boost::unordered_map<Key, CoefficientIter> keyToCoefficient_;
 
   /// Time to coefficient mapping
-  std::map<Time, KeyCoefficientTime*> timeToCoefficient_;
+  KeyCoefficientTimeMap timeToCoefficient_;
 
-  bool hasCoefficientAtTime(Time time, typename std::map<Time, KeyCoefficientTime*>::iterator *it);
+  bool hasCoefficientAtTime(Time time, CoefficientIter *it);
 };
 
 } // namespace curves

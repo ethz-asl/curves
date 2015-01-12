@@ -20,7 +20,9 @@ class SlerpSE3Curve : public SE3Curve {
   typedef SE3Curve::ValueType ValueType;
   typedef SE3Curve::DerivativeType DerivativeType;
   typedef ValueType Coefficient;
-  typedef LocalSupport2CoefficientManager<Coefficient>::KeyCoefficientTime KeyCoefficientTime;
+  typedef LocalSupport2CoefficientManager<Coefficient>::KeyCoefficientTimeMap KeyCoefficientTimeMap;
+  typedef LocalSupport2CoefficientManager<Coefficient>::CoefficientIter CoefficientIter;
+//  typedef LocalSupport2CoefficientManager<Coefficient>::KeyCoefficientMap KeyCoefficientTime;
 
   SlerpSE3Curve();
   virtual ~SlerpSE3Curve();
