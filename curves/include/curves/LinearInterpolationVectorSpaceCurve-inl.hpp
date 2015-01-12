@@ -22,7 +22,7 @@ void LinearInterpolationVectorSpaceCurve<N>::print(const std::string& str) const
   std::cout << "=========================================" << std::endl;
   std::cout << "=======LINEAR INTERPOLATION CURVE========" << std::endl;
   std::cout << str << std::endl;
-  std::cout << "num of coefficients: " << manager_.size() << std::endl;
+  std::cout << "number of coefficients: " << manager_.size() << std::endl;
   std::cout << "dimension: " << N << std::endl;
   std::stringstream ss;
   std::vector<Key> keys;
@@ -91,16 +91,16 @@ void LinearInterpolationVectorSpaceCurve<N>::extend(const std::vector<Time>& tim
 template<int N>
 typename LinearInterpolationVectorSpaceCurve<N>::ValueType
 LinearInterpolationVectorSpaceCurve<N>::evaluate(Time time) const {
-  KeyCoefficientTime *rval0, *rval1;
+  KeyCoefficientTime rval0, rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
   CHECK(success) << "Unable to get the coefficients at time " << time;  
 
-  Time dt = rval1->time - rval0->time;
-  Time t = rval1->time - time;
+  Time dt = rval1.time - rval0.time;
+  Time t = rval1.time - time;
   // Alpha goes from zero to one.
   double alpha = double(t)/double(dt);
 
-  return alpha * rval0->coefficient.getValue() + (1.0 - alpha) * rval1->coefficient.getValue();
+  return alpha * rval0.coefficient + (1.0 - alpha) * rval1.coefficient;
 }
 
 template<int N>
@@ -112,18 +112,18 @@ LinearInterpolationVectorSpaceCurve<N>::evaluateDerivative(Time time,
   CHECK_GE(time, this->getMinTime()) << "Time out of bounds"; 
   CHECK_LE(time, this->getMaxTime()) << "Time out of bounds";
 
-  Eigen::VectorXd dCoeff;
+  typename LinearInterpolationVectorSpaceCurve<N>::DerivativeType dCoeff;
   Time dt;
-  KeyCoefficientTime *rval0, *rval1;
+  KeyCoefficientTime rval0, rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
   // first derivative
   if (derivativeOrder == 1) {
-    dCoeff = rval1->coefficient.getValue() - rval0->coefficient.getValue();
-    dt = rval1->time - rval0->time;
+    dCoeff = rval1.coefficient - rval0.coefficient;
+    dt = rval1.time - rval0.time;
     return dCoeff/dt;
   } else { // order of derivative > 1 returns vector of zeros
-    const int dimension = rval0->coefficient.dim();
-    return Eigen::VectorXd::Zero(dimension,1);
+    dCoeff.zero();
+    return dCoeff;
   }
 }
 
@@ -145,13 +145,13 @@ gtsam::Expression<typename LinearInterpolationVectorSpaceCurve<N>::ValueType>
 LinearInterpolationVectorSpaceCurve<N>::getEvalExpression(const Time& time) const {
   typedef typename LinearInterpolationVectorSpaceCurve<N>::ValueType ValueType;
   using namespace gtsam;
-  KeyCoefficientTime *rval0, *rval1;
+  KeyCoefficientTime rval0, rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
 
-  Expression<ValueType> leaf1(rval0->key);
-  Expression<ValueType> leaf2(rval1->key);
+  Expression<ValueType> leaf1(rval0.key);
+  Expression<ValueType> leaf2(rval1.key);
 
-  double alpha = double(time - rval0->time)/double(rval1->time - rval0->time);
+  double alpha = double(time - rval0.time)/double(rval1.time - rval0.time);
 
   Expression<ValueType> rval(boost::bind(&linearInterpolation<N>, _1, _2, alpha, _3, _4),
                              leaf1, leaf2);
