@@ -16,7 +16,7 @@
 
 namespace curves {
 
-typedef boost::int64_t Time;   // RD Why was Types.hpp removed?
+typedef boost::int64_t Time;
 typedef size_t Key;
 
 template <class Coefficient>
@@ -30,17 +30,25 @@ class LocalSupport2CoefficientManager {
 
     KeyCoefficient(const Key key, const Coefficient& coefficient) :
       key(key), coefficient(coefficient) {}
+
     KeyCoefficient() {};
+
     bool equals(const KeyCoefficient& other) const {
-      return key == other.key &&
-          gtsam::traits<Coefficient>::Equals(coefficient, other.coefficient, 1e-9);
+      //todo Note: here we assume that == operator is implemented by the coefficient.
+      //Could not use gtsam traits as the gtsam namespace is not visible to this class.
+      //Is this correct?
+      return key == other.key && coefficient == other.coefficient;
+    }
+
+    bool operator==(const KeyCoefficient& other) const {
+      return this->equals(other);
     }
   };
 
   typedef std::map<Time, KeyCoefficient> KeyCoefficientTimeMap;
   typedef typename KeyCoefficientTimeMap::const_iterator CoefficientIter;
   /// Key/Coefficient pairs
-  typedef typename boost::unordered_map<size_t, Coefficient> CoefficientMap;
+  typedef boost::unordered_map<size_t, Coefficient> CoefficientMap;
 
   LocalSupport2CoefficientManager();
   virtual ~LocalSupport2CoefficientManager();

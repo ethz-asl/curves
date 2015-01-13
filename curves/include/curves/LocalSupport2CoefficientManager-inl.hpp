@@ -277,18 +277,20 @@ void LocalSupport2CoefficientManager<Coefficient>::checkInternalConsistency(bool
   CoefficientIter it;
   it = timeToCoefficient_.begin();
   for( ; it != timeToCoefficient_.end(); ++it) {
-    CHECK_NOTNULL(it->second);
-    CHECK_EQ(it->first, it->second->time);
-    Key key = it->second->key;
-    CoefficientIter itc = keyToCoefficient_.find(key);
+    Key key = it->second.key;
+    typename boost::unordered_map<Key, CoefficientIter>::const_iterator itc = keyToCoefficient_.find(key);
+    CHECK_EQ(itc->first, itc->second->second.key);
     CHECK( itc != keyToCoefficient_.end() ) << "Key " << key << " is not in the map";
     // This is probably the important one.
-    // Check that the it->second pointer
-    // points to the same object as itc->second.
+    // Check that the itc->second iterator
+    // points to the same object as it->second.
     // It is supposedly guaranteed by the
     // unordered map interface that these
     // pointers never get reallocated.
-    CHECK_EQ(&itc->second, it->second);
+    //todo the implementation differs from the comment above. Here only the
+    //equality between coefficients is checked
+    CHECK_EQ(itc->second->second.coefficient, it->second.coefficient);
+
   }
   if (doExit) {
     exit(0);
