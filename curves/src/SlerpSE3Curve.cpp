@@ -156,8 +156,7 @@ SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
 }
 
 /// \brief \f[T^{\alpha}\f]
-SE3 transformationPower(SE3  T, double alpha,
-                        gtsam::OptionalJacobian<6,6> H) {
+SE3 transformationPower(SE3  T, double alpha) {
   typedef Eigen::Matrix3d Matrix3d;
 
   SO3 R(T.getRotation());
@@ -168,67 +167,16 @@ SE3 transformationPower(SE3  T, double alpha,
   angleAxis.setAngle( angleAxis.angle()*alpha);
   angleAxis.setUnique();
 
-  if(H) {
-    Matrix3d J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
-    Eigen::Matrix<double, 6, 6> J_B_T;
-
-    AngleAxis AA(R);
-
-    Matrix3d Re = alpha *(Matrix3d::Identity() - ((1-alpha)/2)*AA.angle()*crossOperator(AA.axis()));
-
-    J_tB_rT = Matrix3d::Zero();
-    J_rB_rT = Re;
-    J_tB_tT = Matrix3d::Identity()*alpha;
-    J_rB_tT = (crossOperator(t)*alpha)*Re - alpha*crossOperator(t);
-
-    J_B_T << J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
-    (*H) = J_B_T;
-  }
-
   return SE3(SO3(angleAxis),(t*alpha).eval());
 }
 
 /// \brief \f[A*B\f]
-SE3 composeTransformations(SE3 A, SE3 B,
-                           gtsam::OptionalJacobian<6,6> H1,
-                           gtsam::OptionalJacobian<6,6> H2) {
-  // todo compute jacobians
-  if (H1) {
-    (*H1) = Eigen::Matrix<double,6,6>::Identity();
-  }
-
-  if (H2) {
-    Eigen::Matrix3d J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
-    Eigen::Matrix<double, 6, 6> J_B_T;
-    SE3::Position ta(A.getPosition());
-    J_tB_rT = Eigen::Matrix3d::Zero();
-    J_rB_rT = A.getRotationMatrix();
-    J_tB_tT = A.getRotationMatrix();
-    J_rB_tT = crossOperator(ta)*A.getRotationMatrix();
-
-    J_B_T << J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
-    (*H2) = J_B_T;
-  }
-
+SE3 composeTransformations(SE3 A, SE3 B) {
   return A*B;
 }
 
 /// \brief \f[T^{-1}\f]
-SE3 inverseTransformation(SE3 T, gtsam::OptionalJacobian<6,6> H) {
-  // todo compute jacobian
-  if (H) {
-    Eigen::Matrix3d J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
-    Eigen::Matrix<double, 6, 6> J_B_T;
-    SE3::Position ta(T.getPosition());
-    J_tB_rT = Eigen::Matrix3d::Zero();
-    J_rB_rT = - T.getRotationMatrix().inverse();
-    J_tB_tT = - T.getRotationMatrix().inverse();
-    J_rB_tT = T.getRotationMatrix().inverse() * crossOperator(ta);
-
-    J_B_T << J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
-    (*H) = J_B_T;
-  }
-
+SE3 inverseTransformation(SE3 T) {
   return T.inverted();
 }
 

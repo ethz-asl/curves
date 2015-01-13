@@ -137,14 +137,11 @@ typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
 typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
 
-SE3 transformationPower(SE3  T, double alpha,
-                        boost::optional<Eigen::Matrix<double,6,6>&>H=boost::none);
+SE3 transformationPower(SE3  T, double alpha);
 
-SE3 composeTransformations(SE3 A, SE3 B,
-                           boost::optional<Eigen::Matrix<double,6,6>&>H1=boost::none,
-                           boost::optional<Eigen::Matrix<double,6,6>&>H2=boost::none);
+SE3 composeTransformations(SE3 A, SE3 B);
 
-SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H=boost::none);
+SE3 inverseTransformation(SE3 T);
 
 } // namespace curves
 

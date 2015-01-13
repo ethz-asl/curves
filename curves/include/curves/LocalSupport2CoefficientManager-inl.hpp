@@ -97,8 +97,8 @@ Key LocalSupport2CoefficientManager<Coefficient>::insertCoefficient(Time time, c
     this->setCoefficientByKey(it->second.key, coefficient);
     key = it->second.key;
   } else {
-    std::pair<Time, KeyCoefficient> iterator(time, KeyCoefficient(key, coefficient));
     key = KeyGenerator::getNextKey();
+    std::pair<Time, KeyCoefficient> iterator(time, KeyCoefficient(key, coefficient));
     std::pair<CoefficientIter, bool> success =
     timeToCoefficient_.insert(iterator);
     keyToCoefficient_[key] = success.first;
@@ -275,10 +275,10 @@ template <class Coefficient>
 void LocalSupport2CoefficientManager<Coefficient>::checkInternalConsistency(bool doExit) const {
   CHECK_EQ(keyToCoefficient_.size(), timeToCoefficient_.size());
   CoefficientIter it;
-  it = timeToCoefficient_.begin();
-  for( ; it != timeToCoefficient_.end(); ++it) {
+  typename boost::unordered_map<Key, CoefficientIter>::const_iterator itc;
+  for(it = timeToCoefficient_.begin() ; it != timeToCoefficient_.end(); ++it) {
     Key key = it->second.key;
-    typename boost::unordered_map<Key, CoefficientIter>::const_iterator itc = keyToCoefficient_.find(key);
+    itc = keyToCoefficient_.find(key);
     CHECK_EQ(itc->first, itc->second->second.key);
     CHECK( itc != keyToCoefficient_.end() ) << "Key " << key << " is not in the map";
     // This is probably the important one.
@@ -290,7 +290,6 @@ void LocalSupport2CoefficientManager<Coefficient>::checkInternalConsistency(bool
     //todo the implementation differs from the comment above. Here only the
     //equality between coefficients is checked
     CHECK_EQ(itc->second->second.coefficient, it->second.coefficient);
-
   }
   if (doExit) {
     exit(0);
