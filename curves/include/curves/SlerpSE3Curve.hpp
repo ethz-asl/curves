@@ -72,6 +72,8 @@ class SlerpSE3Curve : public SE3Curve {
 
   virtual gtsam::Expression<ValueType> getEvalExpression2(const Time& time) const;
 
+  virtual gtsam::Expression<DerivativeType> getEvalDerivativeExpression(const Time& time) const;
+
   virtual void setTimeRange(Time minTime, Time maxTime);
 
   /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
@@ -119,7 +121,10 @@ class SlerpSE3Curve : public SE3Curve {
   virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
 
   /// Initialize a GTSAM values structure with the desired keys
-  virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values);
+  virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
+
+  /// Initialize a GTSAM values structure for all keys
+  virtual void initializeGTSAMValues(gtsam::Values* values) const;
 
   // updates the relevant curve coefficients from the GTSAM values structure
   virtual void updateFromGTSAMValues(const gtsam::Values& values);

@@ -14,15 +14,16 @@
 
 #include <gtest/gtest.h>
 #include <curves/SlerpSE3Curve.hpp>
-#include <curves/SE3CoefficientImplementation.hpp>
 #include "test_Helpers.hpp"
 
 #include "gtsam/nonlinear/Expression.h"
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
 #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
-#include "gtsam_unstable/nonlinear/ExpressionFactor.h"
+#include "gtsam/nonlinear/ExpressionFactor.h"
 #include <gtsam/base/numericalDerivative.h>
+#include <gtsam/base/Value.h>
+#include <gtsam/base/GenericValue.h>
 #include <gtsam/nonlinear/ISAM2.h>
 
 #include <iostream>
@@ -38,66 +39,10 @@ using namespace std;
 using namespace gtsam;
 
 typedef SlerpSE3Curve::ValueType ValueType;
-typedef SlerpSE3Curve::EvaluatorTypePtr EvaluatorTypePtr;
 
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
 typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
-
-// definition of traits for SE3 (to act as gtsam values)
-namespace gtsam {
-namespace traits {
-
-template<>
-struct equals<SE3> {
-  typedef SE3 type;
-  typedef bool result_type;
-  bool operator()(const SE3& a, const SE3& b, double tol) {
-    Eigen::Matrix<double,6,1> delta;
-    return (a.log() -b.log()).cwiseAbs().maxCoeff() < tol;
-  }
-};
-
-template<>
-struct print<SE3> {
-  typedef SE3 type;
-  typedef void result_type;
-  void operator()(const SE3& obj, const std::string& str) {
-    // make nicer layout
-    std:: cout << str << std::endl;
-    std:: cout << "Position: " << obj.getPosition() << std::endl;
-    std:: cout << "Rotation: "<< obj.getRotation() << std::endl;
-  }
-};
-
-template <>
-struct is_manifold<ChartValue<ValueType> > : public boost::true_type {};
-} // namespace traits
-} // namespace gtsam
-
-// definition of charts for SE3, to be used in gtsam framework
-namespace gtsam {
-typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
-template<>
-struct DefaultChart<SE3> {
-  typedef SE3 type;
-  typedef Eigen::Matrix<double, 6, 1> vector;
-  static vector local(const SE3& origin, const SE3& other) {
-    vector diff;
-    SE3CoefficientImplementation::localCoordinates(origin, other, &diff);
-    return diff;
-  }
-  static SE3 retract(const SE3& origin, const vector& d) {
-    SE3 retracted;
-    SE3CoefficientImplementation::retract(origin, d, &retracted);
-    return retracted;
-  }
-  static int getDimension(const SE3& origin) {
-    return 6;
-  }
-};
-
-} //namespace gtsam
 
 TEST(CurvesTestSuite, test_MITb) {
 
@@ -127,7 +72,6 @@ TEST(CurvesTestSuite, test_MITb) {
   std::string filename = "/home/renaud/projects/ctsm/src/curves/curves/test/dump/optimized_coefficients_MITb";
 
   typedef SlerpSE3Curve::ValueType ValueType;
-  typedef SlerpSE3Curve::EvaluatorTypePtr EvaluatorTypePtr;
 
   /// **************** \\\
   ///   DATA READ-IN   \\\
@@ -183,20 +127,18 @@ TEST(CurvesTestSuite, test_MITb) {
   curve.fitCurve(coefTimes, coefValues);
 
   // Populate GTSAM values
-  KeyCoefficientTime *rval0, *rval1;
   Values initials, expected;
-  for(int i=0; i< coefValues.size(); i++) {
-    curve.getCoefficientsAt(coefTimes[i], &rval0, &rval1);
-    Key key;
-    // todo use another method for getting the keys
-    // here a if is necessary since t=maxtime the coef is in rval1
-    if (i == coefValues.size() - 1) {
-      key = rval1->key;
+  curve.initializeGTSAMValues(&initials);
+  // Fill the expected values, assuming that the key order follows the vector order
+  Values::const_iterator it;
+  int index = 0;
+  for (it=initials.begin(); it!= initials.end(); ++it) {
+    if (!(it->value.equals_(static_cast<const Value&>(GenericValue<ValueType>(coefValues[index]))))){
+      std::cout << "Assumption that initials are ordered as expectedValues is false" << std::endl;
     } else {
-      key = rval0->key;
+      expected.insert(it->key,expectedValues[index]);
     }
-    initials.insert(key,coefValues[i]);
-    expected.insert(key,expectedValues[i]);
+    index++;
   }
 
   /// **************** \\\
@@ -222,11 +164,8 @@ TEST(CurvesTestSuite, test_MITb) {
 
   // prior
   SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
-  Expression<ChartValue<ValueType> > predictedPrior(convertToChartValue<ValueType>,
-                                                    curve.getEvalExpression2(coefTimes[0]));
-  ExpressionFactor<ChartValue<ValueType> > f(priorNoise,
-                                             ChartValue<ValueType>(prior),
-                                             predictedPrior);
+  Expression<ValueType> predictedPrior = curve.getEvalExpression2(coefTimes[0]);
+  ExpressionFactor<ValueType> f(priorNoise, prior, predictedPrior);
   graph.add(f);
 
   // odometry
@@ -234,9 +173,8 @@ TEST(CurvesTestSuite, test_MITb) {
     Expression<ValueType> TA(curve.getEvalExpression2(measTimesEdge[i]));
     Expression<ValueType> TB(curve.getEvalExpression2(measTimesEdge[i]+1));
     Expression<ValueType> iTA(curves::inverseTransformation, TA);
-    Expression<ValueType> relative(curves::composeTransformations, iTA, TB);
-    Expression<ChartValue<ValueType> >predicted(gtsam::convertToChartValue<ValueType>, relative);
-    ExpressionFactor<ChartValue<ValueType> > factor(measNoiseModel,ChartValue<ValueType>(measValuesEdge[i]), predicted);
+    Expression<ValueType> predicted(curves::composeTransformations, iTA, TB);
+    ExpressionFactor<ValueType> factor(measNoiseModel,measValuesEdge[i], predicted);
     graph.add(factor);
   }
 
@@ -245,9 +183,8 @@ TEST(CurvesTestSuite, test_MITb) {
     Expression<ValueType> TA(curve.getEvalExpression2(measTimesLoopA[i]));
     Expression<ValueType> TB(curve.getEvalExpression2(measTimesLoopB[i]));
     Expression<ValueType> iTA(curves::inverseTransformation, TA);
-    Expression<ValueType> relative(curves::composeTransformations, iTA, TB);
-    Expression<ChartValue<ValueType> >predicted(gtsam::convertToChartValue<ValueType>, relative);
-    ExpressionFactor<ChartValue<ValueType> > factor(loopNoiseModel,ChartValue<ValueType>(measValuesLoop[i]), predicted);
+    Expression<ValueType> predicted(curves::composeTransformations, iTA, TB);
+    ExpressionFactor<ValueType> factor(loopNoiseModel,measValuesLoop[i], predicted);
     graph.add(factor);
   }
 

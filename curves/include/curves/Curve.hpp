@@ -62,7 +62,7 @@ class Curve
   virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const = 0;
 
   /// \brief Get a gtsam::Expression which evaluates the derivative of the curve at this time.
-  virtual gtsam::Expression<ValueType> getEvalDerivativeExpression(const Time& time) const = 0;
+  virtual gtsam::Expression<DerivativeType> getEvalDerivativeExpression(const Time& time) const = 0;
 
   ///@}
 
@@ -86,7 +86,10 @@ class Curve
   ///@}
 
    /// Initialize a GTSAM values structure with the desired keys
-   virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) = 0;
+   virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const = 0;
+
+   /// Initialize a GTSAM values structure for all keys
+   virtual void initializeGTSAMValues(gtsam::Values* values) const = 0;
 
    // updates the relevant curve coefficients from the GTSAM values structure
    virtual void updateFromGTSAMValues(const gtsam::Values& values) = 0;

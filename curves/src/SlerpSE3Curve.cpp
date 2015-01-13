@@ -289,6 +289,11 @@ SlerpSE3Curve::getEvalExpression2(const Time& time) const {
   }
 }
 
+gtsam::Expression<typename SlerpSE3Curve::DerivativeType>
+SlerpSE3Curve::getEvalDerivativeExpression(const Time& time) const {
+  // \todo Abel and Renaud
+  CHECK(false) << "Not implemented";
+}
 
 SE3 SlerpSE3Curve::evaluate(Time time) const {
   CoefficientIter a, b;
@@ -363,9 +368,17 @@ Vector6d SlerpSE3Curve::evaluateDerivativeB(unsigned derivativeOrder, Time time)
   CHECK(false) << "Not implemented";
 }
 
-void SlerpSE3Curve::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) {
+void SlerpSE3Curve::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
   for (unsigned int i = 0; i < keys.size(); ++i) {
     values->insert(keys[i],manager_.getCoefficientByKey(keys[i]));
+  }
+}
+
+void SlerpSE3Curve::initializeGTSAMValues(gtsam::Values* values) const {
+  CoefficientIter itc;
+  CoefficientIter itcEnd  = manager_.coefficientEnd();
+  for (itc = manager_.coefficientBegin(); itc != itcEnd; ++itc) {
+    values->insert(itc->second.key,itc->second.coefficient);
   }
 }
 

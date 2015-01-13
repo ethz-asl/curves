@@ -146,11 +146,11 @@ class LocalSupport2CoefficientManager {
   /// The one past the last valid time for the curve.
   Time getMaxTime() const;
 
-  CoefficientIter CoefficientBegin() const {
+  CoefficientIter coefficientBegin() const {
     return timeToCoefficient_.begin();
   }
 
-  CoefficientIter CoefficientEnd() const {
+  CoefficientIter coefficientEnd() const {
     return timeToCoefficient_.end();
   }
 
