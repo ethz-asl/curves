@@ -124,7 +124,7 @@ void LocalSupport2CoefficientManager<Coefficient>::insertCoefficients(const std:
 /// \brief return true if there is a coefficient at this time
 template <class Coefficient>
 bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientAtTime(Time time) const {
-  CoefficientIter it = keyToCoefficient_.find(time);
+  CoefficientIter it = timeToCoefficient_.find(time);
   return it != timeToCoefficient_.end();
 }
 
@@ -141,18 +141,19 @@ bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientWithKey(Key key
 /// with this key.
 template <class Coefficient>
 void LocalSupport2CoefficientManager<Coefficient>::setCoefficientByKey(Key key, const Coefficient& coefficient) {
-  typename KeyCoefficientTimeMap::iterator it = timeToCoefficient_.find(key);
-  CHECK( it != timeToCoefficient_.end() ) << "Key " << key << " is not in the container.";
-  it->second.coefficient = coefficient;
-
+  typename  boost::unordered_map<Key, CoefficientIter>::const_iterator it = keyToCoefficient_.find(key);
+  CHECK( it != keyToCoefficient_.end() ) << "Key " << key << " is not in the container.";
+  keyToCoefficient_[key] = it->second;
+  typename KeyCoefficientTimeMap::iterator ci = timeToCoefficient_.find(it->second->first);
+  ci->second.coefficient = coefficient;
 }
 
 /// \brief get the coefficient associated with this key
 template <class Coefficient>
 Coefficient LocalSupport2CoefficientManager<Coefficient>::getCoefficientByKey(Key key) const {
-  CoefficientIter it = timeToCoefficient_.find(key);
-  CHECK( it != timeToCoefficient_.end() ) << "Key " << key << " is not in the container.";
-  return it->second.coefficient;
+  typename  boost::unordered_map<Key, CoefficientIter>::const_iterator it = keyToCoefficient_.find(key);
+  CHECK( it != keyToCoefficient_.end() ) << "Key " << key << " is not in the container.";
+  return it->second->second.coefficient;
 }
 
 /// \brief Get the coefficients that are active at a certain time.
