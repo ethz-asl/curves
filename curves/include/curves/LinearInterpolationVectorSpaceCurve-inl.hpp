@@ -142,7 +142,7 @@ Eigen::Matrix<double,N,1> linearInterpolation(Eigen::Matrix<double,N,1>  v1,
 
 template<int N>
 gtsam::Expression<typename LinearInterpolationVectorSpaceCurve<N>::ValueType>
-LinearInterpolationVectorSpaceCurve<N>::getEvalExpression(const Time& time) const {
+LinearInterpolationVectorSpaceCurve<N>::getValueExpression(const Time& time) const {
   typedef typename LinearInterpolationVectorSpaceCurve<N>::ValueType ValueType;
   using namespace gtsam;
   CoefficientIter rval0, rval1;
@@ -161,7 +161,7 @@ LinearInterpolationVectorSpaceCurve<N>::getEvalExpression(const Time& time) cons
 
 template<int N>
 gtsam::Expression<typename LinearInterpolationVectorSpaceCurve<N>::DerivativeType>
-LinearInterpolationVectorSpaceCurve<N>::getEvalDerivativeExpression(const Time& time) const {
+LinearInterpolationVectorSpaceCurve<N>::getDerivativeExpression(const Time& time, unsigned derivativeOrder) const {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }

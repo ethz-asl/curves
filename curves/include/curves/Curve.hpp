@@ -59,10 +59,10 @@ class Curve
 //  virtual EvaluatorTypePtr getEvaluator(const Time& time) const = 0;
 
   /// \brief Get a gtsam::Expression which evaluates the curve at this time.
-  virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const = 0;
+  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const = 0;
 
   /// \brief Get a gtsam::Expression which evaluates the derivative of the curve at this time.
-  virtual gtsam::Expression<DerivativeType> getEvalDerivativeExpression(const Time& time) const = 0;
+  virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const = 0;
 
   ///@}
 

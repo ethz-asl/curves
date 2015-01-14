@@ -199,7 +199,7 @@ Eigen::Vector3d transformPoint(SE3 A, Eigen::Vector3d p, gtsam::OptionalJacobian
 /// \brief forms slerp interpolation into a binary expression with 2 leafs and binds alpha into it
 ///        \f[ T = A(A^{-1}B)^{\alpha} \f]
 gtsam::Expression<typename SlerpSE3Curve::ValueType>
-SlerpSE3Curve::getEvalExpression(const Time& time) const {
+SlerpSE3Curve::getValueExpression(const Time& time) const {
   typedef typename SlerpSE3Curve::ValueType ValueType;
   using namespace gtsam;
   CoefficientIter rval0, rval1;
@@ -219,7 +219,7 @@ SlerpSE3Curve::getEvalExpression(const Time& time) const {
 ///        uses break down of expression into its operations
 ///        \f[ T = A(A^{-1}B)^{\alpha} \f]
 gtsam::Expression<typename SlerpSE3Curve::ValueType>
-SlerpSE3Curve::getEvalExpression2(const Time& time) const {
+SlerpSE3Curve::getValueExpression2(const Time& time) const {
   typedef typename SlerpSE3Curve::ValueType ValueType;
   using namespace gtsam;
   CoefficientIter rval0, rval1;
@@ -238,7 +238,7 @@ SlerpSE3Curve::getEvalExpression2(const Time& time) const {
 }
 
 gtsam::Expression<typename SlerpSE3Curve::DerivativeType>
-SlerpSE3Curve::getEvalDerivativeExpression(const Time& time) const {
+SlerpSE3Curve::getDerivativeExpression(const Time& time, unsigned derivativeOrder) const {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }

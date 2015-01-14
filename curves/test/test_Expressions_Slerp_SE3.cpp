@@ -145,7 +145,7 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   curve.getCoefficientsAt(evalTime, &rval0, &rval1);
 
   // get expression at evaluation time
-  Expression<ValueType> expression = curve.getEvalExpression(evalTime);
+  Expression<ValueType> expression = curve.getValueExpression(evalTime);
   std::set<Key> keys = expression.keys();
 
   // Check keys
@@ -252,8 +252,8 @@ TEST(CurvesTestSuite, compareEvalExpressions1and2) {
   curve.getCoefficientsAt(evalTime, &rval0, &rval1);
 
   // get expression at evaluation time
-  Expression<ValueType> expression1 = curve.getEvalExpression(evalTime);
-  Expression<ValueType> expression2 = curve.getEvalExpression2(evalTime);
+  Expression<ValueType> expression1 = curve.getValueExpression(evalTime);
+  Expression<ValueType> expression2 = curve.getValueExpression2(evalTime);
 
   std::set<Key> keys1 = expression1.keys();
   std::set<Key> keys2 = expression2.keys();
@@ -348,7 +348,7 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
   for(int i=0; i < measurements.size(); i++) {
 
     Expression<ChartValue<ValueType> > predicted(convertToChartValue<ValueType>,
-                                                 curve.getEvalExpression(measTimes[i]));
+                                                 curve.getValueExpression(measTimes[i]));
 
     ExpressionFactor<ChartValue<ValueType> > f(measNoiseModel,
                                                ChartValue<ValueType>(measurements[i]),
@@ -413,7 +413,7 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionDynamicKeys){
 
   // create ExpressionFactor which represents relative pose relation (former Relative pose factor)
   for (int i=0; i<3; ++i) {
-    Expression<ChartValue<ValueType> > relative (relativeMeasurementExpression, curve.getEvalExpression(tmeas[i]), curve.getEvalExpression(tmeas[i]+durations[i]));
+    Expression<ChartValue<ValueType> > relative (relativeMeasurementExpression, curve.getValueExpression(tmeas[i]), curve.getValueExpression(tmeas[i]+durations[i]));
     ExpressionFactor<ChartValue<ValueType> > factor(measNoiseModel,ChartValue<ValueType>(measurements[i]), relative);
     const FastVector<Key> keys = factor.keys();
 

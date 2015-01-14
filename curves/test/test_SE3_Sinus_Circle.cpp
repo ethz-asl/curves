@@ -114,13 +114,13 @@ TEST(CurvesTestSuite, testSE3AbsolutePoseFactor_3333_SOxR3_GPS) {
   // prior factor (an SE3AbsolutePoseFactor at the good first coefficient)
   SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
 
-  Expression<ValueType> predictedPrior = curve.getEvalExpression2(times[0]);
+  Expression<ValueType> predictedPrior = curve.getValueExpression2(times[0]);
 
   ExpressionFactor<ValueType> f(priorNoise, prior, predictedPrior);
   graph.add(f);
 
   for (size_t i=0; i < valuesGPS.size(); ++i) {
-    Expression<ValueType> predicted = curve.getEvalExpression2(timesGPS[i]);
+    Expression<ValueType> predicted = curve.getValueExpression2(timesGPS[i]);
 
     ExpressionFactor<ValueType> f(GPSNoise, valuesGPS[i], predicted);
     graph.add(f);

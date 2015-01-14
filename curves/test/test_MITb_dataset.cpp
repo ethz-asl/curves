@@ -164,14 +164,14 @@ TEST(CurvesTestSuite, test_MITb) {
 
   // prior
   SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
-  Expression<ValueType> predictedPrior = curve.getEvalExpression2(coefTimes[0]);
+  Expression<ValueType> predictedPrior = curve.getValueExpression2(coefTimes[0]);
   ExpressionFactor<ValueType> f(priorNoise, prior, predictedPrior);
   graph.add(f);
 
   // odometry
   for (int i=0; i < measValuesEdge.size(); ++i) {
-    Expression<ValueType> TA(curve.getEvalExpression2(measTimesEdge[i]));
-    Expression<ValueType> TB(curve.getEvalExpression2(measTimesEdge[i]+1));
+    Expression<ValueType> TA(curve.getValueExpression2(measTimesEdge[i]));
+    Expression<ValueType> TB(curve.getValueExpression2(measTimesEdge[i]+1));
     Expression<ValueType> iTA(curves::inverseTransformation, TA);
     Expression<ValueType> predicted(curves::composeTransformations, iTA, TB);
     ExpressionFactor<ValueType> factor(measNoiseModel,measValuesEdge[i], predicted);
@@ -180,8 +180,8 @@ TEST(CurvesTestSuite, test_MITb) {
 
   // loop closures
   for (int i = 0; i < measValuesLoop.size(); ++i) {
-    Expression<ValueType> TA(curve.getEvalExpression2(measTimesLoopA[i]));
-    Expression<ValueType> TB(curve.getEvalExpression2(measTimesLoopB[i]));
+    Expression<ValueType> TA(curve.getValueExpression2(measTimesLoopA[i]));
+    Expression<ValueType> TB(curve.getValueExpression2(measTimesLoopB[i]));
     Expression<ValueType> iTA(curves::inverseTransformation, TA);
     Expression<ValueType> predicted(curves::composeTransformations, iTA, TB);
     ExpressionFactor<ValueType> factor(loopNoiseModel,measValuesLoop[i], predicted);
@@ -241,8 +241,8 @@ getRelativeMeasurementFactor(const SlerpSE3Curve& curve,
                              Time timeA, Time timeB,
                              ValueType measurement,
                              gtsam::noiseModel::Diagonal::shared_ptr noiseModel) {
-  Expression<ValueType> TA(curve.getEvalExpression2(timeA));
-  Expression<ValueType> TB(curve.getEvalExpression2(timeB));
+  Expression<ValueType> TA(curve.getValueExpression2(timeA));
+  Expression<ValueType> TB(curve.getValueExpression2(timeB));
   Expression<ValueType> iTA(curves::inverseTransformation, TA);
   Expression<ValueType> relative(curves::composeTransformations, iTA, TB);
 
@@ -431,7 +431,7 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
       gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(DIM);
       SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
       Expression<ChartValue<ValueType> > predictedPrior(convertToChartValue<ValueType>,
-                                                        curve.getEvalExpression2(coefficientTimes[0]));
+                                                        curve.getValueExpression2(coefficientTimes[0]));
       ExpressionFactor<ChartValue<ValueType> > f(priorNoise,
                                                  ChartValue<ValueType>(prior),
                                                  predictedPrior);

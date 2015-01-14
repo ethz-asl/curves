@@ -59,9 +59,9 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
   /// \brief Get an Expression evaluating the curve at this time
-  virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
+  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const;
 
-  virtual gtsam::Expression<DerivativeType> getEvalDerivativeExpression(const Time& time) const;
+  virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const;
 
   /// Initialize a GTSAM values structure with the desired keys
   virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
