@@ -74,7 +74,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
 
  private:
   typedef Eigen::Matrix<double,N,1> Coefficient;
-  typedef typename LocalSupport2CoefficientManager<Coefficient>::KeyCoefficientTimeMap KeyCoefficientTimeMap;
+  typedef typename LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;
   typedef typename LocalSupport2CoefficientManager<Coefficient>::CoefficientIter CoefficientIter;
   LocalSupport2CoefficientManager<Coefficient> manager_;
 };

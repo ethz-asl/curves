@@ -45,8 +45,8 @@ class LocalSupport2CoefficientManager {
     }
   };
 
-  typedef std::map<Time, KeyCoefficient> KeyCoefficientTimeMap;
-  typedef typename KeyCoefficientTimeMap::const_iterator CoefficientIter;
+  typedef std::map<Time, KeyCoefficient> TimeToKeyCoefficientMap;
+  typedef typename TimeToKeyCoefficientMap::const_iterator CoefficientIter;
   /// Key/Coefficient pairs
   typedef boost::unordered_map<size_t, Coefficient> CoefficientMap;
 
@@ -164,7 +164,7 @@ class LocalSupport2CoefficientManager {
   boost::unordered_map<Key, CoefficientIter> keyToCoefficient_;
 
   /// Time to coefficient mapping
-  KeyCoefficientTimeMap timeToCoefficient_;
+  TimeToKeyCoefficientMap timeToCoefficient_;
 
   bool hasCoefficientAtTime(Time time, CoefficientIter *it, double tol = 0);
 };
