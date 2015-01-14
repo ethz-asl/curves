@@ -317,24 +317,15 @@ Vector6d SlerpSE3Curve::evaluateDerivativeB(unsigned derivativeOrder, Time time)
 }
 
 void SlerpSE3Curve::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
-  for (unsigned int i = 0; i < keys.size(); ++i) {
-    values->insert(keys[i],manager_.getCoefficientByKey(keys[i]));
-  }
+  manager_.initializeGTSAMValues(keys, values);
 }
 
 void SlerpSE3Curve::initializeGTSAMValues(gtsam::Values* values) const {
-  CoefficientIter itc;
-  CoefficientIter itcEnd  = manager_.coefficientEnd();
-  for (itc = manager_.coefficientBegin(); itc != itcEnd; ++itc) {
-    values->insert(itc->second.key,itc->second.coefficient);
-  }
+  manager_.initializeGTSAMValues(values);
 }
 
 void SlerpSE3Curve::updateFromGTSAMValues(const gtsam::Values& values) {
-  gtsam::Values::const_iterator iter;
-  for (iter = values.begin(); iter != values.end(); ++iter) {
-    manager_.updateCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
-  }
+  manager_.updateFromGTSAMValues(values);
 }
 
 } // namespace curves

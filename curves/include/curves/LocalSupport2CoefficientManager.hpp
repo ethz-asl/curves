@@ -12,7 +12,7 @@
 #include <vector>
 #include <map>
 
-#include "KeyCoefficientTimeTemplate.hpp"
+#include "gtsam/nonlinear/Expression.h"
 
 namespace curves {
 
@@ -159,6 +159,15 @@ class LocalSupport2CoefficientManager {
   /// the end. This is useful for gtest death tests
   void checkInternalConsistency(bool doExit = false) const;
 
+  /// Initialize a GTSAM values structure with the desired keys
+  void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
+
+  /// Initialize a GTSAM values structure for all keys
+  void initializeGTSAMValues(gtsam::Values* values) const;
+
+  // updates the relevant curve coefficients from the GTSAM values structure
+  void updateFromGTSAMValues(const gtsam::Values& values);
+
  private:
   /// Key to coefficient mapping
   boost::unordered_map<Key, CoefficientIter> keyToCoefficient_;
@@ -167,6 +176,7 @@ class LocalSupport2CoefficientManager {
   TimeToKeyCoefficientMap timeToCoefficient_;
 
   bool hasCoefficientAtTime(Time time, CoefficientIter *it, double tol = 0);
+
 };
 
 } // namespace curves

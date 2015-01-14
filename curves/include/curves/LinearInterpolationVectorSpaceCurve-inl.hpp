@@ -111,6 +111,7 @@ LinearInterpolationVectorSpaceCurve<N>::evaluateDerivative(Time time,
   // time is out of bound --> error
   CHECK_GE(time, this->getMinTime()) << "Time out of bounds"; 
   CHECK_LE(time, this->getMaxTime()) << "Time out of bounds";
+  CHECK_GT(derivativeOrder, 0) << "DerivativeOrder must be greater than 0";
 
   typename LinearInterpolationVectorSpaceCurve<N>::DerivativeType dCoeff;
   Time dt;
@@ -168,24 +169,17 @@ LinearInterpolationVectorSpaceCurve<N>::getDerivativeExpression(const Time& time
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
-  for (unsigned int i = 0; i < keys.size(); ++i) {
-    values->insert(keys[i],manager_.getCoefficientByKey(keys[i]));
-  }
+  manager_.initializeGTSAMValues(keys, values);
 }
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::initializeGTSAMValues(gtsam::Values* values) const {
-  std::vector<Key> allKeys;
-  manager_.getKeys(&allKeys);
-  initializeGTSAMValues(allKeys, values);
+  manager_.initializeGTSAMValues(values);
 }
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::updateFromGTSAMValues(const gtsam::Values& values) {
-  gtsam::Values::const_iterator iter;
-  for (iter = values.begin(); iter != values.end(); ++iter) {
-    manager_.updateCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
-  }
+  manager_.updateFromGTSAMValues(values);
 }
 
 } // namespace curves

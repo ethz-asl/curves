@@ -296,6 +296,28 @@ void LocalSupport2CoefficientManager<Coefficient>::checkInternalConsistency(bool
 }
 
 template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
+  for (unsigned int i = 0; i < keys.size(); ++i) {
+    values->insert(keys[i],keyToCoefficient_.find(keys[i])->second->second.coefficient);
+  }
+}
+
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::Values* values) const {
+  std::vector<Key> allKeys;
+  getKeys(&allKeys);
+  initializeGTSAMValues(allKeys, values);
+}
+
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::updateFromGTSAMValues(const gtsam::Values& values) {
+  gtsam::Values::const_iterator iter;
+  for (iter = values.begin(); iter != values.end(); ++iter) {
+    updateCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
+  }
+}
+
+template <class Coefficient>
 bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientAtTime(Time time, CoefficientIter *it, double tol) {
   for ((*it) = timeToCoefficient_.begin();
       (*it) != timeToCoefficient_.end(); ++(*it)) {
@@ -309,5 +331,6 @@ bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientAtTime(Time tim
   }
   return false;
 }
+
 
 } // namespace curves
