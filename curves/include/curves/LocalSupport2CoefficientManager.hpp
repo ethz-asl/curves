@@ -166,7 +166,7 @@ class LocalSupport2CoefficientManager {
   /// Time to coefficient mapping
   KeyCoefficientTimeMap timeToCoefficient_;
 
-  bool hasCoefficientAtTime(Time time, CoefficientIter *it);
+  bool hasCoefficientAtTime(Time time, CoefficientIter *it, double tol = 0);
 };
 
 } // namespace curves

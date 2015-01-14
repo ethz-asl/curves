@@ -100,7 +100,7 @@ Key LocalSupport2CoefficientManager<Coefficient>::insertCoefficient(Time time, c
     key = KeyGenerator::getNextKey();
     std::pair<Time, KeyCoefficient> iterator(time, KeyCoefficient(key, coefficient));
     std::pair<CoefficientIter, bool> success =
-    timeToCoefficient_.insert(iterator);
+        timeToCoefficient_.insert(iterator);
     keyToCoefficient_[key] = success.first;
   }
   return key;
@@ -298,9 +298,18 @@ void LocalSupport2CoefficientManager<Coefficient>::checkInternalConsistency(bool
 }
 
 template <class Coefficient>
-bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientAtTime(Time time, CoefficientIter *it) {
-  *it = timeToCoefficient_.find(time);
-  return *it != timeToCoefficient_.end();
+bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientAtTime(Time time, CoefficientIter *it, double tol) {
+  for ((*it) = timeToCoefficient_.begin();
+      (*it) != timeToCoefficient_.end(); ++(*it)) {
+    if ((*it)->first >= time-tol) {
+      if ((*it)->first <= time+tol) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+  return false;
 }
 
 } // namespace curves
