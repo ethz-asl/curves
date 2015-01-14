@@ -333,7 +333,7 @@ void SlerpSE3Curve::initializeGTSAMValues(gtsam::Values* values) const {
 void SlerpSE3Curve::updateFromGTSAMValues(const gtsam::Values& values) {
   gtsam::Values::const_iterator iter;
   for (iter = values.begin(); iter != values.end(); ++iter) {
-    manager_.setCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
+    manager_.updateCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
   }
 }
 

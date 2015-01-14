@@ -184,7 +184,7 @@ template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::updateFromGTSAMValues(const gtsam::Values& values) {
   gtsam::Values::const_iterator iter;
   for (iter = values.begin(); iter != values.end(); ++iter) {
-    manager_.setCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
+    manager_.updateCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
   }
 }
 

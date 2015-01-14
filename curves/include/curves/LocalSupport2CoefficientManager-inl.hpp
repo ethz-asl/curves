@@ -94,7 +94,7 @@ Key LocalSupport2CoefficientManager<Coefficient>::insertCoefficient(Time time, c
   Key key;
 
   if (this->hasCoefficientAtTime(time, &it)) {
-    this->setCoefficientByKey(it->second.key, coefficient);
+    this->updateCoefficientByKey(it->second.key, coefficient);
     key = it->second.key;
   } else {
     key = KeyGenerator::getNextKey();
@@ -140,12 +140,10 @@ bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientWithKey(Key key
 /// This function fails if there is no coefficient associated
 /// with this key.
 template <class Coefficient>
-void LocalSupport2CoefficientManager<Coefficient>::setCoefficientByKey(Key key, const Coefficient& coefficient) {
-  typename  boost::unordered_map<Key, CoefficientIter>::const_iterator it = keyToCoefficient_.find(key);
+void LocalSupport2CoefficientManager<Coefficient>::updateCoefficientByKey(Key key, const Coefficient& coefficient) {
+  typename  boost::unordered_map<Key, CoefficientIter>::iterator it = keyToCoefficient_.find(key);
   CHECK( it != keyToCoefficient_.end() ) << "Key " << key << " is not in the container.";
-  keyToCoefficient_[key] = it->second;
-  typename KeyCoefficientTimeMap::iterator ci = timeToCoefficient_.find(it->second->first);
-  ci->second.coefficient = coefficient;
+  *const_cast<CoefficientType*>(&(it)->second->second.coefficient) = coefficient;
 }
 
 /// \brief get the coefficient associated with this key
@@ -234,12 +232,12 @@ void LocalSupport2CoefficientManager<Coefficient>::getCoefficients(CoefficientMa
 ///
 /// If any of these coefficients doen't exist, there is an error
 template <class Coefficient>
-void LocalSupport2CoefficientManager<Coefficient>::setCoefficients(
+void LocalSupport2CoefficientManager<Coefficient>::updateCoefficients(
     const CoefficientMap& coefficients) {
-  CoefficientIter it;
-  it = coefficients.begin();
+  typename CoefficientMap::const_iterator it;
+  it = coefficients.cbegin();
   for (; it != coefficients.end(); ++it) {
-    this->setCoefficientByKey(it->first, it->second);
+    this->updateCoefficientByKey(it->first, it->second);
   }
 }
 

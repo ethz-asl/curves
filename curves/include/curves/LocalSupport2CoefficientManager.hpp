@@ -104,7 +104,7 @@ class LocalSupport2CoefficientManager {
   ///
   /// This function fails if there is no coefficient associated
   /// with this key.
-  void setCoefficientByKey(Key key, const Coefficient& coefficient);
+  void updateCoefficientByKey(Key key, const Coefficient& coefficient);
 
   /// \brief set the coefficient associated with this key
 
@@ -132,7 +132,7 @@ class LocalSupport2CoefficientManager {
   /// \brief Set coefficients.
   ///
   /// If any of these coefficients doen't exist, there is an error
-  void setCoefficients(const CoefficientMap& coefficients);
+  void updateCoefficients(const CoefficientMap& coefficients);
 
   /// \brief return the number of coefficients
   size_t size() const;
