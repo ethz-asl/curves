@@ -77,15 +77,15 @@ void LinearInterpolationVectorSpaceCurve<N>::fitCurve(const std::vector<Time>& t
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::extend(const std::vector<Time>& times,
-                                                    const std::vector<ValueType>& values) {
+                                                    const std::vector<ValueType>& values,
+                                                    std::vector<Key>* outKeys) {
 
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
-  std::vector<Key> outKeys;
   std::vector<Coefficient> coefficients(values.size());
   for (size_t i = 0; i < values.size(); ++i) {
     coefficients[i] = Coefficient(values[i]);
   }
-  manager_.insertCoefficients(times, coefficients, &outKeys);
+  manager_.insertCoefficients(times, coefficients, outKeys);
 }
 
 template<int N>
