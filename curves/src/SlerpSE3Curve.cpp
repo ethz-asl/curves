@@ -65,12 +65,12 @@ void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
 }
 
 void SlerpSE3Curve::extend(const std::vector<Time>& times,
-                           const std::vector<ValueType>& values) {
+                           const std::vector<ValueType>& values,
+                           std::vector<Key>* outKeys) {
 
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
-  std::vector<Key> outKeys;
 
-  manager_.insertCoefficients(times, values, &outKeys);
+  manager_.insertCoefficients(times, values, outKeys);
 }
 
 typename SlerpSE3Curve::DerivativeType
