@@ -94,13 +94,13 @@ Key LocalSupport2CoefficientManager<Coefficient>::insertCoefficient(Time time, c
   Key key;
 
   if (this->hasCoefficientAtTime(time, &it)) {
-    this->setCoefficientByKey(it->second.key, coefficient);
+    this->updateCoefficientByKey(it->second.key, coefficient);
     key = it->second.key;
   } else {
     key = KeyGenerator::getNextKey();
     std::pair<Time, KeyCoefficient> iterator(time, KeyCoefficient(key, coefficient));
     std::pair<CoefficientIter, bool> success =
-    timeToCoefficient_.insert(iterator);
+        timeToCoefficient_.insert(iterator);
     keyToCoefficient_[key] = success.first;
   }
   return key;
@@ -140,12 +140,10 @@ bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientWithKey(Key key
 /// This function fails if there is no coefficient associated
 /// with this key.
 template <class Coefficient>
-void LocalSupport2CoefficientManager<Coefficient>::setCoefficientByKey(Key key, const Coefficient& coefficient) {
-  typename  boost::unordered_map<Key, CoefficientIter>::const_iterator it = keyToCoefficient_.find(key);
+void LocalSupport2CoefficientManager<Coefficient>::updateCoefficientByKey(Key key, const Coefficient& coefficient) {
+  typename  boost::unordered_map<Key, CoefficientIter>::iterator it = keyToCoefficient_.find(key);
   CHECK( it != keyToCoefficient_.end() ) << "Key " << key << " is not in the container.";
-  keyToCoefficient_[key] = it->second;
-  typename KeyCoefficientTimeMap::iterator ci = timeToCoefficient_.find(it->second->first);
-  ci->second.coefficient = coefficient;
+  *const_cast<CoefficientType*>(&(it)->second->second.coefficient) = coefficient;
 }
 
 /// \brief get the coefficient associated with this key
@@ -234,12 +232,12 @@ void LocalSupport2CoefficientManager<Coefficient>::getCoefficients(CoefficientMa
 ///
 /// If any of these coefficients doen't exist, there is an error
 template <class Coefficient>
-void LocalSupport2CoefficientManager<Coefficient>::setCoefficients(
+void LocalSupport2CoefficientManager<Coefficient>::updateCoefficients(
     const CoefficientMap& coefficients) {
-  CoefficientIter it;
-  it = coefficients.begin();
+  typename CoefficientMap::const_iterator it;
+  it = coefficients.cbegin();
   for (; it != coefficients.end(); ++it) {
-    this->setCoefficientByKey(it->first, it->second);
+    this->updateCoefficientByKey(it->first, it->second);
   }
 }
 
@@ -298,9 +296,41 @@ void LocalSupport2CoefficientManager<Coefficient>::checkInternalConsistency(bool
 }
 
 template <class Coefficient>
-bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientAtTime(Time time, CoefficientIter *it) {
-  *it = timeToCoefficient_.find(time);
-  return *it != timeToCoefficient_.end();
+void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
+  for (unsigned int i = 0; i < keys.size(); ++i) {
+    values->insert(keys[i],keyToCoefficient_.find(keys[i])->second->second.coefficient);
+  }
 }
+
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::Values* values) const {
+  std::vector<Key> allKeys;
+  getKeys(&allKeys);
+  initializeGTSAMValues(allKeys, values);
+}
+
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::updateFromGTSAMValues(const gtsam::Values& values) {
+  gtsam::Values::const_iterator iter;
+  for (iter = values.begin(); iter != values.end(); ++iter) {
+    updateCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
+  }
+}
+
+template <class Coefficient>
+bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientAtTime(Time time, CoefficientIter *it, double tol) {
+  for ((*it) = timeToCoefficient_.begin();
+      (*it) != timeToCoefficient_.end(); ++(*it)) {
+    if ((*it)->first >= time-tol) {
+      if ((*it)->first <= time+tol) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+  return false;
+}
+
 
 } // namespace curves

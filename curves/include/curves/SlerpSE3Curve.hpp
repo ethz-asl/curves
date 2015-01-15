@@ -20,7 +20,7 @@ class SlerpSE3Curve : public SE3Curve {
   typedef SE3Curve::ValueType ValueType;
   typedef SE3Curve::DerivativeType DerivativeType;
   typedef ValueType Coefficient;
-  typedef LocalSupport2CoefficientManager<Coefficient>::KeyCoefficientTimeMap KeyCoefficientTimeMap;
+  typedef LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;
   typedef LocalSupport2CoefficientManager<Coefficient>::CoefficientIter CoefficientIter;
 //  typedef LocalSupport2CoefficientManager<Coefficient>::KeyCoefficientMap KeyCoefficientTime;
 
@@ -45,7 +45,8 @@ class SlerpSE3Curve : public SE3Curve {
   /// Try to make the curve fit to the values.
   /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
-                      const std::vector<ValueType>& values);
+                      const std::vector<ValueType>& values,
+                      std::vector<Key>* outKeys = NULL);
 
   /// \brief Fit a new curve to these data points.
   ///
@@ -68,11 +69,11 @@ class SlerpSE3Curve : public SE3Curve {
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
   /// \brief Get an evaluator at this time
-  virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
+  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const;
 
-  virtual gtsam::Expression<ValueType> getEvalExpression2(const Time& time) const;
+  virtual gtsam::Expression<ValueType> getValueExpression2(const Time& time) const;
 
-  virtual gtsam::Expression<DerivativeType> getEvalDerivativeExpression(const Time& time) const;
+  virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const;
 
   virtual void setTimeRange(Time minTime, Time maxTime);
 

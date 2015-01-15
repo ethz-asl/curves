@@ -65,12 +65,12 @@ void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
 }
 
 void SlerpSE3Curve::extend(const std::vector<Time>& times,
-                           const std::vector<ValueType>& values) {
+                           const std::vector<ValueType>& values,
+                           std::vector<Key>* outKeys) {
 
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
-  std::vector<Key> outKeys;
 
-  manager_.insertCoefficients(times, values, &outKeys);
+  manager_.insertCoefficients(times, values, outKeys);
 }
 
 typename SlerpSE3Curve::DerivativeType
@@ -199,7 +199,7 @@ Eigen::Vector3d transformPoint(SE3 A, Eigen::Vector3d p, gtsam::OptionalJacobian
 /// \brief forms slerp interpolation into a binary expression with 2 leafs and binds alpha into it
 ///        \f[ T = A(A^{-1}B)^{\alpha} \f]
 gtsam::Expression<typename SlerpSE3Curve::ValueType>
-SlerpSE3Curve::getEvalExpression(const Time& time) const {
+SlerpSE3Curve::getValueExpression(const Time& time) const {
   typedef typename SlerpSE3Curve::ValueType ValueType;
   using namespace gtsam;
   CoefficientIter rval0, rval1;
@@ -219,7 +219,7 @@ SlerpSE3Curve::getEvalExpression(const Time& time) const {
 ///        uses break down of expression into its operations
 ///        \f[ T = A(A^{-1}B)^{\alpha} \f]
 gtsam::Expression<typename SlerpSE3Curve::ValueType>
-SlerpSE3Curve::getEvalExpression2(const Time& time) const {
+SlerpSE3Curve::getValueExpression2(const Time& time) const {
   typedef typename SlerpSE3Curve::ValueType ValueType;
   using namespace gtsam;
   CoefficientIter rval0, rval1;
@@ -238,7 +238,7 @@ SlerpSE3Curve::getEvalExpression2(const Time& time) const {
 }
 
 gtsam::Expression<typename SlerpSE3Curve::DerivativeType>
-SlerpSE3Curve::getEvalDerivativeExpression(const Time& time) const {
+SlerpSE3Curve::getDerivativeExpression(const Time& time, unsigned derivativeOrder) const {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
@@ -317,24 +317,15 @@ Vector6d SlerpSE3Curve::evaluateDerivativeB(unsigned derivativeOrder, Time time)
 }
 
 void SlerpSE3Curve::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
-  for (unsigned int i = 0; i < keys.size(); ++i) {
-    values->insert(keys[i],manager_.getCoefficientByKey(keys[i]));
-  }
+  manager_.initializeGTSAMValues(keys, values);
 }
 
 void SlerpSE3Curve::initializeGTSAMValues(gtsam::Values* values) const {
-  CoefficientIter itc;
-  CoefficientIter itcEnd  = manager_.coefficientEnd();
-  for (itc = manager_.coefficientBegin(); itc != itcEnd; ++itc) {
-    values->insert(itc->second.key,itc->second.coefficient);
-  }
+  manager_.initializeGTSAMValues(values);
 }
 
 void SlerpSE3Curve::updateFromGTSAMValues(const gtsam::Values& values) {
-  gtsam::Values::const_iterator iter;
-  for (iter = values.begin(); iter != values.end(); ++iter) {
-    manager_.setCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
-  }
+  manager_.updateFromGTSAMValues(values);
 }
 
 } // namespace curves

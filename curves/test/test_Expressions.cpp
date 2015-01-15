@@ -37,7 +37,7 @@ TEST(CurvesTestSuite, testExpressionKeysAndEvaluation) {
   ASSERT_EQ(outKeys.size(), values.size());
 
   // Retrieve Expression from curve
-  Expression<ValueType> expression = curve.getEvalExpression(evalTime);
+  Expression<ValueType> expression = curve.getValueExpression(evalTime);
 
   // populate gtsam Values container with coefficients & keys, 3 ways:
   Values gtsamValues;
@@ -104,7 +104,7 @@ TEST(CurvesTestSuite, testExpressionGTSAMoptimization) {
   // Get expressions and build the graph
   NonlinearFactorGraph graph;
   for(int i=0; i < measurements.size(); i++) {
-    Expression<ValueType> predicted(curve.getEvalExpression(measTimes[i]));
+    Expression<ValueType> predicted(curve.getValueExpression(measTimes[i]));
 
     ExpressionFactor<ValueType > f(measNoiseModel,
                                    ValueType(measurements[i]),

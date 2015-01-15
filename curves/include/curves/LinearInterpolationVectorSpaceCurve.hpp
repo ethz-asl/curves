@@ -35,7 +35,8 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   /// Try to make the curve fit to the values.
   /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
-                      const std::vector<ValueType>& values);
+                      const std::vector<ValueType>& values,
+                      std::vector<Key>* outKeys = NULL);
 
   /// \brief Fit a new curve to these data points.
   ///
@@ -58,9 +59,9 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
   /// \brief Get an Expression evaluating the curve at this time
-  virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
+  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const;
 
-  virtual gtsam::Expression<DerivativeType> getEvalDerivativeExpression(const Time& time) const;
+  virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const;
 
   /// Initialize a GTSAM values structure with the desired keys
   virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
@@ -73,7 +74,7 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
 
  private:
   typedef Eigen::Matrix<double,N,1> Coefficient;
-  typedef typename LocalSupport2CoefficientManager<Coefficient>::KeyCoefficientTimeMap KeyCoefficientTimeMap;
+  typedef typename LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;
   typedef typename LocalSupport2CoefficientManager<Coefficient>::CoefficientIter CoefficientIter;
   LocalSupport2CoefficientManager<Coefficient> manager_;
 };

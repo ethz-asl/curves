@@ -77,15 +77,15 @@ void LinearInterpolationVectorSpaceCurve<N>::fitCurve(const std::vector<Time>& t
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::extend(const std::vector<Time>& times,
-                                                    const std::vector<ValueType>& values) {
+                                                    const std::vector<ValueType>& values,
+                                                    std::vector<Key>* outKeys) {
 
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
-  std::vector<Key> outKeys;
   std::vector<Coefficient> coefficients(values.size());
   for (size_t i = 0; i < values.size(); ++i) {
     coefficients[i] = Coefficient(values[i]);
   }
-  manager_.insertCoefficients(times, coefficients, &outKeys);
+  manager_.insertCoefficients(times, coefficients, outKeys);
 }
 
 template<int N>
@@ -110,7 +110,8 @@ LinearInterpolationVectorSpaceCurve<N>::evaluateDerivative(Time time,
 
   // time is out of bound --> error
   CHECK_GE(time, this->getMinTime()) << "Time out of bounds"; 
-  CHECK_LE(time, this->getMaxTime()) << "Time out of bounds";
+  CHECK_LT(time, this->getMaxTime()) << "Time out of bounds";
+  CHECK_GT(derivativeOrder, 0) << "DerivativeOrder must be greater than 0";
 
   typename LinearInterpolationVectorSpaceCurve<N>::DerivativeType dCoeff;
   Time dt;
@@ -142,7 +143,7 @@ Eigen::Matrix<double,N,1> linearInterpolation(Eigen::Matrix<double,N,1>  v1,
 
 template<int N>
 gtsam::Expression<typename LinearInterpolationVectorSpaceCurve<N>::ValueType>
-LinearInterpolationVectorSpaceCurve<N>::getEvalExpression(const Time& time) const {
+LinearInterpolationVectorSpaceCurve<N>::getValueExpression(const Time& time) const {
   typedef typename LinearInterpolationVectorSpaceCurve<N>::ValueType ValueType;
   using namespace gtsam;
   CoefficientIter rval0, rval1;
@@ -161,31 +162,24 @@ LinearInterpolationVectorSpaceCurve<N>::getEvalExpression(const Time& time) cons
 
 template<int N>
 gtsam::Expression<typename LinearInterpolationVectorSpaceCurve<N>::DerivativeType>
-LinearInterpolationVectorSpaceCurve<N>::getEvalDerivativeExpression(const Time& time) const {
+LinearInterpolationVectorSpaceCurve<N>::getDerivativeExpression(const Time& time, unsigned derivativeOrder) const {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
-  for (unsigned int i = 0; i < keys.size(); ++i) {
-    values->insert(keys[i],manager_.getCoefficientByKey(keys[i]));
-  }
+  manager_.initializeGTSAMValues(keys, values);
 }
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::initializeGTSAMValues(gtsam::Values* values) const {
-  std::vector<Key> allKeys;
-  manager_.getKeys(&allKeys);
-  initializeGTSAMValues(allKeys, values);
+  manager_.initializeGTSAMValues(values);
 }
 
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::updateFromGTSAMValues(const gtsam::Values& values) {
-  gtsam::Values::const_iterator iter;
-  for (iter = values.begin(); iter != values.end(); ++iter) {
-    manager_.setCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
-  }
+  manager_.updateFromGTSAMValues(values);
 }
 
 } // namespace curves

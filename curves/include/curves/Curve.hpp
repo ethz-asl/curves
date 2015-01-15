@@ -59,10 +59,10 @@ class Curve
 //  virtual EvaluatorTypePtr getEvaluator(const Time& time) const = 0;
 
   /// \brief Get a gtsam::Expression which evaluates the curve at this time.
-  virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const = 0;
+  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const = 0;
 
   /// \brief Get a gtsam::Expression which evaluates the derivative of the curve at this time.
-  virtual gtsam::Expression<DerivativeType> getEvalDerivativeExpression(const Time& time) const = 0;
+  virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const = 0;
 
   ///@}
 
@@ -73,7 +73,8 @@ class Curve
   /// Try to make the curve fit to the values.
   /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
-                      const std::vector<ValueType>& values) = 0;
+                      const std::vector<ValueType>& values,
+                      std::vector<Key>* outKeys) = 0;
 
   /// \brief Fit a new curve to these data points.
   ///
@@ -93,21 +94,6 @@ class Curve
 
    // updates the relevant curve coefficients from the GTSAM values structure
    virtual void updateFromGTSAMValues(const gtsam::Values& values) = 0;
-
-  /// \name Methods to build and extract curves
-  ///@{
-
-  /// extract a piece of the curve as a new curve
-  /// \param[in] min_time the begin time of the new curve
-  /// \param[in] max_time the end time of the new curve
-  /// \param[out] result the sub curve.
-  //virtual void subcurve(Time min_time, Time max_time, Curve* result) const = 0;
-
-  // join two curves
-  // compose two curves
-  //
-
-  ///@}
 
 };
 

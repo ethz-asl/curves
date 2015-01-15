@@ -12,7 +12,7 @@
 #include <vector>
 #include <map>
 
-#include "KeyCoefficientTimeTemplate.hpp"
+#include "gtsam/nonlinear/Expression.h"
 
 namespace curves {
 
@@ -45,8 +45,8 @@ class LocalSupport2CoefficientManager {
     }
   };
 
-  typedef std::map<Time, KeyCoefficient> KeyCoefficientTimeMap;
-  typedef typename KeyCoefficientTimeMap::const_iterator CoefficientIter;
+  typedef std::map<Time, KeyCoefficient> TimeToKeyCoefficientMap;
+  typedef typename TimeToKeyCoefficientMap::const_iterator CoefficientIter;
   /// Key/Coefficient pairs
   typedef boost::unordered_map<size_t, Coefficient> CoefficientMap;
 
@@ -104,7 +104,7 @@ class LocalSupport2CoefficientManager {
   ///
   /// This function fails if there is no coefficient associated
   /// with this key.
-  void setCoefficientByKey(Key key, const Coefficient& coefficient);
+  void updateCoefficientByKey(Key key, const Coefficient& coefficient);
 
   /// \brief set the coefficient associated with this key
 
@@ -132,7 +132,7 @@ class LocalSupport2CoefficientManager {
   /// \brief Set coefficients.
   ///
   /// If any of these coefficients doen't exist, there is an error
-  void setCoefficients(const CoefficientMap& coefficients);
+  void updateCoefficients(const CoefficientMap& coefficients);
 
   /// \brief return the number of coefficients
   size_t size() const;
@@ -159,14 +159,24 @@ class LocalSupport2CoefficientManager {
   /// the end. This is useful for gtest death tests
   void checkInternalConsistency(bool doExit = false) const;
 
+  /// Initialize a GTSAM values structure with the desired keys
+  void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
+
+  /// Initialize a GTSAM values structure for all keys
+  void initializeGTSAMValues(gtsam::Values* values) const;
+
+  // updates the relevant curve coefficients from the GTSAM values structure
+  void updateFromGTSAMValues(const gtsam::Values& values);
+
  private:
   /// Key to coefficient mapping
   boost::unordered_map<Key, CoefficientIter> keyToCoefficient_;
 
   /// Time to coefficient mapping
-  KeyCoefficientTimeMap timeToCoefficient_;
+  TimeToKeyCoefficientMap timeToCoefficient_;
 
-  bool hasCoefficientAtTime(Time time, CoefficientIter *it);
+  bool hasCoefficientAtTime(Time time, CoefficientIter *it, double tol = 0);
+
 };
 
 } // namespace curves

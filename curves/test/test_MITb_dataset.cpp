@@ -227,8 +227,8 @@ getRelativeMeasurementFactor(const SlerpSE3Curve& curve,
                              Time timeA, Time timeB,
                              ValueType measurement,
                              gtsam::noiseModel::Diagonal::shared_ptr noiseModel) {
-  Expression<ValueType> TA(curve.getEvalExpression2(timeA));
-  Expression<ValueType> TB(curve.getEvalExpression2(timeB));
+  Expression<ValueType> TA(curve.getValueExpression2(timeA));
+  Expression<ValueType> TB(curve.getValueExpression2(timeB));
   Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
   return ExpressionFactor<ValueType>(noiseModel, measurement, predicted);
 }
@@ -428,7 +428,7 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
     if( i == 0) {
       gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(DIM);
       SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
-      Expression<ValueType> predictedPrior = curve.getEvalExpression2(coefficientTimes[0]);
+      Expression<ValueType> predictedPrior = curve.getValueExpression2(coefficientTimes[0]);
       ExpressionFactor<ValueType> f(priorNoise, prior, predictedPrior);
       graph.push_back(f);
     } else {
