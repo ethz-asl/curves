@@ -95,21 +95,6 @@ class Curve
    // updates the relevant curve coefficients from the GTSAM values structure
    virtual void updateFromGTSAMValues(const gtsam::Values& values) = 0;
 
-  /// \name Methods to build and extract curves
-  ///@{
-
-  /// extract a piece of the curve as a new curve
-  /// \param[in] min_time the begin time of the new curve
-  /// \param[in] max_time the end time of the new curve
-  /// \param[out] result the sub curve.
-  //virtual void subcurve(Time min_time, Time max_time, Curve* result) const = 0;
-
-  // join two curves
-  // compose two curves
-  //
-
-  ///@}
-
 };
 
 } // namespace curves

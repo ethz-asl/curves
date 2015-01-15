@@ -110,7 +110,7 @@ LinearInterpolationVectorSpaceCurve<N>::evaluateDerivative(Time time,
 
   // time is out of bound --> error
   CHECK_GE(time, this->getMinTime()) << "Time out of bounds"; 
-  CHECK_LE(time, this->getMaxTime()) << "Time out of bounds";
+  CHECK_LT(time, this->getMaxTime()) << "Time out of bounds";
   CHECK_GT(derivativeOrder, 0) << "DerivativeOrder must be greater than 0";
 
   typename LinearInterpolationVectorSpaceCurve<N>::DerivativeType dCoeff;
