@@ -44,189 +44,186 @@ typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
 typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
 
-//TEST(CurvesTestSuite, test_MITb) {
-//
-//  /// **************** \\\
-//  ///    DEFINITIONS   \\\
-//  /// **************** \\\
-//
-//  gtsam::Vector6 loopNoise;
-//  loopNoise << 0.1, 0.1, 0.001, 0.2*M_PI/180, 0.2*M_PI/180, 1*M_PI/180;
-//  gtsam::Vector6 measNoise;
-//  measNoise << 0.1, 0.1, 0.001, 0.1*M_PI/180, 0.1*M_PI/180, 0.5*M_PI/180;
-//  gtsam::Vector6 priNoise;
-//  priNoise << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-//  bool recordCsv = false;
-//
-//  // parameters for LM optimizer
-//  gtsam::LevenbergMarquardtParams params;
-//  params.setRelativeErrorTol(1e-5);
-//  params.setlambdaUpperBound(1e5);
-//  params.setlambdaLowerBound(1e-5);
-//  params.setAbsoluteErrorTol(-1e5);
-//  params.setErrorTol(1);
-//  params.setMaxIterations(50);
-//  params.setVerbosity("SILENT");
-//
-//  // filename/location for storing resultfiles
-//  std::string filename = "/home/renaud/projects/ctsm/src/curves/curves/test/dump/optimized_coefficients_MITb";
-//
-//  typedef SlerpSE3Curve::ValueType ValueType;
-//
-//  /// **************** \\\
-//  ///   DATA READ-IN   \\\
-//  /// **************** \\\
-//
-//  // read the absolute measurements (initials) from file
-//  std::vector<curves::Time> measTimesVertex, measTimesEdge, measTimesLoopA, measTimesLoopB, expectedTimesVertex;
-//  std::vector<Eigen::VectorXd> outValues;
-//  std::vector<ValueType> measValuesVertex, measValuesEdge, measValuesLoop, expectedValuesVertex;
-//  CurvesTestHelpers::loadTimeVectorCSV("MITb_vertex_initials.csv", &measTimesVertex, &outValues);
-//  SE3 pose;
-//  for (size_t i=0; i<outValues.size();++i){
-//    pose = SE3(SO3(outValues[i][4], outValues[i][5], outValues[i][6], outValues[i][7]),
-//               (SE3::Position() << outValues[i][1], outValues[i][2], outValues[i][3]).finished());
-//    measValuesVertex.push_back(pose);
-//  }
-//  // read the relative measurements (odometry) from file
-//  CurvesTestHelpers::loadTimeVectorCSV("MITb_edges_measurements.csv", &measTimesEdge, &outValues);
-//  for (size_t i=0; i<outValues.size();++i){
-//    pose = SE3(SO3(outValues[i][4], outValues[i][5], outValues[i][6], outValues[i][7]),
-//               (SE3::Position() << outValues[i][1], outValues[i][2], outValues[i][3]).finished());
-//    measValuesEdge.push_back(pose);
-//  }
-//  // read the loop measurements from file
-//  CurvesTestHelpers::loadTimeTimeVectorCSV("MITb_loop_closure.csv", &measTimesLoopA, &measTimesLoopB, &outValues);
-//  for (size_t i=0; i<outValues.size();++i){
-//    pose = SE3(SO3(outValues[i][4], outValues[i][5], outValues[i][6], outValues[i][7]),
-//               (SE3::Position() << outValues[i][1], outValues[i][2], outValues[i][3]).finished());
-//    measValuesLoop.push_back(pose);
-//  }
-//  // read the expected values from file
-//  CurvesTestHelpers::loadTimeVectorCSV("MITb_expected_result.csv", &expectedTimesVertex, &outValues);
-//  for (size_t i=0; i<outValues.size();++i){
-//    pose = SE3(SO3(outValues[i][0], outValues[i][1], outValues[i][2], outValues[i][3]),
-//               (SE3::Position() << outValues[i][4], outValues[i][5], outValues[i][6]).finished());
-//    expectedValuesVertex.push_back(pose);
-//  }
-//
-//  /// **************** \\\
-//  ///   CREATE CURVE   \\\
-//  /// **************** \\\
-//
-//  // fit curve to the coefficients (only time spacing is important here, but constructor demands coefficients as well)
-//  // create coefficients, one more than the number of measurements
-//  vector<Time> coefTimes;
-//  vector<ValueType> coefValues, expectedValues;
-//  for(size_t i=0; i < measTimesVertex.size(); i++) {
-//    coefTimes.push_back(measTimesVertex[i]);
-//    coefValues.push_back(measValuesVertex[i]);
-//    expectedValues.push_back(expectedValuesVertex[i]);
-//  }
-//  SlerpSE3Curve curve;
-//  std::vector<gtsam::Key> outKeys;
-//  curve.fitCurve(coefTimes, coefValues, &outKeys);
-//
-//  // Populate GTSAM values
-//  Values initials, expected;
-//  curve.initializeGTSAMValues(&initials);
-//  for(size_t i=0; i< outKeys.size(); i++) {
-//    expected.insert(outKeys[i],expectedValues[i]);
-//  }
-//
-//  /// **************** \\\
-//  ///   NOISE MODELS   \\\
-//  /// **************** \\\
-//
-//  //noise model for prior
-//  gtsam::noiseModel::Diagonal::shared_ptr priorNoise = gtsam::noiseModel::Diagonal::
-//      Sigmas(priNoise);
-//  // noise model for odometry measurements
-//  gtsam::noiseModel::Diagonal::shared_ptr measNoiseModel = gtsam::noiseModel::Diagonal::
-//      Sigmas(measNoise);
-//  // noise model for loop closure ("odometry"-like) measurements
-//  gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModel = gtsam::noiseModel::Diagonal::
-//      Sigmas(loopNoise);
-//
-//  /// **************** \\\
-//  ///      FACTORS     \\\
-//  /// **************** \\\
-//
-//  // factor graph
-//  gtsam::NonlinearFactorGraph graph;
-//
-//  // prior
-//  SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
-//  Expression<ValueType> predictedPrior = curve.getEvalExpression2(coefTimes[0]);
-//  ExpressionFactor<ValueType> f(priorNoise, prior, predictedPrior);
-//  graph.add(f);
-//
-//  // odometry
-//  for (size_t i=0; i < measValuesEdge.size(); ++i) {
-//    Expression<ValueType> TA(curve.getEvalExpression2(measTimesEdge[i]));
-//    Expression<ValueType> TB(curve.getEvalExpression2(measTimesEdge[i]+1));
-//    Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
-//    ExpressionFactor<ValueType> factor(measNoiseModel,measValuesEdge[i], predicted);
-//    graph.add(factor);
-//  }
-//
-//  // loop closures
-//  for (size_t i = 0; i < measValuesLoop.size(); ++i) {
-//    Expression<ValueType> TA(curve.getEvalExpression2(measTimesLoopA[i]));
-//    Expression<ValueType> TB(curve.getEvalExpression2(measTimesLoopB[i]));
-//    Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
-//    ExpressionFactor<ValueType> factor(loopNoiseModel,measValuesLoop[i], predicted);
-//    graph.add(factor);
-//  }
-//
-//  // iterate to incrementally narrow down noise of loop closures
-//  for (int i=0; i<12; ++i) {
-//
-//    /// **************** \\\
-//    ///  RECORD RESULTS  \\\
-//    /// **************** \\\
-//
-//    if(recordCsv) {
-//      std::stringstream ss;
-//      ss << filename << i << ".csv";
-//      std::ofstream resultFile;
-//      resultFile.open(ss.str().c_str());
-//
-//      for (size_t i=0; i< outKeys.size(); i++) {
-//        Eigen::Vector3d pos = initials.at<ValueType>(outKeys[i]).getPosition();
-//        SO3 rot = initials.at<ValueType>(outKeys[i]).getRotation();
-//        resultFile << measTimesVertex[i] << ", "
-//            << rot.w() << ", " << rot.x() << ", " << rot.y() << ", " << rot.z()<< ", "
-//            << pos[0] << ", " << pos[1] << ", " << pos[2] << std::endl;
-//      }
-//    }
-//
-//    /// **************** \\\
-//    ///   OPTIMIZATION   \\\
-//    /// **************** \\\
-//
-//    // catch last iteration (only for writing results, if activated)
-//    if(i<11) {
-//      // narrow down noise model for loop closures
-//      gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModelX = gtsam::noiseModel::Diagonal::
-//          Sigmas(loopNoise*(101-(i*10)));
-//      // update noise model of loop closures
-//      *loopNoiseModel = *loopNoiseModelX;
-//      // optimize graph
-//      initials = gtsam::LevenbergMarquardtOptimizer(graph, initials, params).optimize();
-//    }
-//  }
-//  initials.print("initials");
-//  expected.print("expected");
-//
-//  ASSERT_TRUE(initials.equals(expected, 5)) << "results don't match the expected";
-//}
+TEST(CurvesTestSuite, test_MITb) {
+
+  /// **************** \\\
+  ///    DEFINITIONS   \\\
+  /// **************** \\\
+
+  gtsam::Vector6 loopNoise;
+  loopNoise << 0.1, 0.1, 0.001, 0.2*M_PI/180, 0.2*M_PI/180, 1*M_PI/180;
+  gtsam::Vector6 measNoise;
+  measNoise << 0.1, 0.1, 0.001, 0.1*M_PI/180, 0.1*M_PI/180, 0.5*M_PI/180;
+  gtsam::Vector6 priNoise;
+  priNoise << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+  bool recordCsv = true;
+
+  // parameters for LM optimizer
+  gtsam::LevenbergMarquardtParams params;
+  params.setRelativeErrorTol(1e-5);
+  params.setlambdaUpperBound(1e5);
+  params.setlambdaLowerBound(1e-5);
+  params.setAbsoluteErrorTol(-1e5);
+  params.setErrorTol(1);
+  params.setMaxIterations(50);
+  params.setVerbosity("SILENT");
+
+  // filename/location for storing resultfiles
+  std::string filename = "/home/renaud/projects/ctsm/src/curves/curves/test/dump/optimized_coefficients_MITb";
+
+  typedef SlerpSE3Curve::ValueType ValueType;
+
+  /// **************** \\\
+  ///   DATA READ-IN   \\\
+  /// **************** \\\
+
+  // read the absolute measurements (initials) from file
+  std::vector<curves::Time> measTimesVertex, measTimesEdge, measTimesLoopA, measTimesLoopB, expectedTimesVertex;
+  std::vector<Eigen::VectorXd> outValues;
+  std::vector<ValueType> measValuesVertex, measValuesEdge, measValuesLoop, expectedValuesVertex;
+  CurvesTestHelpers::loadTimeVectorCSV("MITb_vertex_initials.csv", &measTimesVertex, &outValues);
+  SE3 pose;
+  for (size_t i=0; i<outValues.size();++i){
+    pose = SE3(SO3(outValues[i][4], outValues[i][5], outValues[i][6], outValues[i][7]),
+               (SE3::Position() << outValues[i][1], outValues[i][2], outValues[i][3]).finished());
+    measValuesVertex.push_back(pose);
+  }
+  // read the relative measurements (odometry) from file
+  CurvesTestHelpers::loadTimeVectorCSV("MITb_edges_measurements.csv", &measTimesEdge, &outValues);
+  for (size_t i=0; i<outValues.size();++i){
+    pose = SE3(SO3(outValues[i][4], outValues[i][5], outValues[i][6], outValues[i][7]),
+               (SE3::Position() << outValues[i][1], outValues[i][2], outValues[i][3]).finished());
+    measValuesEdge.push_back(pose);
+  }
+  // read the loop measurements from file
+  CurvesTestHelpers::loadTimeTimeVectorCSV("MITb_loop_closure.csv", &measTimesLoopA, &measTimesLoopB, &outValues);
+  for (size_t i=0; i<outValues.size();++i){
+    pose = SE3(SO3(outValues[i][4], outValues[i][5], outValues[i][6], outValues[i][7]),
+               (SE3::Position() << outValues[i][1], outValues[i][2], outValues[i][3]).finished());
+    measValuesLoop.push_back(pose);
+  }
+  // read the expected values from file
+  CurvesTestHelpers::loadTimeVectorCSV("MITb_expected_result.csv", &expectedTimesVertex, &outValues);
+  for (size_t i=0; i<outValues.size();++i){
+    pose = SE3(SO3(outValues[i][0], outValues[i][1], outValues[i][2], outValues[i][3]),
+               (SE3::Position() << outValues[i][4], outValues[i][5], outValues[i][6]).finished());
+    expectedValuesVertex.push_back(pose);
+  }
+
+  /// **************** \\\
+  ///   CREATE CURVE   \\\
+  /// **************** \\\
+
+  // fit curve to the coefficients (only time spacing is important here, but constructor demands coefficients as well)
+  // create coefficients, one more than the number of measurements
+  vector<Time> coefTimes;
+  vector<ValueType> coefValues, expectedValues;
+  for(size_t i=0; i < measTimesVertex.size(); i++) {
+    coefTimes.push_back(measTimesVertex[i]);
+    coefValues.push_back(measValuesVertex[i]);
+    expectedValues.push_back(expectedValuesVertex[i]);
+  }
+  SlerpSE3Curve curve;
+  std::vector<gtsam::Key> outKeys;
+  curve.fitCurve(coefTimes, coefValues, &outKeys);
+
+  // Populate GTSAM values
+  Values initials, expected;
+  curve.initializeGTSAMValues(&initials);
+  for(size_t i=0; i< outKeys.size(); i++) {
+    expected.insert(outKeys[i],expectedValues[i]);
+  }
+
+  /// **************** \\\
+  ///   NOISE MODELS   \\\
+  /// **************** \\\
+
+  //noise model for prior
+  gtsam::noiseModel::Diagonal::shared_ptr priorNoise = gtsam::noiseModel::Diagonal::
+      Sigmas(priNoise);
+  // noise model for odometry measurements
+  gtsam::noiseModel::Diagonal::shared_ptr measNoiseModel = gtsam::noiseModel::Diagonal::
+      Sigmas(measNoise);
+  // noise model for loop closure ("odometry"-like) measurements
+  gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModel = gtsam::noiseModel::Diagonal::
+      Sigmas(loopNoise);
+
+  /// **************** \\\
+  ///      FACTORS     \\\
+  /// **************** \\\
+
+  // factor graph
+  gtsam::NonlinearFactorGraph graph;
+
+  // prior
+  SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
+  Expression<ValueType> predictedPrior = curve.getValueExpression2(coefTimes[0]);
+  ExpressionFactor<ValueType> f(priorNoise, prior, predictedPrior);
+  graph.add(f);
+
+  // odometry
+  for (size_t i=0; i < measValuesEdge.size(); ++i) {
+    Expression<ValueType> TA(curve.getValueExpression2(measTimesEdge[i]));
+    Expression<ValueType> TB(curve.getValueExpression2(measTimesEdge[i]+1));
+    Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
+    ExpressionFactor<ValueType> factor(measNoiseModel,measValuesEdge[i], predicted);
+    graph.add(factor);
+  }
+
+  // loop closures
+  for (size_t i = 0; i < measValuesLoop.size(); ++i) {
+    Expression<ValueType> TA(curve.getValueExpression2(measTimesLoopA[i]));
+    Expression<ValueType> TB(curve.getValueExpression2(measTimesLoopB[i]));
+    Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
+    ExpressionFactor<ValueType> factor(loopNoiseModel,measValuesLoop[i], predicted);
+    graph.add(factor);
+  }
+
+  // iterate to incrementally narrow down noise of loop closures
+  for (int i=0; i<12; ++i) {
+
+    /// **************** \\\
+    ///  RECORD RESULTS  \\\
+    /// **************** \\\
+
+    if(recordCsv) {
+      std::stringstream ss;
+      ss << filename << i << ".csv";
+      std::ofstream resultFile;
+      resultFile.open(ss.str().c_str());
+
+      for (size_t i=0; i< outKeys.size(); i++) {
+        Eigen::Vector3d pos = initials.at<ValueType>(outKeys[i]).getPosition();
+        SO3 rot = initials.at<ValueType>(outKeys[i]).getRotation();
+        resultFile << measTimesVertex[i] << ", "
+            << rot.w() << ", " << rot.x() << ", " << rot.y() << ", " << rot.z()<< ", "
+            << pos[0] << ", " << pos[1] << ", " << pos[2] << std::endl;
+      }
+    }
+
+    /// **************** \\\
+    ///   OPTIMIZATION   \\\
+    /// **************** \\\
+
+    // catch last iteration (only for writing results, if activated)
+    if(i<11) {
+      // narrow down noise model for loop closures
+      gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModelX = gtsam::noiseModel::Diagonal::
+          Sigmas(loopNoise*(101-(i*10)));
+      // update noise model of loop closures
+      *loopNoiseModel = *loopNoiseModelX;
+      // optimize graph
+      initials = gtsam::LevenbergMarquardtOptimizer(graph, initials, params).optimize();
+    }
+  }
+  ASSERT_TRUE(initials.equals(expected, 5)) << "results don't match the expected";
+}
 
 ExpressionFactor<ValueType>
 getRelativeMeasurementFactor(const SlerpSE3Curve& curve,
                              Time timeA, Time timeB,
                              ValueType measurement,
-                             gtsam::noiseModel::Diagonal::shared_ptr noiseModel) {
+                             noiseModel::Diagonal::shared_ptr noiseModel) {
   Expression<ValueType> TA(curve.getValueExpression2(timeA));
   Expression<ValueType> TB(curve.getValueExpression2(timeB));
   Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
@@ -345,7 +342,6 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
   // Fit curve to the coefficients
   SlerpSE3Curve curve;
   std::vector<gtsam::Key> outKeys;
-  initialValues = expectedValues;
   curve.fitCurve(coefficientTimes, initialValues, &outKeys);
 
   // Make maps of Key to ValueType and of Time to Key
@@ -467,8 +463,6 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
 
       // Check the solution when all coefficients have been added to the problem
       if (i == coefficientTimes.size()-1) {
-        currentEstimate.print("currentEstimate");
-        gtsamExpected.print("gtsamExpected");
         ASSERT_TRUE(currentEstimate.equals(gtsamExpected, 0.5));
       }
 

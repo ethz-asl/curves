@@ -277,8 +277,6 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
 
   // Optimize
   gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, initials).optimize();
-  expected.print("expected");
-  result.print("result");
   ASSERT_TRUE(expected.equals(result,1e-6));
 }
 
@@ -324,6 +322,81 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionDynamicKeys){
     Vector error = factor.unwhitenedError(expected);
     CHECK((error).cwiseAbs().maxCoeff() < 1e-6);
   }
+}
+
+ExpressionFactor<ValueType>
+getFactorRelativeMeasurement(const SlerpSE3Curve& curve,
+                             Time timeA, Time timeB,
+                             ValueType measurement,
+                             noiseModel::Diagonal::shared_ptr noiseModel) {
+  Expression<ValueType> TA(curve.getValueExpression2(timeA));
+  Expression<ValueType> TB(curve.getValueExpression2(timeB));
+  Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
+  return ExpressionFactor<ValueType>(noiseModel, measurement, predicted);
+}
+
+TEST(CurvesTestSuite, testSlerpSE3RelativeExpression){
+  SlerpSE3Curve curve;
+  // Data taken from the MITb dataset
+  // Populate expected
+  const double t[] = {0, 1, 2};
+  std::vector<Time> times(t,t+3);
+  std::vector<ValueType> expected;
+  expected.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
+  expected.push_back(ValueType(SO3(0.999967,SO3::Vector3(0,0,0.00760239)),SE3::Position(2.03998,0.00824351,0)));
+  expected.push_back(ValueType(SO3(0.999803,SO3::Vector3(0,0,0.019962)),SE3::Position(4.26771,0.0576598,0)));
+
+  // Populate initials
+  std::vector<ValueType> initials;
+  initials.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
+  initials.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
+  initials.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
+
+  // Populate measurements
+  const double tmeas[] = {1, 2};
+  std::vector<Time> measTimes(tmeas,tmeas+2);
+  const double durations[] = {1, 1};
+  std::vector<ValueType> measurements;
+  measurements.push_back(ValueType(SO3(0.99997,SO3::Vector3(0,0,0.0072259)),SE3::Position(2.0393,0.003006,0)));
+  measurements.push_back(ValueType(SO3(0.99991,SO3::Vector3(0,0,0.013399)),SE3::Position(2.2275,0.023206,0)));
+
+  // Fit curve
+  std::vector<gtsam::Key> outKeys;
+  curve.fitCurve(times, initials, &outKeys);
+
+  //Noise models
+  Vector6 measNoise;
+  measNoise << 0.1, 0.1, 0.001, 0.1*M_PI/180, 0.1*M_PI/180, 0.5*M_PI/180;
+  noiseModel::Diagonal::shared_ptr measNoiseModel = noiseModel::Diagonal::Sigmas(measNoise);
+  Vector6 priNoise;
+  priNoise << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+  noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas(priNoise);
+
+  NonlinearFactorGraph graph;
+  Values gtsamInitial, gtsamExpected;
+  curve.initializeGTSAMValues(&gtsamInitial);
+  for(size_t i=0; i< outKeys.size(); i++) {
+    gtsamExpected.insert(outKeys[i],expected[i]);
+  }
+
+  //prior
+  Expression<ValueType> predictedPrior = curve.getValueExpression2(times[0]);
+  ExpressionFactor<ValueType> f(priorNoise, initials[0], predictedPrior);
+  graph.push_back(f);
+
+  //relative measurements
+  graph.push_back(getFactorRelativeMeasurement(curve, measTimes[0]-1, measTimes[0],
+                                               measurements[0], measNoiseModel));
+  graph.push_back(getFactorRelativeMeasurement(curve, measTimes[1]-1, measTimes[1],
+                                               measurements[1], measNoiseModel));
+
+  // optimize the trajectory
+  gtsam::LevenbergMarquardtParams params;
+  //params.setVerbosity("ERROR");
+  gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, gtsamInitial, params).optimize();
+
+
+  ASSERT_TRUE(gtsamExpected.equals(result, 0.5));
 }
 
 TEST(CurvesTestSuite, testSlerpSE3ExpressionJacobians){
