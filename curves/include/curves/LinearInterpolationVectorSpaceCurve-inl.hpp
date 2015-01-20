@@ -34,7 +34,7 @@ void LinearInterpolationVectorSpaceCurve<N>::print(const std::string& str) const
   std::cout <<"=========================================" <<std::endl;
   for (size_t i = 0; i < manager_.size(); i++) {
     ss << "coefficient " << keys[i] << ": ";
-    std::cout << ss << manager_.getCoefficientByKey(keys[i]).transpose() << std::endl;
+    std::cout << ss.str() << manager_.getCoefficientByKey(keys[i]).transpose() << std::endl;
     std::cout << " | time: " << times[i];
     std::cout << std::endl;
     ss.str("");
