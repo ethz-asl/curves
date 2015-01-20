@@ -98,64 +98,6 @@ SlerpSE3Curve::evaluateDerivative(Time time,
   }
 }
 
-Eigen::Matrix3d crossOperator(Eigen::Vector3d vector){
-  Eigen::Matrix3d rval;
-  rval << 0.0, -vector(2), vector(1),
-      vector(2), 0.0, -vector(0),
-      -vector(1), vector(0), 0.0;
-  return rval;
-}
-
-/// \brief Evaluation function in functional form. To be passed to the expression (full implementation)
-SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
-                       gtsam::OptionalJacobian<6,6> H1,
-                       gtsam::OptionalJacobian<6,6> H2) {
-
-  typedef Eigen::Matrix3d Matrix3d;
-  SO3 w_R_a(v1.getRotation());
-  SO3 w_R_b(v2.getRotation());
-  SE3::Position w_t_a(v1.getPosition());
-  SE3::Position w_t_b(v2.getPosition());
-
-  w_R_a.getRotationMatrix();
-  w_R_b.getRotationMatrix();
-
-  Matrix3d J_tA_tT, J_rA_tT, J_tA_rT, J_rA_rT;
-  Matrix3d J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
-  Eigen::Matrix<double, 6, 6> J_A_T, J_B_T;
-
-  AngleAxis a_AA_b(w_R_a.inverted() * w_R_b);
-
-  // Rotational component computed with Baker-Campbell-Hausdorff
-  Matrix3d Re = alpha *(Matrix3d::Identity() - ((1-alpha)/2)*a_AA_b.angle()*crossOperator(a_AA_b.axis()));
-
-  J_rA_tT = -((1-alpha) * crossOperator(w_t_a) + alpha*crossOperator(w_t_b))*Re + alpha*crossOperator(w_t_b);
-  J_tA_rT = Matrix3d::Zero();
-  J_rA_rT = Matrix3d::Identity() - Re;
-  J_tA_tT = Matrix3d::Identity()*(1.0 - alpha);
-
-  J_A_T << J_tA_tT, J_rA_tT, J_tA_rT, J_rA_rT;
-
-  J_tB_rT = Matrix3d::Zero();
-  J_rB_rT = Re;
-  J_tB_tT = Matrix3d::Identity()*alpha;
-  J_rB_tT = (crossOperator(w_t_a)*(1-alpha)+crossOperator(w_t_b)*alpha)*Re - alpha*crossOperator(w_t_b);
-
-  J_B_T << J_tB_tT, J_rB_tT, J_tB_rT, J_rB_rT;
-
-  /// \todo check matrix sizes should be chainRule.rows() x coefficient.ndim()
-  if (H1) { *H1 += J_A_T; }
-  if (H2) { *H2 += J_B_T; }
-
-  /// Slerp interpolation function
-  SO3 a_R_b = w_R_a.inverted()*w_R_b;
-  AngleAxis delta(a_R_b);
-  delta.setAngle( delta.angle()*alpha);
-  SE3 w_T_i(w_R_a*SO3(delta)  , (w_t_a*(1-alpha)+w_t_b*alpha).eval());
-
-  return (w_T_i);
-}
-
 /// \brief \f[T^{\alpha}\f]
 SE3 transformationPower(SE3  T, double alpha) {
   SO3 R(T.getRotation());
@@ -177,22 +119,6 @@ SE3 composeTransformations(SE3 A, SE3 B) {
 /// \brief \f[T^{-1}\f]
 SE3 inverseTransformation(SE3 T) {
   return T.inverted();
-}
-
-Eigen::Vector3d transformPoint(SE3 A, Eigen::Vector3d p, gtsam::OptionalJacobian<3,6> H) {
-
-  Eigen::Vector3d Tp = A * p;
-  if (H) {
-    Eigen::Matrix3d J_tA, J_rA;
-    Eigen::Matrix<double, 3, 6> J_A;
-    J_tA = Eigen::Matrix3d::Identity();
-    //todo: is J_tp_tT maybe Identity?
-    J_rA = -crossOperator(Tp);
-
-    J_A << J_tA, J_rA;
-    (*H) = J_A;
-  }
-  return Tp;
 }
 
 /// \brief forms slerp interpolation into a binary expression with 2 leafs and binds alpha into it,
