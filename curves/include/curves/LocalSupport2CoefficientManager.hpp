@@ -4,8 +4,8 @@
  * @author Paul Furgale, Abel Gawel, Renaud Dube
  */
 
-#ifndef CT_HERMITE_COEFFICIENT_MANAGER_HPP
-#define CT_HERMITE_COEFFICIENT_MANAGER_HPP
+#ifndef CT_LOCAL_SUPPORT_2_COEFFICIENT_MANAGER_HPP
+#define CT_LOCAL_SUPPORT_2_COEFFICIENT_MANAGER_HPP
 
 #include <Eigen/Core>
 #include <boost/unordered_map.hpp>
@@ -183,4 +183,4 @@ class LocalSupport2CoefficientManager {
 
 #include "LocalSupport2CoefficientManager-inl.hpp"
 
-#endif /* CT_HERMITE_COEFFICIENT_MANAGER_HPP */
+#endif /* CT_LOCAL_SUPPORT_2_COEFFICIENT_MANAGER_HPP */

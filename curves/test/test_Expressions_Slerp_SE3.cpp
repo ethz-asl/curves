@@ -303,7 +303,6 @@ TEST(CurvesTestSuite, testSlerpSE3RelativeExpression){
 
   // optimize the trajectory
   gtsam::LevenbergMarquardtParams params;
-  //params.setVerbosity("ERROR");
   gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, gtsamInitial, params).optimize();
 
 

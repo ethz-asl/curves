@@ -92,7 +92,8 @@ SlerpSE3Curve::evaluateDerivative(Time time,
     dCoeff = gtsam::traits<Coefficient>::Local(rval1->second.coefficient,rval0->second.coefficient);
     dt = rval1->first - rval0->first;
     return dCoeff/dt;
-  } else { // order of derivative > 1 returns vector of zeros
+    // order of derivative > 1 returns vector of zeros
+  } else {
     const int dimension = gtsam::traits<Coefficient>::dimension;
     return Eigen::VectorXd::Zero(dimension,1);
   }
