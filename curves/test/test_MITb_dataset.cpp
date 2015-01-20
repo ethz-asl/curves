@@ -157,14 +157,14 @@ TEST(CurvesTestSuite, test_MITb) {
 
   // prior
   SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
-  Expression<ValueType> predictedPrior = curve.getValueExpression2(coefTimes[0]);
+  Expression<ValueType> predictedPrior = curve.getValueExpression(coefTimes[0]);
   ExpressionFactor<ValueType> f(priorNoise, prior, predictedPrior);
   graph.add(f);
 
   // odometry
   for (size_t i=0; i < measValuesEdge.size(); ++i) {
-    Expression<ValueType> TA(curve.getValueExpression2(measTimesEdge[i]));
-    Expression<ValueType> TB(curve.getValueExpression2(measTimesEdge[i]+1));
+    Expression<ValueType> TA(curve.getValueExpression(measTimesEdge[i]));
+    Expression<ValueType> TB(curve.getValueExpression(measTimesEdge[i]+1));
     Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
     ExpressionFactor<ValueType> factor(measNoiseModel,measValuesEdge[i], predicted);
     graph.add(factor);
@@ -172,8 +172,8 @@ TEST(CurvesTestSuite, test_MITb) {
 
   // loop closures
   for (size_t i = 0; i < measValuesLoop.size(); ++i) {
-    Expression<ValueType> TA(curve.getValueExpression2(measTimesLoopA[i]));
-    Expression<ValueType> TB(curve.getValueExpression2(measTimesLoopB[i]));
+    Expression<ValueType> TA(curve.getValueExpression(measTimesLoopA[i]));
+    Expression<ValueType> TB(curve.getValueExpression(measTimesLoopB[i]));
     Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
     ExpressionFactor<ValueType> factor(loopNoiseModel,measValuesLoop[i], predicted);
     graph.add(factor);
@@ -224,8 +224,8 @@ getRelativeMeasurementFactor(const SlerpSE3Curve& curve,
                              Time timeA, Time timeB,
                              ValueType measurement,
                              noiseModel::Diagonal::shared_ptr noiseModel) {
-  Expression<ValueType> TA(curve.getValueExpression2(timeA));
-  Expression<ValueType> TB(curve.getValueExpression2(timeB));
+  Expression<ValueType> TA(curve.getValueExpression(timeA));
+  Expression<ValueType> TB(curve.getValueExpression(timeB));
   Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
   return ExpressionFactor<ValueType>(noiseModel, measurement, predicted);
 }
@@ -424,7 +424,7 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
     if( i == 0) {
       gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(DIM);
       SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
-      Expression<ValueType> predictedPrior = curve.getValueExpression2(coefficientTimes[0]);
+      Expression<ValueType> predictedPrior = curve.getValueExpression(coefficientTimes[0]);
       ExpressionFactor<ValueType> f(priorNoise, prior, predictedPrior);
       graph.push_back(f);
     } else {

@@ -71,8 +71,6 @@ class SlerpSE3Curve : public SE3Curve {
   /// \brief Get an evaluator at this time
   virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const;
 
-  virtual gtsam::Expression<ValueType> getValueExpression2(const Time& time) const;
-
   virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const;
 
   virtual void setTimeRange(Time minTime, Time maxTime);

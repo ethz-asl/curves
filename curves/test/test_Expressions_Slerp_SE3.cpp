@@ -154,66 +154,6 @@ TEST(CurvesTestSuite, testSlerpSE3CurveEvaluate) {
 
 }
 
-//// compare 2 types of expressions for Slerp SE3 interpolation:
-//// 1. Full Jacobian derivation & interpolation within 1 Expression (classic approach)
-//// 2. Assembly of expression by atomic Jacobians and operations (composition, inverse, exponential)
-//TEST(CurvesTestSuite, compareEvalExpressions1and2) {
-//  SlerpSE3Curve curve;
-//  const double t[] = {0, 10};
-//  const double evalTime = 5;
-//
-//  // setup two SE3 objects
-//  // ValueType poseA(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
-//  ValueType poseA(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(1,1,1));
-//  ValueType poseB(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(2,2,2));
-//
-//  std::vector<Time> times(t,t+2);
-//  std::vector<ValueType> values;
-//  values.push_back(poseA);
-//  values.push_back(poseB);
-//
-//  // interpolate curve
-//  curve.fitCurve(times, values);
-//
-//  // get expression at evaluation time
-//  Expression<ValueType> expression1 = curve.getValueExpression(evalTime);
-//  Expression<ValueType> expression2 = curve.getValueExpression2(evalTime);
-//
-//  // get coefficients from curve
-//  ValueType val0(SO3(rval0->coefficient.getValue()(3),rval0->coefficient.getValue().segment<3>(4)),rval0->coefficient.getValue().head<3>());
-//  ValueType val1(SO3(rval1->coefficient.getValue()(3),rval1->coefficient.getValue().segment<3>(4)),rval1->coefficient.getValue().head<3>());
-//
-//  // fill retrieved coefficients in gtsam values container
-//  Values gtsamValues, gtsamValues2;
-//  gtsamValues.insert(rval0->key, val0);
-//  gtsamValues.insert(rval1->key, val1);
-//
-//  // initialize objects
-//  FastVector<Key> key = boost::assign::list_of(rval0->key)(rval1->key);
-//  std::vector<gtsam::Matrix> analyticals;
-//  for (unsigned i=0; i<key.size(); ++i) {
-//    analyticals.push_back(gtsam::Matrix());
-//  }
-//  ValueType result2 = expression2.value(gtsamValues, boost::optional<std::vector<gtsam::Matrix>&>(analyticals));
-//
-////  // Test the jacobians
-////  // Call analytical calculation of Jacobians (using BAD)
-////  ExpressionValueWrapper expressionValueWrapper(expression2,gtsamValues);
-////  // Call numerical calculation of Jacobians
-////  gtsam::Matrix expectedH0 = gtsam::numericalDerivative11<ChartValue<ValueType>, ChartValue<ValueType> >
-////  (boost::bind(&ExpressionValueWrapper::evaluate, &expressionValueWrapper, _1, 0), convertToChartValue<ValueType>(val0), 1e-3);
-////  gtsam::Matrix expectedH1 = gtsam::numericalDerivative11<ChartValue<ValueType>, ChartValue<ValueType> >
-////  (boost::bind(&ExpressionValueWrapper::evaluate, &expressionValueWrapper, _1, 1), convertToChartValue<ValueType>(val1), 1e-3);
-////
-////  // assert equality of Jacobians
-////  for (int i=0; i<analyticals[0].size(); ++i){
-////    ASSERT_NEAR(expectedH0(i), analyticals[0](i), 1e-3);
-////  }
-////  for (int i=0; i<analyticals[1].size(); ++i){
-////    ASSERT_NEAR(expectedH1(i), analyticals[1](i), 1e-3);
-////  }
-//}
-
 // test basic gtsam interface of Slerp SE3 curves
 TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
 
@@ -261,7 +201,7 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
   NonlinearFactorGraph graph;
   for(int i=0; i < measurements.size(); i++) {
 
-    Expression<ValueType> predicted(curve.getValueExpression2(measTimes[i]));
+    Expression<ValueType> predicted(curve.getValueExpression(measTimes[i]));
 
     ExpressionFactor<ValueType> f(measNoiseModel, measurements[i], predicted);
     graph.add(f);
@@ -329,8 +269,8 @@ getFactorRelativeMeasurement(const SlerpSE3Curve& curve,
                              Time timeA, Time timeB,
                              ValueType measurement,
                              noiseModel::Diagonal::shared_ptr noiseModel) {
-  Expression<ValueType> TA(curve.getValueExpression2(timeA));
-  Expression<ValueType> TB(curve.getValueExpression2(timeB));
+  Expression<ValueType> TA(curve.getValueExpression(timeA));
+  Expression<ValueType> TB(curve.getValueExpression(timeB));
   Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
   return ExpressionFactor<ValueType>(noiseModel, measurement, predicted);
 }
@@ -380,7 +320,7 @@ TEST(CurvesTestSuite, testSlerpSE3RelativeExpression){
   }
 
   //prior
-  Expression<ValueType> predictedPrior = curve.getValueExpression2(times[0]);
+  Expression<ValueType> predictedPrior = curve.getValueExpression(times[0]);
   ExpressionFactor<ValueType> f(priorNoise, initials[0], predictedPrior);
   graph.push_back(f);
 

@@ -196,30 +196,11 @@ Eigen::Vector3d transformPoint(SE3 A, Eigen::Vector3d p, gtsam::OptionalJacobian
   return Tp;
 }
 
-/// \brief forms slerp interpolation into a binary expression with 2 leafs and binds alpha into it
-///        \f[ T = A(A^{-1}B)^{\alpha} \f]
-gtsam::Expression<typename SlerpSE3Curve::ValueType>
-SlerpSE3Curve::getValueExpression(const Time& time) const {
-  typedef typename SlerpSE3Curve::ValueType ValueType;
-  using namespace gtsam;
-  CoefficientIter rval0, rval1;
-  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
-
-  Expression<ValueType> leaf1(rval0->second.key);
-  Expression<ValueType> leaf2(rval1->second.key);
-
-  double alpha = double(time - rval0->first)/double(rval1->first - rval0->first);
-
-  Expression<ValueType> rval(boost::bind(&slerpInterpolation,_1,_2,alpha,_3,_4),
-                             leaf1, leaf2);
-
-  return rval;
-}
 /// \brief forms slerp interpolation into a binary expression with 2 leafs and binds alpha into it,
 ///        uses break down of expression into its operations
 ///        \f[ T = A(A^{-1}B)^{\alpha} \f]
 gtsam::Expression<typename SlerpSE3Curve::ValueType>
-SlerpSE3Curve::getValueExpression2(const Time& time) const {
+SlerpSE3Curve::getValueExpression(const Time& time) const {
   typedef typename SlerpSE3Curve::ValueType ValueType;
   using namespace gtsam;
   CoefficientIter rval0, rval1;
