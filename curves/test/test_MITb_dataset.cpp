@@ -432,7 +432,7 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
 
       std::ofstream resultFile;
       resultFile.open(ss.str().c_str());
-      for(int i2=0; i2<=i; i2++) {
+      for(size_t i2=0; i2<=i; i2++) {
         Eigen::Vector3d pos = currentEstimate.at<ValueType>(outKeys[i2]).getPosition();
         Eigen::Vector4d rot = currentEstimate.at<ValueType>(outKeys[i2]).getRotation().vector();
         resultFile << coefficientTimes[i2] << ", " << pos[0] << ", " << pos[1] << ", " << pos[2] << ", " <<
