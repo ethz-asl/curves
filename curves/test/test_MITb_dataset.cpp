@@ -46,9 +46,7 @@ typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
 
 TEST(CurvesTestSuite, test_MITb) {
 
-  /// **************** \\\
-  ///    DEFINITIONS   \\\
-  /// **************** \\\
+  // DEFINITIONS
 
   gtsam::Vector6 loopNoise;
   loopNoise << 0.1, 0.1, 0.001, 0.2*M_PI/180, 0.2*M_PI/180, 1*M_PI/180;
@@ -73,9 +71,7 @@ TEST(CurvesTestSuite, test_MITb) {
 
   typedef SlerpSE3Curve::ValueType ValueType;
 
-  /// **************** \\\
-  ///   DATA READ-IN   \\\
-  /// **************** \\\
+  // DATA READ-IN
 
   // read the absolute measurements (initials) from file
   std::vector<curves::Time> measTimesVertex, measTimesEdge, measTimesLoopA, measTimesLoopB, expectedTimesVertex;
@@ -110,9 +106,7 @@ TEST(CurvesTestSuite, test_MITb) {
     expectedValuesVertex.push_back(pose);
   }
 
-  /// **************** \\\
-  ///   CREATE CURVE   \\\
-  /// **************** \\\
+  // CREATE CURVE
 
   // fit curve to the coefficients (only time spacing is important here, but constructor demands coefficients as well)
   // create coefficients, one more than the number of measurements
@@ -134,9 +128,7 @@ TEST(CurvesTestSuite, test_MITb) {
     expected.insert(outKeys[i],expectedValues[i]);
   }
 
-  /// **************** \\\
-  ///   NOISE MODELS   \\\
-  /// **************** \\\
+  // NOISE MODELS
 
   //noise model for prior
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise = gtsam::noiseModel::Diagonal::
@@ -148,9 +140,7 @@ TEST(CurvesTestSuite, test_MITb) {
   gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModel = gtsam::noiseModel::Diagonal::
       Sigmas(loopNoise);
 
-  /// **************** \\\
-  ///      FACTORS     \\\
-  /// **************** \\\
+  // FACTORS
 
   // factor graph
   gtsam::NonlinearFactorGraph graph;
@@ -182,9 +172,7 @@ TEST(CurvesTestSuite, test_MITb) {
   // iterate to incrementally narrow down noise of loop closures
   for (int i=0; i<12; ++i) {
 
-    /// **************** \\\
-    ///  RECORD RESULTS  \\\
-    /// **************** \\\
+    // RECORD RESULTS
 
     if(recordCsv) {
       std::stringstream ss;
@@ -201,9 +189,7 @@ TEST(CurvesTestSuite, test_MITb) {
       }
     }
 
-    /// **************** \\\
-    ///   OPTIMIZATION   \\\
-    /// **************** \\\
+    // OPTIMIZATION
 
     // catch last iteration (only for writing results, if activated)
     if(i<11) {
@@ -377,14 +363,9 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
   // Loop over all coefficients, adding the observations to iSAM incrementally
   for (size_t i = 0; i < coefficientTimes.size(); ++i) {
 
-    // Get the desired key which will be pushed to ISAM2 as an update
-    // Key keyToAdd = mapTimes.at(coefficientTimes[i]);
-
     // Build odometry measurement factors and push them to the graph
-    for (int z = 0; z < measTimes.size(); z++) {
+    for (size_t z = 0; z < measTimes.size(); z++) {
       // Before, we used :
-      // curve.getCoefficientsAt(measTimes[z], &rval0, &rval1);
-      // if ( rval0->key == keyToAdd) { add factor }
       bool addFactor = false;
       if (i < coefficientTimes.size() - 1) {
         if ( measTimes[z] >= coefficientTimes[i] && measTimes[z] < coefficientTimes[i+1] ) {
@@ -401,9 +382,7 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
     }
 
     // Build loop closure measurement factors and push them to the graph
-    for (int z = 0; z < loopTimesA.size(); z++) {
-      //      curve.getCoefficientsAt(loopTimesA[z], &rval0, &rval1);
-      //      if ( rval0->key == keyToAdd) {
+    for (size_t z = 0; z < loopTimesA.size(); z++) {
       bool addFactor = false;
       if (i < coefficientTimes.size() - 1) {
         if ( loopTimesA[z] >= coefficientTimes[i] && loopTimesA[z] < coefficientTimes[i+1] ) {

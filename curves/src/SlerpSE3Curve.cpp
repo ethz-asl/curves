@@ -85,6 +85,7 @@ SlerpSE3Curve::evaluateDerivative(Time time,
   Time dt;
   CoefficientIter rval0, rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
+  CHECK(success) << "Unable to get the coefficients at time " << time;
   // first derivative
   if (derivativeOrder == 1) {
     //todo Verify this
@@ -157,8 +158,6 @@ SE3 slerpInterpolation(SE3  v1, SE3  v2, double alpha,
 
 /// \brief \f[T^{\alpha}\f]
 SE3 transformationPower(SE3  T, double alpha) {
-  typedef Eigen::Matrix3d Matrix3d;
-
   SO3 R(T.getRotation());
   SE3::Position t(T.getPosition());
 
@@ -205,6 +204,7 @@ SlerpSE3Curve::getValueExpression(const Time& time) const {
   using namespace gtsam;
   CoefficientIter rval0, rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
+  CHECK(success) << "Unable to get the coefficients at time " << time;
   Expression<ValueType> leaf1(rval0->second.key);
   Expression<ValueType> leaf2(rval1->second.key);
   double alpha = double(time - rval0->first)/double(rval1->first - rval0->first);
@@ -227,6 +227,7 @@ SlerpSE3Curve::getDerivativeExpression(const Time& time, unsigned derivativeOrde
 SE3 SlerpSE3Curve::evaluate(Time time) const {
   CoefficientIter a, b;
   bool success = manager_.getCoefficientsAt(time, &a, &b);
+  CHECK(success) << "Unable to get the coefficients at time " << time;
   double alpha = double(time - a->first)/double(b->first - a->first);
 
   SE3 delta = composeTransformations(inverseTransformation(a->second.coefficient),b->second.coefficient);

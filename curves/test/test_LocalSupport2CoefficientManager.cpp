@@ -123,20 +123,20 @@ TEST_F(LocalSupport2CoefficientManagerTest, testGetCoefficientsInRange) {
 
 TEST_F(LocalSupport2CoefficientManagerTest, testUpdateCoefficients) {
 
-  for (int i = 0; i < keys1.size(); ++i) {
+  for (size_t i = 0; i < keys1.size(); ++i) {
     manager1.updateCoefficientByKey(keys1[i], Coefficient::Zero());
     ASSERT_EQ(manager1.getCoefficientByKey(keys1[i]), Coefficient::Zero());
   }
 
   typedef boost::unordered_map<curves::Key, Coefficient> CoefficientMap;
   CoefficientMap allCoeffs;
-  for (int i = 0; i < keys2.size(); ++i) {
+  for (size_t i = 0; i < keys2.size(); ++i) {
     std::pair<curves::Key, Coefficient> pair = std::make_pair(keys2[i], Coefficient::Zero());
     allCoeffs.insert(pair);
   }
 
   manager2.updateCoefficients(allCoeffs);
-  for (int i = 0; i < keys2.size(); ++i) {
+  for (size_t i = 0; i < keys2.size(); ++i) {
     ASSERT_EQ(manager2.getCoefficientByKey(keys2[i]), Coefficient::Zero());
   }
 

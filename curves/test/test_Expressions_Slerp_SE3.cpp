@@ -25,34 +25,6 @@ typedef typename SlerpSE3Curve::ValueType ValueType;
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
 
-// Wrapper to enable numerical differentiation on SlerpSE3Evaluator::evaluate
-//class ExpressionValueWrapper {
-// private:
-//  Expression<ValueType> expression_;
-//  const Values& initialCoefficients_;
-//
-// public:
-//  ExpressionValueWrapper(const Expression<ValueType>& expression,
-//                         const Values& initialCoefficients) : expression_(expression),
-//                         initialCoefficients_(initialCoefficients){
-//
-//  }
-//  ~ExpressionValueWrapper() {}
-//
-//  ValueType evaluate(const ValueType& x, int arg) {
-//    std::set<Key>::const_iterator it = expression_.keys().begin();
-//    if (arg) {++it;}
-//    Key key = *it;
-//
-//    Values values(initialCoefficients_);
-//    values.update(key,x.value());
-//
-//    ValueType result = expression_.value(values);
-//
-//    return result;
-//  }
-//};
-
 
 // Expression to calculate relative measurement between 2 SE3 values
 // \todo AG move this to trajectory maintainer at some point (this replaces relative pose factor functionality)
@@ -199,7 +171,7 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
 
   // Get expressions and build the graph
   NonlinearFactorGraph graph;
-  for(int i=0; i < measurements.size(); i++) {
+  for(size_t i=0; i < measurements.size(); i++) {
 
     Expression<ValueType> predicted(curve.getValueExpression(measTimes[i]));
 
@@ -295,7 +267,6 @@ TEST(CurvesTestSuite, testSlerpSE3RelativeExpression){
   // Populate measurements
   const double tmeas[] = {1, 2};
   std::vector<Time> measTimes(tmeas,tmeas+2);
-  const double durations[] = {1, 1};
   std::vector<ValueType> measurements;
   measurements.push_back(ValueType(SO3(0.99997,SO3::Vector3(0,0,0.0072259)),SE3::Position(2.0393,0.003006,0)));
   measurements.push_back(ValueType(SO3(0.99991,SO3::Vector3(0,0,0.013399)),SE3::Position(2.2275,0.023206,0)));

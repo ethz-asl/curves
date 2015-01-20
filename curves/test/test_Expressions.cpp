@@ -44,7 +44,7 @@ TEST(CurvesTestSuite, testExpressionKeysAndEvaluation) {
   gtsam::FastVector<gtsam::Key> keys;
 
   // classic approach
-  for (int i=0; i<values.size(); ++i) {
+  for (size_t i=0; i<values.size(); ++i) {
     gtsamValues.insert(outKeys[i], ValueType(values[i]));
     keys.push_back(outKeys[i]);
   }
@@ -70,7 +70,6 @@ TEST(CurvesTestSuite, testExpressionGTSAMoptimization) {
 
   // Populate coefficients
   const double t[] = {0, 10, 20};
-  const double evalTime = 5;
   std::vector<Time> times(t,t+3);
   std::vector<ValueType> coefficients;
   coefficients.push_back(ValueType(0,0,0));
@@ -93,7 +92,7 @@ TEST(CurvesTestSuite, testExpressionGTSAMoptimization) {
   // Populate GTSAM values
   Values initials, expected;
   curve.initializeGTSAMValues(outKeys, &expected);
-  for(int i=0; i< coefficients.size(); i++) {
+  for(size_t i=0; i< coefficients.size(); i++) {
     initials.insert(outKeys[i],ValueType(0,0,0));
   }
 
@@ -103,7 +102,7 @@ TEST(CurvesTestSuite, testExpressionGTSAMoptimization) {
 
   // Get expressions and build the graph
   NonlinearFactorGraph graph;
-  for(int i=0; i < measurements.size(); i++) {
+  for(size_t i=0; i < measurements.size(); i++) {
     Expression<ValueType> predicted(curve.getValueExpression(measTimes[i]));
 
     ExpressionFactor<ValueType > f(measNoiseModel,

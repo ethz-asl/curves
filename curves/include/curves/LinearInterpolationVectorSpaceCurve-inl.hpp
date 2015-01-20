@@ -117,6 +117,7 @@ LinearInterpolationVectorSpaceCurve<N>::evaluateDerivative(Time time,
   Time dt;
   CoefficientIter rval0, rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
+  CHECK(success) << "Unable to get the coefficients at time " << time;
   // first derivative
   if (derivativeOrder == 1) {
     dCoeff = rval1->second.coefficient - rval0->second.coefficient;
@@ -148,6 +149,7 @@ LinearInterpolationVectorSpaceCurve<N>::getValueExpression(const Time& time) con
   using namespace gtsam;
   CoefficientIter rval0, rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
+  CHECK(success) << "Unable to get the coefficients at time " << time;
 
   Expression<ValueType> leaf1(rval0->second.key);
   Expression<ValueType> leaf2(rval1->second.key);
