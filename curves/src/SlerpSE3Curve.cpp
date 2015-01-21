@@ -155,13 +155,18 @@ SE3 SlerpSE3Curve::evaluate(Time time) const {
   CoefficientIter a, b;
   bool success = manager_.getCoefficientsAt(time, &a, &b);
   CHECK(success) << "Unable to get the coefficients at time " << time;
+  SE3 T_W_A = a->second.coefficient;
+  SE3 T_W_B = b->second.coefficient;
   double alpha = double(time - a->first)/double(b->first - a->first);
 
-  SE3 delta = composeTransformations(inverseTransformation(a->second.coefficient),b->second.coefficient);
-
-  return composeTransformations(a->second.coefficient, transformationPower(delta,alpha));
+  //Implementation of T_W_I = T_W_A*exp(alpha*log(inv(T_W_A)*T_W_B))
+  using namespace kindr::minimal;
+  SE3 T_A_B = invertAndComposeImplementation(T_W_A, T_W_B, boost::none, boost::none);
+  gtsam::Vector6 log_T_A_B = transformationLogImplementation(T_A_B, boost::none);
+  gtsam::Vector6 log_T_A_I = vectorScalingImplementation<int(6)>(log_T_A_B, alpha, boost::none, boost::none);
+  SE3 T_A_I = transformationExpImplementation(log_T_A_I, boost::none);
+  return composeImplementation(T_W_A, T_A_I, boost::none, boost::none);
 }
-
 
 void SlerpSE3Curve::setTimeRange(Time minTime, Time maxTime) {
   // \todo Abel and Renaud
