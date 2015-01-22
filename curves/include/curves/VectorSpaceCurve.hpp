@@ -24,7 +24,7 @@ class VectorSpaceCurve : public Curve<VectorSpaceConfig<N> >
   virtual ~VectorSpaceCurve() {}
 
   /// \brief Get the dimension of this curve
-  virtual size_t dim() const {
+  size_t dim() const {
     return N;
   }
  

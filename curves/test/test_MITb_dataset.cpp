@@ -14,15 +14,16 @@
 
 #include <gtest/gtest.h>
 #include <curves/SlerpSE3Curve.hpp>
-#include <curves/SE3CoefficientImplementation.hpp>
 #include "test_Helpers.hpp"
 
 #include "gtsam/nonlinear/Expression.h"
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
 #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
-#include "gtsam_unstable/nonlinear/ExpressionFactor.h"
+#include "gtsam/nonlinear/ExpressionFactor.h"
 #include <gtsam/base/numericalDerivative.h>
+#include <gtsam/base/Value.h>
+#include <gtsam/base/GenericValue.h>
 #include <gtsam/nonlinear/ISAM2.h>
 
 #include <iostream>
@@ -31,79 +32,21 @@
 #include <math.h>
 
 #define DIM 6
-// #define OUTPUT_RESULTS_AS_CSV
+#define OUTPUT_RESULTS_AS_CSV
 
 using namespace curves;
 using namespace std;
 using namespace gtsam;
 
 typedef SlerpSE3Curve::ValueType ValueType;
-typedef SlerpSE3Curve::EvaluatorTypePtr EvaluatorTypePtr;
 
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
 typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
 
-// definition of traits for SE3 (to act as gtsam values)
-namespace gtsam {
-namespace traits {
-
-template<>
-struct equals<SE3> {
-  typedef SE3 type;
-  typedef bool result_type;
-  bool operator()(const SE3& a, const SE3& b, double tol) {
-    Eigen::Matrix<double,6,1> delta;
-    return (a.log() -b.log()).cwiseAbs().maxCoeff() < tol;
-  }
-};
-
-template<>
-struct print<SE3> {
-  typedef SE3 type;
-  typedef void result_type;
-  void operator()(const SE3& obj, const std::string& str) {
-    // make nicer layout
-    std:: cout << str << std::endl;
-    std:: cout << "Position: " << obj.getPosition() << std::endl;
-    std:: cout << "Rotation: "<< obj.getRotation() << std::endl;
-  }
-};
-
-template <>
-struct is_manifold<ChartValue<ValueType> > : public boost::true_type {};
-} // namespace traits
-} // namespace gtsam
-
-// definition of charts for SE3, to be used in gtsam framework
-namespace gtsam {
-typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
-template<>
-struct DefaultChart<SE3> {
-  typedef SE3 type;
-  typedef Eigen::Matrix<double, 6, 1> vector;
-  static vector local(const SE3& origin, const SE3& other) {
-    vector diff;
-    SE3CoefficientImplementation::localCoordinates(origin, other, &diff);
-    return diff;
-  }
-  static SE3 retract(const SE3& origin, const vector& d) {
-    SE3 retracted;
-    SE3CoefficientImplementation::retract(origin, d, &retracted);
-    return retracted;
-  }
-  static int getDimension(const SE3& origin) {
-    return 6;
-  }
-};
-
-} //namespace gtsam
-
 TEST(CurvesTestSuite, test_MITb) {
 
-  /// **************** \\\
-  ///    DEFINITIONS   \\\
-  /// **************** \\\
+  // DEFINITIONS
 
   gtsam::Vector6 loopNoise;
   loopNoise << 0.1, 0.1, 0.001, 0.2*M_PI/180, 0.2*M_PI/180, 1*M_PI/180;
@@ -111,7 +54,7 @@ TEST(CurvesTestSuite, test_MITb) {
   measNoise << 0.1, 0.1, 0.001, 0.1*M_PI/180, 0.1*M_PI/180, 0.5*M_PI/180;
   gtsam::Vector6 priNoise;
   priNoise << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-  bool recordCsv = false;
+  bool recordCsv = true;
 
   // parameters for LM optimizer
   gtsam::LevenbergMarquardtParams params;
@@ -127,11 +70,8 @@ TEST(CurvesTestSuite, test_MITb) {
   std::string filename = "/home/renaud/projects/ctsm/src/curves/curves/test/dump/optimized_coefficients_MITb";
 
   typedef SlerpSE3Curve::ValueType ValueType;
-  typedef SlerpSE3Curve::EvaluatorTypePtr EvaluatorTypePtr;
 
-  /// **************** \\\
-  ///   DATA READ-IN   \\\
-  /// **************** \\\
+  // DATA READ-IN
 
   // read the absolute measurements (initials) from file
   std::vector<curves::Time> measTimesVertex, measTimesEdge, measTimesLoopA, measTimesLoopB, expectedTimesVertex;
@@ -139,69 +79,56 @@ TEST(CurvesTestSuite, test_MITb) {
   std::vector<ValueType> measValuesVertex, measValuesEdge, measValuesLoop, expectedValuesVertex;
   CurvesTestHelpers::loadTimeVectorCSV("MITb_vertex_initials.csv", &measTimesVertex, &outValues);
   SE3 pose;
-  for (int i=0; i<outValues.size();++i){
+  for (size_t i=0; i<outValues.size();++i){
     pose = SE3(SO3(outValues[i][4], outValues[i][5], outValues[i][6], outValues[i][7]),
                (SE3::Position() << outValues[i][1], outValues[i][2], outValues[i][3]).finished());
     measValuesVertex.push_back(pose);
   }
   // read the relative measurements (odometry) from file
   CurvesTestHelpers::loadTimeVectorCSV("MITb_edges_measurements.csv", &measTimesEdge, &outValues);
-  for (int i=0; i<outValues.size();++i){
+  for (size_t i=0; i<outValues.size();++i){
     pose = SE3(SO3(outValues[i][4], outValues[i][5], outValues[i][6], outValues[i][7]),
                (SE3::Position() << outValues[i][1], outValues[i][2], outValues[i][3]).finished());
     measValuesEdge.push_back(pose);
   }
   // read the loop measurements from file
   CurvesTestHelpers::loadTimeTimeVectorCSV("MITb_loop_closure.csv", &measTimesLoopA, &measTimesLoopB, &outValues);
-  for (int i=0; i<outValues.size();++i){
+  for (size_t i=0; i<outValues.size();++i){
     pose = SE3(SO3(outValues[i][4], outValues[i][5], outValues[i][6], outValues[i][7]),
                (SE3::Position() << outValues[i][1], outValues[i][2], outValues[i][3]).finished());
     measValuesLoop.push_back(pose);
   }
   // read the expected values from file
   CurvesTestHelpers::loadTimeVectorCSV("MITb_expected_result.csv", &expectedTimesVertex, &outValues);
-  for (int i=0; i<outValues.size();++i){
+  for (size_t i=0; i<outValues.size();++i){
     pose = SE3(SO3(outValues[i][0], outValues[i][1], outValues[i][2], outValues[i][3]),
                (SE3::Position() << outValues[i][4], outValues[i][5], outValues[i][6]).finished());
     expectedValuesVertex.push_back(pose);
   }
 
-  /// **************** \\\
-  ///   CREATE CURVE   \\\
-  /// **************** \\\
+  // CREATE CURVE
 
   // fit curve to the coefficients (only time spacing is important here, but constructor demands coefficients as well)
   // create coefficients, one more than the number of measurements
   vector<Time> coefTimes;
   vector<ValueType> coefValues, expectedValues;
-  for(int i=0; i < measTimesVertex.size(); i++) {
+  for(size_t i=0; i < measTimesVertex.size(); i++) {
     coefTimes.push_back(measTimesVertex[i]);
     coefValues.push_back(measValuesVertex[i]);
     expectedValues.push_back(expectedValuesVertex[i]);
   }
   SlerpSE3Curve curve;
-  curve.fitCurve(coefTimes, coefValues);
+  std::vector<gtsam::Key> outKeys;
+  curve.fitCurve(coefTimes, coefValues, &outKeys);
 
   // Populate GTSAM values
-  KeyCoefficientTime *rval0, *rval1;
   Values initials, expected;
-  for(int i=0; i< coefValues.size(); i++) {
-    curve.getCoefficientsAt(coefTimes[i], &rval0, &rval1);
-    Key key;
-    // todo use another method for getting the keys
-    // here a if is necessary since t=maxtime the coef is in rval1
-    if (i == coefValues.size() - 1) {
-      key = rval1->key;
-    } else {
-      key = rval0->key;
-    }
-    initials.insert(key,coefValues[i]);
-    expected.insert(key,expectedValues[i]);
+  curve.initializeGTSAMValues(&initials);
+  for(size_t i=0; i< outKeys.size(); i++) {
+    expected.insert(outKeys[i],expectedValues[i]);
   }
 
-  /// **************** \\\
-  ///   NOISE MODELS   \\\
-  /// **************** \\\
+  // NOISE MODELS
 
   //noise model for prior
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise = gtsam::noiseModel::Diagonal::
@@ -213,77 +140,56 @@ TEST(CurvesTestSuite, test_MITb) {
   gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModel = gtsam::noiseModel::Diagonal::
       Sigmas(loopNoise);
 
-  /// **************** \\\
-  ///      FACTORS     \\\
-  /// **************** \\\
+  // FACTORS
 
   // factor graph
   gtsam::NonlinearFactorGraph graph;
 
   // prior
   SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
-  Expression<ChartValue<ValueType> > predictedPrior(convertToChartValue<ValueType>,
-                                                    curve.getEvalExpression2(coefTimes[0]));
-  ExpressionFactor<ChartValue<ValueType> > f(priorNoise,
-                                             ChartValue<ValueType>(prior),
-                                             predictedPrior);
+  Expression<ValueType> predictedPrior = curve.getValueExpression(coefTimes[0]);
+  ExpressionFactor<ValueType> f(priorNoise, prior, predictedPrior);
   graph.add(f);
 
   // odometry
-  for (int i=0; i < measValuesEdge.size(); ++i) {
-    Expression<ValueType> TA(curve.getEvalExpression2(measTimesEdge[i]));
-    Expression<ValueType> TB(curve.getEvalExpression2(measTimesEdge[i]+1));
-    Expression<ValueType> iTA(curves::inverseTransformation, TA);
-    Expression<ValueType> relative(curves::composeTransformations, iTA, TB);
-    Expression<ChartValue<ValueType> >predicted(gtsam::convertToChartValue<ValueType>, relative);
-    ExpressionFactor<ChartValue<ValueType> > factor(measNoiseModel,ChartValue<ValueType>(measValuesEdge[i]), predicted);
+  for (size_t i=0; i < measValuesEdge.size(); ++i) {
+    Expression<ValueType> TA(curve.getValueExpression(measTimesEdge[i]));
+    Expression<ValueType> TB(curve.getValueExpression(measTimesEdge[i]+1));
+    Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
+    ExpressionFactor<ValueType> factor(measNoiseModel,measValuesEdge[i], predicted);
     graph.add(factor);
   }
 
   // loop closures
-  for (int i = 0; i < measValuesLoop.size(); ++i) {
-    Expression<ValueType> TA(curve.getEvalExpression2(measTimesLoopA[i]));
-    Expression<ValueType> TB(curve.getEvalExpression2(measTimesLoopB[i]));
-    Expression<ValueType> iTA(curves::inverseTransformation, TA);
-    Expression<ValueType> relative(curves::composeTransformations, iTA, TB);
-    Expression<ChartValue<ValueType> >predicted(gtsam::convertToChartValue<ValueType>, relative);
-    ExpressionFactor<ChartValue<ValueType> > factor(loopNoiseModel,ChartValue<ValueType>(measValuesLoop[i]), predicted);
+  for (size_t i = 0; i < measValuesLoop.size(); ++i) {
+    Expression<ValueType> TA(curve.getValueExpression(measTimesLoopA[i]));
+    Expression<ValueType> TB(curve.getValueExpression(measTimesLoopB[i]));
+    Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
+    ExpressionFactor<ValueType> factor(loopNoiseModel,measValuesLoop[i], predicted);
     graph.add(factor);
   }
 
   // iterate to incrementally narrow down noise of loop closures
   for (int i=0; i<12; ++i) {
 
-    /// **************** \\\
-    ///  RECORD RESULTS  \\\
-    /// **************** \\\
+    // RECORD RESULTS
 
     if(recordCsv) {
       std::stringstream ss;
       ss << filename << i << ".csv";
       std::ofstream resultFile;
       resultFile.open(ss.str().c_str());
-      for(int i2=0; i2<coefValues.size(); ++i2) {
-        curve.getCoefficientsAt(coefTimes[i2], &rval0, &rval1);
-        Key key;
-        // todo use another method for getting the keys
-        // here a if is necessary since t=maxtime the coef is in rval1
-        if (i2 == coefValues.size() - 1) {
-          key = rval1->key;
-        } else {
-          key = rval0->key;
-        }
-        Eigen::Vector3d val = initials.at<ValueType>(key).getPosition();
-        SO3 val2 = initials.at<ValueType>(key).getRotation();
+
+      for (size_t i=0; i< outKeys.size(); i++) {
+        Eigen::Vector3d pos = initials.at<ValueType>(outKeys[i]).getPosition();
+        SO3 rot = initials.at<ValueType>(outKeys[i]).getRotation();
         resultFile << measTimesVertex[i] << ", "
-                   << val2.w() << ", " << val2.x() << ", " << val2.y() << ", " << val2.z()<< ", "
-                   << val[0] << ", " << val[1] << ", " << val[2] << std::endl;
+            << rot.w() << ", " << rot.x() << ", " << rot.y() << ", " << rot.z()<< ", "
+            << pos[0] << ", " << pos[1] << ", " << pos[2] << std::endl;
       }
     }
 
-    /// **************** \\\
-    ///   OPTIMIZATION   \\\
-    /// **************** \\\
+    // OPTIMIZATION
 
     // catch last iteration (only for writing results, if activated)
     if(i<11) {
@@ -299,18 +205,15 @@ TEST(CurvesTestSuite, test_MITb) {
   ASSERT_TRUE(initials.equals(expected, 5)) << "results don't match the expected";
 }
 
-ExpressionFactor<ChartValue<ValueType> >
+ExpressionFactor<ValueType>
 getRelativeMeasurementFactor(const SlerpSE3Curve& curve,
                              Time timeA, Time timeB,
                              ValueType measurement,
-                             gtsam::noiseModel::Diagonal::shared_ptr noiseModel) {
-  Expression<ValueType> TA(curve.getEvalExpression2(timeA));
-  Expression<ValueType> TB(curve.getEvalExpression2(timeB));
-  Expression<ValueType> iTA(curves::inverseTransformation, TA);
-  Expression<ValueType> relative(curves::composeTransformations, iTA, TB);
-
-  Expression<ChartValue<ValueType> >predicted(gtsam::convertToChartValue<ValueType>, relative);
-  return ExpressionFactor<ChartValue<ValueType> >(noiseModel,ChartValue<ValueType>(measurement), predicted);
+                             noiseModel::Diagonal::shared_ptr noiseModel) {
+  Expression<ValueType> TA(curve.getValueExpression(timeA));
+  Expression<ValueType> TB(curve.getValueExpression(timeB));
+  Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
+  return ExpressionFactor<ValueType>(noiseModel, measurement, predicted);
 }
 
 // This test uses the ISAM2 algorithm to optimize over the MITb dataset.
@@ -319,7 +222,6 @@ getRelativeMeasurementFactor(const SlerpSE3Curve& curve,
 TEST(CurvesTestSuite, test_MITb_ISAM2) {
 
   typedef SlerpSE3Curve::ValueType ValueType;
-  typedef SlerpSE3Curve::EvaluatorTypePtr EvaluatorTypePtr;
 
   // Read the initial estimates from file
   curves::Time timestampVertex;
@@ -375,7 +277,6 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
   }
   relativeData.close();
 
-
   // Read the loop closure measurements from file
   std::ifstream loopData ("MITb_loop_closure.csv");
   CHECK(loopData.good()) << "error in csv read in";
@@ -426,26 +327,17 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
 
   // Fit curve to the coefficients
   SlerpSE3Curve curve;
-  curve.fitCurve(coefficientTimes, initialValues);
+  std::vector<gtsam::Key> outKeys;
+  curve.fitCurve(coefficientTimes, initialValues, &outKeys);
 
   // Make maps of Key to ValueType and of Time to Key
   boost::unordered_map<Key, ValueType> mapInitialValues;
   boost::unordered_map<Key, ValueType> mapExpectedValues;
   std::map<Time, Key> mapTimes;
-  KeyCoefficientTime *rval0, *rval1;
-  for(int i=0; i< initialValues.size(); i++) {
-    curve.getCoefficientsAt(coefficientTimes[i], &rval0, &rval1);
-    Key key;
-    // todo use another method for getting the keys
-    // here a if is necessary since t=maxtime the coef is in rval1
-    if (i == initialValues.size() - 1) {
-      key = rval1->key;
-    } else {
-      key = rval0->key;
-    }
-    mapInitialValues[key] = initialValues[i];
-    mapExpectedValues[key] = expectedValues[i];
-    mapTimes[coefficientTimes[i]] = key;
+  for(size_t i=0; i< outKeys.size(); i++) {
+    mapInitialValues[outKeys[i]] = initialValues[i];
+    mapExpectedValues[outKeys[i]] = expectedValues[i];
+    mapTimes[coefficientTimes[i]] = outKeys[i];
   }
 
   // Create an ISAM2 object
@@ -455,11 +347,14 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
   ISAM2 isam(parameters);
 
   // Define the noise models
+  gtsam::Vector6 measNoise;
+  measNoise << 0.1, 0.1, 0.001, 0.1*M_PI/180, 0.1*M_PI/180, 0.5*M_PI/180;
+  gtsam::Vector6 loopNoise;
+  loopNoise << 0.2, 0.2, 0.002, 0.2*M_PI/180, 0.2*M_PI/180, 1*M_PI/180;
   gtsam::noiseModel::Diagonal::shared_ptr measNoiseModel = gtsam::noiseModel::Diagonal::
-      Sigmas((gtsam::Vector(DIM) << 0.1, 0.1, 0.001, 0.1*M_PI/180, 0.1*M_PI/180, 0.5*M_PI/180));
-
+      Sigmas(measNoise);
   gtsam::noiseModel::Diagonal::shared_ptr loopNoiseModel = gtsam::noiseModel::Diagonal::
-      Sigmas((gtsam::Vector(DIM) << 0.2, 0.2, 0.002, 0.2*M_PI/180, 0.2*M_PI/180, 1*M_PI/180));
+      Sigmas(loopNoise);
 
   // Create a Factor Graph and gtsam structures to hold initial and expected values
   NonlinearFactorGraph graph;
@@ -468,22 +363,37 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
   // Loop over all coefficients, adding the observations to iSAM incrementally
   for (size_t i = 0; i < coefficientTimes.size(); ++i) {
 
-    // Get the desired key which will be pushed to ISAM2 as an update
-    Key keyToAdd = mapTimes.at(coefficientTimes[i]);
-
     // Build odometry measurement factors and push them to the graph
-    for (int z = 0; z < measTimes.size(); z++) {
-      curve.getCoefficientsAt(measTimes[z], &rval0, &rval1);
-      if ( rval0->key == keyToAdd) {
+    for (size_t z = 0; z < measTimes.size(); z++) {
+      // Before, we used :
+      bool addFactor = false;
+      if (i < coefficientTimes.size() - 1) {
+        if ( measTimes[z] >= coefficientTimes[i] && measTimes[z] < coefficientTimes[i+1] ) {
+          addFactor = true;
+        }
+      } else {
+        if (measTimes[z] == coefficientTimes[i]) {
+          addFactor = true;
+        }
+      }
+      if (addFactor)
         graph.push_back(getRelativeMeasurementFactor(curve, measTimes[z], measTimes[z]+1,
                                                      measValues[z], measNoiseModel));
-      }
     }
 
     // Build loop closure measurement factors and push them to the graph
-    for (int z = 0; z < loopTimesA.size(); z++) {
-      curve.getCoefficientsAt(loopTimesA[z], &rval0, &rval1);
-      if ( rval0->key == keyToAdd) {
+    for (size_t z = 0; z < loopTimesA.size(); z++) {
+      bool addFactor = false;
+      if (i < coefficientTimes.size() - 1) {
+        if ( loopTimesA[z] >= coefficientTimes[i] && loopTimesA[z] < coefficientTimes[i+1] ) {
+          addFactor = true;
+        }
+      } else {
+        if (loopTimesA[z] == coefficientTimes[i]) {
+          addFactor = true;
+        }
+      }
+      if (addFactor) {
         graph.push_back(getRelativeMeasurementFactor(curve, loopTimesA[z], loopTimesB[z],
                                                      loopValues[z], loopNoiseModel));
       }
@@ -493,14 +403,10 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
     if( i == 0) {
       gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(DIM);
       SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
-      Expression<ChartValue<ValueType> > predictedPrior(convertToChartValue<ValueType>,
-                                                        curve.getEvalExpression2(coefficientTimes[0]));
-      ExpressionFactor<ChartValue<ValueType> > f(priorNoise,
-                                                 ChartValue<ValueType>(prior),
-                                                 predictedPrior);
+      Expression<ValueType> predictedPrior = curve.getValueExpression(coefficientTimes[0]);
+      ExpressionFactor<ValueType> f(priorNoise, prior, predictedPrior);
       graph.push_back(f);
     } else {
-
       // Create gtsam initial values to be pushed to ISAM2 and expected results.
       FastVector<Key> keys = graph.keys();
       FastVector<Key>::const_iterator it = keys.begin();
@@ -508,7 +414,6 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
         if ( !gtsamExpected.exists(*it) ) {
           gtsamInitial.insert(*it, mapInitialValues.at(*it));
           gtsamExpected.insert(*it, mapExpectedValues.at(*it));
-
         }
       }
 
@@ -527,18 +432,9 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
 
       std::ofstream resultFile;
       resultFile.open(ss.str().c_str());
-      for(int i2=0; i2<=i; i2++) {
-        curve.getCoefficientsAt(coefficientTimes[i2], &rval0, &rval1);
-        Key key;
-        // todo use another method for getting the keys
-        // here a if is necessary since t=maxtime the coef is in rval1
-        if (i2 == coefficientTimes.size() - 1) {
-          key = rval1->key;
-        } else {
-          key = rval0->key;
-        }
-        Eigen::Vector3d pos = currentEstimate.at<ValueType>(key).getPosition();
-        Eigen::Vector4d rot = currentEstimate.at<ValueType>(key).getRotation().vector();
+      for(size_t i2=0; i2<=i; i2++) {
+        Eigen::Vector3d pos = currentEstimate.at<ValueType>(outKeys[i2]).getPosition();
+        Eigen::Vector4d rot = currentEstimate.at<ValueType>(outKeys[i2]).getRotation().vector();
         resultFile << coefficientTimes[i2] << ", " << pos[0] << ", " << pos[1] << ", " << pos[2] << ", " <<
             rot[0] << ", " << rot[1] << ", " << rot[2] << ", " << rot[3] << std::endl;
       }

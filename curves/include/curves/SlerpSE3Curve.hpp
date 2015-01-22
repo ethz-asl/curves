@@ -8,9 +8,7 @@
 #define CURVES_SLERP_SE3_CURVE_HPP
 
 #include "SE3Curve.hpp"
-#include "HermiteCoefficientManager.hpp"
-
-class SlerpSE3Evaluator; // Forward declaration
+#include "LocalSupport2CoefficientManager.hpp"
 
 namespace curves {
 
@@ -21,44 +19,16 @@ class SlerpSE3Curve : public SE3Curve {
  public:
   typedef SE3Curve::ValueType ValueType;
   typedef SE3Curve::DerivativeType DerivativeType;
-  typedef SE3Curve::EvaluatorType EvaluatorType;
-  typedef SE3Curve::EvaluatorTypePtr EvaluatorTypePtr;
+  typedef ValueType Coefficient;
+  typedef LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;
+  typedef LocalSupport2CoefficientManager<Coefficient>::CoefficientIter CoefficientIter;
+//  typedef LocalSupport2CoefficientManager<Coefficient>::KeyCoefficientMap KeyCoefficientTime;
 
   SlerpSE3Curve();
   virtual ~SlerpSE3Curve();
 
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
-
-  /// \brief Get the coefficients that are active at a certain time.
-  virtual void getCoefficientsAt(const Time& time,
-                                 Coefficient::Map* outCoefficients) const;
-
-  /// \brief Get the KeyCoefficientTimes that are active at a certain time.
-  void getCoefficientsAt(const Time& time,
-                         KeyCoefficientTime** outCoefficient0,
-                         KeyCoefficientTime** outCoefficient1) const;
-
-  /// \brief Get the KeyCoefficientTimes that are (really) active at a certain time.
-  std::vector<KeyCoefficientTime> getActiveCoefficientsAt(const Time& time) const;
-
-  /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
-  virtual void getCoefficientsInRange(Time startTime, 
-                                      Time endTime, 
-                                      Coefficient::Map* outCoefficients) const;
-
-  /// \brief Get all of the curve's coefficients.
-  virtual void getCoefficients(Coefficient::Map* outCoefficients) const;
-
-  /// \brief Get all of the curve's coefficients timestamps.
-  virtual void getTimes(std::vector<Time>* outTimes) const;
-
-  /// \brief Set a coefficient.
-  virtual void setCoefficient(Key key, const Coefficient& value);
-
-  /// \brief Set coefficients.
-  virtual void setCoefficients(const Coefficient::Map& coefficients);
-
 
   /// The first valid time for the curve.
   virtual Time getMinTime() const;
@@ -75,7 +45,8 @@ class SlerpSE3Curve : public SE3Curve {
   /// Try to make the curve fit to the values.
   /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
-                      const std::vector<ValueType>& values);
+                      const std::vector<ValueType>& values,
+                      std::vector<Key>* outKeys = NULL);
 
   /// \brief Fit a new curve to these data points.
   ///
@@ -98,11 +69,9 @@ class SlerpSE3Curve : public SE3Curve {
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
   /// \brief Get an evaluator at this time
-  EvaluatorTypePtr getEvaluator(const Time& time) const;
+  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const;
 
-  virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
-
-  virtual gtsam::Expression<ValueType> getEvalExpression2(const Time& time) const;
+  virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const;
 
   virtual void setTimeRange(Time minTime, Time maxTime);
 
@@ -150,22 +119,28 @@ class SlerpSE3Curve : public SE3Curve {
   ///        and the angular velocity (3,4,5).
   virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
 
+  /// Initialize a GTSAM values structure with the desired keys
+  virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
+
+  /// Initialize a GTSAM values structure for all keys
+  virtual void initializeGTSAMValues(gtsam::Values* values) const;
+
+  // updates the relevant curve coefficients from the GTSAM values structure
+  virtual void updateFromGTSAMValues(const gtsam::Values& values);
+
  private:
-  HermiteCoefficientManager manager_;
+  LocalSupport2CoefficientManager<Coefficient> manager_;
 };
 
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
 typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
 
-SE3 transformationPower(SE3  T, double alpha,
-                        boost::optional<Eigen::Matrix<double,6,6>&>H=boost::none);
+SE3 transformationPower(SE3  T, double alpha);
 
-SE3 composeTransformations(SE3 A, SE3 B,
-                           boost::optional<Eigen::Matrix<double,6,6>&>H1=boost::none,
-                           boost::optional<Eigen::Matrix<double,6,6>&>H2=boost::none);
+SE3 composeTransformations(SE3 A, SE3 B);
 
-SE3 inverseTransformation(SE3 T, boost::optional<Eigen::Matrix<double,6,6>&>H=boost::none);
+SE3 inverseTransformation(SE3 T);
 
 } // namespace curves
 

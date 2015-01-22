@@ -7,15 +7,16 @@
 #ifndef CURVES_CURVE_HPP
 #define CURVES_CURVE_HPP
 
-#include "CurveBase.hpp"
-#include "Evaluator.hpp"
-
 #include "gtsam/nonlinear/Expression.h"
+#include <boost/cstdint.hpp>
 
 namespace curves {
 
+typedef boost::int64_t Time;
+typedef size_t Key;
+
 template<typename CurveConfig>
-class Curve : public CurveBase
+class Curve
 {
  public:
   
@@ -25,12 +26,25 @@ class Curve : public CurveBase
   /// The curve's derivative type.
   typedef typename CurveConfig::DerivativeType DerivativeType;
 
-  typedef Evaluator<CurveConfig> EvaluatorType;
-  
-  typedef typename EvaluatorType::Ptr EvaluatorTypePtr;
-
   Curve() { }
   virtual ~Curve() { }
+
+  ///\defgroup Info
+  ///\name Methods to get information about the curve.
+  ///@{
+
+  /// Print the value of the coefficient, for debugging and unit tests
+  virtual void print(const std::string& str = "") const = 0;
+
+  /// \brief The dimension of the underlying manifold
+  //size_t dim() const;  // get this form the curve's value type
+
+  /// The first valid time of the curve.
+  virtual Time getMinTime() const = 0;
+
+  /// The one past the last valid time for the curve.
+  virtual Time getMaxTime() const = 0;
+  ///@}
 
   /// \name Methods to evaluate the curve
   ///@{
@@ -45,7 +59,10 @@ class Curve : public CurveBase
 //  virtual EvaluatorTypePtr getEvaluator(const Time& time) const = 0;
 
   /// \brief Get a gtsam::Expression which evaluates the curve at this time.
-  virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const = 0;
+  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const = 0;
+
+  /// \brief Get a gtsam::Expression which evaluates the derivative of the curve at this time.
+  virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const = 0;
 
   ///@}
 
@@ -56,7 +73,8 @@ class Curve : public CurveBase
   /// Try to make the curve fit to the values.
   /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
-                      const std::vector<ValueType>& values) = 0;
+                      const std::vector<ValueType>& values,
+                      std::vector<Key>* outKeys) = 0;
 
   /// \brief Fit a new curve to these data points.
   ///
@@ -67,6 +85,16 @@ class Curve : public CurveBase
                         std::vector<Key>* outKeys = NULL) = 0;
 
   ///@}
+
+   /// Initialize a GTSAM values structure with the desired keys
+   virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const = 0;
+
+   /// Initialize a GTSAM values structure for all keys
+   virtual void initializeGTSAMValues(gtsam::Values* values) const = 0;
+
+   // updates the relevant curve coefficients from the GTSAM values structure
+   virtual void updateFromGTSAMValues(const gtsam::Values& values) = 0;
+
 };
 
 } // namespace curves

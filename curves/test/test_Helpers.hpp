@@ -11,7 +11,6 @@
 #include <iostream>
 #include <fstream>
 #include <glog/logging.h>
-#include <curves/types.hpp>
 #include <Eigen/Core>
 namespace CurvesTestHelpers {
 template <typename T>

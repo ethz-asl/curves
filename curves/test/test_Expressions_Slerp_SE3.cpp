@@ -6,11 +6,10 @@
 
 #include <gtest/gtest.h>
 #include <curves/SlerpSE3Curve.hpp>
-#include <curves/SE3CoefficientImplementation.hpp>
 #include "gtsam/nonlinear/Expression.h"
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
-#include "gtsam_unstable/nonlinear/ExpressionFactor.h"
+#include "gtsam/nonlinear/ExpressionFactor.h"
 #include <gtsam/base/numericalDerivative.h>
 
 #include <Eigen/Core>
@@ -26,105 +25,21 @@ typedef typename SlerpSE3Curve::ValueType ValueType;
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
 
-// definition of traits for SE3 (to act as gtsam values)
-namespace gtsam {
-namespace traits {
-
-template<>
-struct equals<SE3> {
-  typedef SE3 type;
-  typedef bool result_type;
-  bool operator()(const SE3& a, const SE3& b, double tol) {
-    Eigen::Matrix<double,6,1> delta;
-    return (a.log() -b.log()).cwiseAbs().maxCoeff() < tol;
-  }
-};
-
-template<>
-struct print<SE3> {
-  typedef SE3 type;
-  typedef void result_type;
-  void operator()(const SE3& obj, const std::string& str) {
-    // make nicer layout
-    std:: cout << str << std::endl;
-    std:: cout << "Position: " << obj.getPosition() << std::endl;
-    std:: cout << "Rotation: "<< obj.getRotation() << std::endl;
-  }
-};
-
-template <>
-struct is_manifold<ChartValue<ValueType> > : public boost::true_type {};
-} // namespace traits
-} // namespace gtsam
-
-// definition of charts for SE3, to be used in gtsam framework
-namespace gtsam {
-typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
-template<>
-struct DefaultChart<SE3> {
-  typedef SE3 type;
-  typedef Eigen::Matrix<double, 6, 1> vector;
-  static vector local(const SE3& origin, const SE3& other) {
-    vector diff;
-    SE3CoefficientImplementation::localCoordinates(origin, other, &diff);
-    return diff;
-  }
-  static SE3 retract(const SE3& origin, const vector& d) {
-    SE3 retracted;
-    SE3CoefficientImplementation::retract(origin, d, &retracted);
-    return retracted;
-  }
-  static int getDimension(const SE3& origin) {
-    return 6;
-  }
-};
-
-} //namespace gtsam
-
-
-// Wrapper to enable numerical differentiation on SlerpSE3Evaluator::evaluate
-class ExpressionValueWrapper {
- private:
-  Expression<ValueType> expression_;
-  const Values& initialCoefficients_;
-
- public:
-  ExpressionValueWrapper(const Expression<ValueType>& expression,
-                         const Values& initialCoefficients) : expression_(expression),
-                         initialCoefficients_(initialCoefficients){
-
-  }
-  ~ExpressionValueWrapper() {}
-
-  ChartValue<ValueType> evaluate(const ChartValue<ValueType>& x, int arg) {
-    std::set<Key>::const_iterator it = expression_.keys().begin();
-    if (arg) {++it;}
-    Key key = *it;
-
-    Values values(initialCoefficients_);
-    values.update(key,x.value());
-
-    ValueType result = expression_.value(values);
-
-    return convertToChartValue<ValueType>(result);
-  }
-};
-
 
 // Expression to calculate relative measurement between 2 SE3 values
 // \todo AG move this to trajectory maintainer at some point (this replaces relative pose factor functionality)
 ValueType relativeMeasurementExpression(const ValueType& interp1,
                                         const ValueType& interp2,
-                                        boost::optional<Eigen::Matrix<double,6,6>&>H1=boost::none,
-                                        boost::optional<Eigen::Matrix<double,6,6>&>H2=boost::none) {
+                                        gtsam::OptionalJacobian<6,6> H1,
+                                        gtsam::OptionalJacobian<6,6> H2) {
   if (H1) { *H1 = - Eigen::Matrix<double,6,6>::Identity(); }
   if (H2) { *H2 = Eigen::Matrix<double,6,6>::Identity(); }
 
-  return ValueType(gtsam::DefaultChart<ValueType>::local(interp1, interp2));
+  return ValueType(gtsam::traits<ValueType>::Local(interp1, interp2));
 }
 
 // test for correct keys and evaluation function in Slerp SE3 curves
-TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
+TEST(CurvesTestSuite, testSlerpSE3Evaluation) {
   SlerpSE3Curve curve;
   const double t[] = {0, 10};
   const double evalTime = 5;
@@ -141,26 +56,12 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionKeysAndEvaluation) {
   // interpolate curve
   curve.fitCurve(times, values);
 
-  KeyCoefficientTime *rval0, *rval1;
-  curve.getCoefficientsAt(evalTime, &rval0, &rval1);
-
   // get expression at evaluation time
-  Expression<ValueType> expression = curve.getEvalExpression(evalTime);
-  std::set<Key> keys = expression.keys();
-
-  // Check keys
-  ASSERT_EQ(*(keys.begin()), rval0->key);
-  ASSERT_EQ(*(++(keys.begin())), rval1->key);
-
-  // get coefficients from curve
-  ValueType val0(SO3(rval0->coefficient.getValue()(3),rval0->coefficient.getValue().segment<3>(4)),rval0->coefficient.getValue().head<3>());
-  ValueType val1(SO3(rval1->coefficient.getValue()(3),rval1->coefficient.getValue().segment<3>(4)),rval1->coefficient.getValue().head<3>());
+  Expression<ValueType> expression = curve.getValueExpression(evalTime);
 
   // fill retrieved coefficients in gtsam values container
   Values gtsamValues;
-  gtsamValues.insert(rval0->key, val0);
-  gtsamValues.insert(rval1->key, val1);
-
+  curve.initializeGTSAMValues(&gtsamValues);
   // read out SE3 object from values container
   ValueType result = expression.value(gtsamValues);
   Eigen::Vector3d resultPos = result.getPosition();
@@ -225,80 +126,6 @@ TEST(CurvesTestSuite, testSlerpSE3CurveEvaluate) {
 
 }
 
-
-// compare 2 types of expressions for Slerp SE3 interpolation:
-// 1. Full Jacobian derivation & interpolation within 1 Expression (classic approach)
-// 2. Assembly of expression by atomic Jacobians and operations (composition, inverse, exponential)
-TEST(CurvesTestSuite, compareEvalExpressions1and2) {
-  SlerpSE3Curve curve;
-  const double t[] = {0, 10};
-  const double evalTime = 5;
-
-  // setup two SE3 objects
-  // ValueType poseA(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
-  ValueType poseA(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(1,1,1));
-  ValueType poseB(SO3(0.7071067811865476,SO3::Vector3(0,-0.7071067811865476,0)),SE3::Position(2,2,2));
-
-
-  std::vector<Time> times(t,t+2);
-  std::vector<ValueType> values;
-  values.push_back(poseA);
-  values.push_back(poseB);
-
-  // interpolate curve
-  curve.fitCurve(times, values);
-
-  KeyCoefficientTime *rval0, *rval1;
-  curve.getCoefficientsAt(evalTime, &rval0, &rval1);
-
-  // get expression at evaluation time
-  Expression<ValueType> expression1 = curve.getEvalExpression(evalTime);
-  Expression<ValueType> expression2 = curve.getEvalExpression2(evalTime);
-
-  std::set<Key> keys1 = expression1.keys();
-  std::set<Key> keys2 = expression2.keys();
-
-  // Check keys1
-  ASSERT_EQ(*(keys1.begin()), rval0->key);
-  ASSERT_EQ(*(++(keys1.begin())), rval1->key);
-  ASSERT_EQ(*(keys2.begin()), rval0->key);
-  ASSERT_EQ(*(++(keys2.begin())), rval1->key);
-
-  // get coefficients from curve
-  ValueType val0(SO3(rval0->coefficient.getValue()(3),rval0->coefficient.getValue().segment<3>(4)),rval0->coefficient.getValue().head<3>());
-  ValueType val1(SO3(rval1->coefficient.getValue()(3),rval1->coefficient.getValue().segment<3>(4)),rval1->coefficient.getValue().head<3>());
-
-  // fill retrieved coefficients in gtsam values container
-  Values gtsamValues, gtsamValues2;
-  gtsamValues.insert(rval0->key, val0);
-  gtsamValues.insert(rval1->key, val1);
-
-  // initialize objects
-  FastVector<Key> key = boost::assign::list_of(rval0->key)(rval1->key);
-  std::vector<gtsam::Matrix> analyticals;
-  for (unsigned i=0; i<key.size(); ++i) {
-    analyticals.push_back(gtsam::Matrix());
-  }
-  ValueType result2 = expression2.value(gtsamValues, boost::optional<std::vector<gtsam::Matrix>&>(analyticals));
-
-  // Test the jacobians
-  // Call analytical calculation of Jacobians (using BAD)
-  ExpressionValueWrapper expressionValueWrapper(expression2,gtsamValues);
-  // Call numerical calculation of Jacobians
-  gtsam::Matrix expectedH0 = gtsam::numericalDerivative11<ChartValue<ValueType>, ChartValue<ValueType> >
-  (boost::bind(&ExpressionValueWrapper::evaluate, &expressionValueWrapper, _1, 0), convertToChartValue<ValueType>(val0), 1e-3);
-  gtsam::Matrix expectedH1 = gtsam::numericalDerivative11<ChartValue<ValueType>, ChartValue<ValueType> >
-  (boost::bind(&ExpressionValueWrapper::evaluate, &expressionValueWrapper, _1, 1), convertToChartValue<ValueType>(val1), 1e-3);
-
-  // assert equality of Jacobians
-  for (int i=0; i<analyticals[0].size(); ++i){
-    ASSERT_NEAR(expectedH0(i), analyticals[0](i), 1e-3);
-  }
-  for (int i=0; i<analyticals[1].size(); ++i){
-    ASSERT_NEAR(expectedH1(i), analyticals[1](i), 1e-3);
-  }
-}
-
 // test basic gtsam interface of Slerp SE3 curves
 TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
 
@@ -322,37 +149,33 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
   measurements.push_back(ValueType(SO3(0.7660444431189781,SO3::Vector3(0,-0.6427876096865393,0)),SE3::Position(8,8,8)));
 
   // Fit a curve
-  curve.fitCurve(times, coefficients);
+  std::vector<gtsam::Key> outKeys;
+  curve.fitCurve(times, coefficients, &outKeys);
 
   // Populate GTSAM values
-  KeyCoefficientTime *rval0, *rval1;
   Values initials, expected;
-  for(int i=0; i< coefficients.size(); i++) {
-    curve.getCoefficientsAt(times[i], &rval0, &rval1);
-    Key key;
-    if (i == coefficients.size() - 1) {
-      key = rval1->key;
-    } else {
-      key = rval0->key;
-    }
-    initials.insert(key,ValueType(SO3(1,SO3::Vector3(0.0,0.0,0.0)),SE3::Position(0.0,0.0,0.0)));
-    expected.insert(key,coefficients[i]);
+  curve.initializeGTSAMValues(&initials);
+  for (size_t i = 0; i < outKeys.size(); ++i) {
+    expected.insert(outKeys[i],coefficients[i]);
   }
 
   // Noise models
-  noiseModel::Diagonal::shared_ptr measNoiseModel = noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1));
-  noiseModel::Diagonal::shared_ptr priorNoiseModel = noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+  gtsam::Vector6 measNoise;
+  measNoise << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1;
+  gtsam::Vector6 priorNoise;
+  priorNoise << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+  gtsam::noiseModel::Diagonal::shared_ptr measNoiseModel = gtsam::noiseModel::Diagonal::
+      Sigmas(measNoise);
+  gtsam::noiseModel::Diagonal::shared_ptr priorNoiseModel = gtsam::noiseModel::Diagonal::
+      Sigmas(priorNoise);
 
   // Get expressions and build the graph
   NonlinearFactorGraph graph;
-  for(int i=0; i < measurements.size(); i++) {
+  for(size_t i=0; i < measurements.size(); i++) {
 
-    Expression<ChartValue<ValueType> > predicted(convertToChartValue<ValueType>,
-                                                 curve.getEvalExpression(measTimes[i]));
+    Expression<ValueType> predicted(curve.getValueExpression(measTimes[i]));
 
-    ExpressionFactor<ChartValue<ValueType> > f(measNoiseModel,
-                                               ChartValue<ValueType>(measurements[i]),
-                                               predicted);
+    ExpressionFactor<ValueType> f(measNoiseModel, measurements[i], predicted);
     graph.add(f);
 
     // Assert that error is null for expected values
@@ -361,10 +184,8 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionGTSAMoptimization) {
     CHECK((error).cwiseAbs().maxCoeff() < 1e-6);
   }
   // Add a prior of 0 on the first coefficient
-  curve.getCoefficientsAt(0, &rval0, &rval1);
-  Expression<ValueType> leaf1(rval0->key);
-  Expression<ChartValue<ValueType> > prior(convertToChartValue<ValueType>, leaf1);
-  graph.add(ExpressionFactor<ChartValue<ValueType> >(priorNoiseModel,ChartValue<ValueType>(ValueType(SO3(1.0,SO3::Vector3(0.0,0.0,0.0)),SE3::Position(0.0,0.0,0.0))),prior));
+  Expression<ValueType> prior(outKeys[0]);
+  graph.add(ExpressionFactor<ValueType>(priorNoiseModel,ValueType(SO3(1.0,SO3::Vector3(0.0,0.0,0.0)),SE3::Position(0.0,0.0,0.0)),prior));
 
   // Optimize
   gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, initials).optimize();
@@ -394,39 +215,98 @@ TEST(CurvesTestSuite, testSlerpSE3ExpressionDynamicKeys){
   measurements.push_back(ValueType(SO3(0.6427876096865394,SO3::Vector3(0,-0.766044443118978,0)),SE3::Position(14.316911861358276,10,10.377680849309444)));
 
   // Fit a curve
-  curve.fitCurve(times, coefficients);
-  noiseModel::Diagonal::shared_ptr measNoiseModel = noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1));
+  std::vector<gtsam::Key> outKeys;
+  curve.fitCurve(times, coefficients, &outKeys);
+
+  gtsam::Vector6 measNoise;
+  measNoise << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1;
+  gtsam::noiseModel::Diagonal::shared_ptr measNoiseModel = gtsam::noiseModel::Diagonal::Sigmas(measNoise);
 
   // Populate GTSAM values
-  KeyCoefficientTime *rval0, *rval1;
-  Values initials, expected;
-  for(int i=0; i< coefficients.size(); i++) {
-    curve.getCoefficientsAt(times[i], &rval0, &rval1);
-    Key key;
-    if (i == coefficients.size() - 1) {
-      key = rval1->key;
-    } else {
-      key = rval0->key;
-    }
-    expected.insert(key,coefficients[i]);
-  }
+  Values expected;
+  curve.initializeGTSAMValues(&expected);
 
   // create ExpressionFactor which represents relative pose relation (former Relative pose factor)
   for (int i=0; i<3; ++i) {
-    Expression<ChartValue<ValueType> > relative (relativeMeasurementExpression, curve.getEvalExpression(tmeas[i]), curve.getEvalExpression(tmeas[i]+durations[i]));
-    ExpressionFactor<ChartValue<ValueType> > factor(measNoiseModel,ChartValue<ValueType>(measurements[i]), relative);
-    const FastVector<Key> keys = factor.keys();
+    Expression<ValueType> relative(relativeMeasurementExpression, curve.getValueExpression(tmeas[i]), curve.getValueExpression(tmeas[i]+durations[i]));
+    ExpressionFactor<ValueType> factor(measNoiseModel,measurements[i], relative);
 
-    // check that the ExpressionFactor dynamically handles duplicate keys
-    ASSERT_EQ(factor.keys().size(),i+2);
-    Values::iterator itGTSAM = expected.begin();
-    for(FastVector<Key>::const_iterator it = factor.keys().begin(); it!= factor.keys().end(); ++it) {
-      ASSERT_EQ(*it,(*itGTSAM).key);
-      ++itGTSAM;
-    }
     Vector error = factor.unwhitenedError(expected);
     CHECK((error).cwiseAbs().maxCoeff() < 1e-6);
   }
+}
+
+ExpressionFactor<ValueType>
+getFactorRelativeMeasurement(const SlerpSE3Curve& curve,
+                             Time timeA, Time timeB,
+                             ValueType measurement,
+                             noiseModel::Diagonal::shared_ptr noiseModel) {
+  Expression<ValueType> TA(curve.getValueExpression(timeA));
+  Expression<ValueType> TB(curve.getValueExpression(timeB));
+  Expression<ValueType> predicted = kindr::minimal::invertAndCompose(TA,TB);
+  return ExpressionFactor<ValueType>(noiseModel, measurement, predicted);
+}
+
+TEST(CurvesTestSuite, testSlerpSE3RelativeExpression){
+  SlerpSE3Curve curve;
+  // Data taken from the MITb dataset
+  // Populate expected
+  const double t[] = {0, 1, 2};
+  std::vector<Time> times(t,t+3);
+  std::vector<ValueType> expected;
+  expected.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
+  expected.push_back(ValueType(SO3(0.999967,SO3::Vector3(0,0,0.00760239)),SE3::Position(2.03998,0.00824351,0)));
+  expected.push_back(ValueType(SO3(0.999803,SO3::Vector3(0,0,0.019962)),SE3::Position(4.26771,0.0576598,0)));
+
+  // Populate initials
+  std::vector<ValueType> initials;
+  initials.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
+  initials.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
+  initials.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
+
+  // Populate measurements
+  const double tmeas[] = {1, 2};
+  std::vector<Time> measTimes(tmeas,tmeas+2);
+  std::vector<ValueType> measurements;
+  measurements.push_back(ValueType(SO3(0.99997,SO3::Vector3(0,0,0.0072259)),SE3::Position(2.0393,0.003006,0)));
+  measurements.push_back(ValueType(SO3(0.99991,SO3::Vector3(0,0,0.013399)),SE3::Position(2.2275,0.023206,0)));
+
+  // Fit curve
+  std::vector<gtsam::Key> outKeys;
+  curve.fitCurve(times, initials, &outKeys);
+
+  //Noise models
+  Vector6 measNoise;
+  measNoise << 0.1, 0.1, 0.001, 0.1*M_PI/180, 0.1*M_PI/180, 0.5*M_PI/180;
+  noiseModel::Diagonal::shared_ptr measNoiseModel = noiseModel::Diagonal::Sigmas(measNoise);
+  Vector6 priNoise;
+  priNoise << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+  noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas(priNoise);
+
+  NonlinearFactorGraph graph;
+  Values gtsamInitial, gtsamExpected;
+  curve.initializeGTSAMValues(&gtsamInitial);
+  for(size_t i=0; i< outKeys.size(); i++) {
+    gtsamExpected.insert(outKeys[i],expected[i]);
+  }
+
+  //prior
+  Expression<ValueType> predictedPrior = curve.getValueExpression(times[0]);
+  ExpressionFactor<ValueType> f(priorNoise, initials[0], predictedPrior);
+  graph.push_back(f);
+
+  //relative measurements
+  graph.push_back(getFactorRelativeMeasurement(curve, measTimes[0]-1, measTimes[0],
+                                               measurements[0], measNoiseModel));
+  graph.push_back(getFactorRelativeMeasurement(curve, measTimes[1]-1, measTimes[1],
+                                               measurements[1], measNoiseModel));
+
+  // optimize the trajectory
+  gtsam::LevenbergMarquardtParams params;
+  gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, gtsamInitial, params).optimize();
+
+
+  ASSERT_TRUE(gtsamExpected.equals(result, 0.5));
 }
 
 TEST(CurvesTestSuite, testSlerpSE3ExpressionJacobians){

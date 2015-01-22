@@ -8,7 +8,7 @@
 #define CURVES_LINEAR_INTERPOLATION_VECTOR_SPACE_CURVE_HPP
 
 #include "VectorSpaceCurve.hpp"
-#include "HermiteCoefficientManager.hpp"
+#include "LocalSupport2CoefficientManager.hpp"
 
 namespace curves {
 template<int N>
@@ -25,30 +25,6 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
 
-  /// \brief Get the coefficients that are active at a certain time.
-  virtual void getCoefficientsAt(const Time& time,
-                                 Coefficient::Map* outCoefficients) const;
-
-  /// \brief Get the KeyCoefficientTimes that are active at a certain time.
-  void getCoefficientsAt(const Time& time,
-                         KeyCoefficientTime** outCoefficient0,
-                         KeyCoefficientTime** outCoefficient1) const;
-
-  /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
-  virtual void getCoefficientsInRange(Time startTime, 
-                                      Time endTime, 
-                                      Coefficient::Map* outCoefficients) const;
-
-  /// \brief Get all of the curve's coefficients.
-  virtual void getCoefficients(Coefficient::Map* outCoefficients) const;
-
-  /// \brief Set a coefficient.
-  virtual void setCoefficient(Key key, const Coefficient& value);
-
-  /// \brief Set coefficients.
-  virtual void setCoefficients(const Coefficient::Map& coefficients);
-
-
   /// The first valid time for the curve.
   virtual Time getMinTime() const;
 
@@ -59,7 +35,8 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   /// Try to make the curve fit to the values.
   /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
-                      const std::vector<ValueType>& values);
+                      const std::vector<ValueType>& values,
+                      std::vector<Key>* outKeys = NULL);
 
   /// \brief Fit a new curve to these data points.
   ///
@@ -82,12 +59,24 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
   /// \brief Get an Expression evaluating the curve at this time
-  virtual gtsam::Expression<ValueType> getEvalExpression(const Time& time) const;
+  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const;
 
-  virtual void setTimeRange(Time minTime, Time maxTime);
+  virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const;
+
+  /// Initialize a GTSAM values structure with the desired keys
+  virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
+
+  /// Initialize a GTSAM values structure for all keys
+  virtual void initializeGTSAMValues(gtsam::Values* values) const;
+
+  // updates the relevant curve coefficients from the GTSAM values structure
+  virtual void updateFromGTSAMValues(const gtsam::Values& values);
 
  private:
-  HermiteCoefficientManager manager_;
+  typedef Eigen::Matrix<double,N,1> Coefficient;
+  typedef typename LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;
+  typedef typename LocalSupport2CoefficientManager<Coefficient>::CoefficientIter CoefficientIter;
+  LocalSupport2CoefficientManager<Coefficient> manager_;
 };
 
 } // namespace curves

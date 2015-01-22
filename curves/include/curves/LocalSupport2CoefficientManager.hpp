@@ -1,27 +1,60 @@
 /*
- * @file HermiteCoefficientManager.hpp
+ * @file LocalSupport2CoefficientManager.hpp
  * @date Aug 17, 2014
  * @author Paul Furgale, Abel Gawel, Renaud Dube
  */
 
-#ifndef CT_HERMITE_COEFFICIENT_MANAGER_HPP
-#define CT_HERMITE_COEFFICIENT_MANAGER_HPP
+#ifndef CT_LOCAL_SUPPORT_2_COEFFICIENT_MANAGER_HPP
+#define CT_LOCAL_SUPPORT_2_COEFFICIENT_MANAGER_HPP
 
+#include <Eigen/Core>
 #include <boost/unordered_map.hpp>
 #include <vector>
 #include <map>
 
-#include "KeyCoefficientTime.hpp"
+#include "gtsam/nonlinear/Expression.h"
 
 namespace curves {
 
-class HermiteCoefficientManager {
- public:
-  HermiteCoefficientManager();
-  virtual ~HermiteCoefficientManager();
+typedef boost::int64_t Time;
+typedef size_t Key;
 
-  /// Compare this Coeficient with another for equality.
-  bool equals(const HermiteCoefficientManager& other, double tol = 1e-9) const;
+template <class Coefficient>
+class LocalSupport2CoefficientManager {
+ public:
+  typedef Coefficient CoefficientType;
+
+  struct KeyCoefficient {
+    Key key;
+    CoefficientType coefficient;
+
+    KeyCoefficient(const Key key, const Coefficient& coefficient) :
+      key(key), coefficient(coefficient) {}
+
+    KeyCoefficient() {};
+
+    bool equals(const KeyCoefficient& other) const {
+      //todo Note: here we assume that == operator is implemented by the coefficient.
+      //Could not use gtsam traits as the gtsam namespace is not visible to this class.
+      //Is this correct?
+      return key == other.key && coefficient == other.coefficient;
+    }
+
+    bool operator==(const KeyCoefficient& other) const {
+      return this->equals(other);
+    }
+  };
+
+  typedef std::map<Time, KeyCoefficient> TimeToKeyCoefficientMap;
+  typedef typename TimeToKeyCoefficientMap::const_iterator CoefficientIter;
+  /// Key/Coefficient pairs
+  typedef boost::unordered_map<size_t, Coefficient> CoefficientMap;
+
+  LocalSupport2CoefficientManager();
+  virtual ~LocalSupport2CoefficientManager();
+
+  /// Compare this Coefficient manager with another for equality.
+  bool equals(const LocalSupport2CoefficientManager& other, double tol = 1e-9) const;
 
   /// Print the value of the coefficient, for debugging and unit tests
   void print(const std::string& str = "") const;
@@ -71,13 +104,9 @@ class HermiteCoefficientManager {
   ///
   /// This function fails if there is no coefficient associated
   /// with this key.
-  void setCoefficientByKey(Key key, const Coefficient& coefficient);
+  void updateCoefficientByKey(Key key, const Coefficient& coefficient);
 
   /// \brief set the coefficient associated with this key
-  ///
-  /// This function fails if there is no coefficient associated
-  /// with this key.
-  void setCoefficientVectorByKey(Key key, const Eigen::VectorXd& vector);
 
   /// \brief get the coefficient associated with this key
   Coefficient getCoefficientByKey(Key key) const;
@@ -90,25 +119,23 @@ class HermiteCoefficientManager {
   ///
   /// @returns true if it was successful
   bool getCoefficientsAt(Time time, 
-                         KeyCoefficientTime** outCoefficient0, KeyCoefficientTime** outCoefficient1) const;
-
-  std::vector<KeyCoefficientTime> getCoefficientsAt(Time time) const;
+                         CoefficientIter* outCoefficient0, CoefficientIter* outCoefficient1) const;
 
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
   void getCoefficientsInRange(Time startTime, 
                               Time endTime, 
-                              Coefficient::Map* outCoefficients) const;
+                              CoefficientMap* outCoefficients) const;
 
   /// \brief Get all of the curve's coefficients.
-  void getCoefficients(Coefficient::Map* outCoefficients) const;
+  void getCoefficients(CoefficientMap* outCoefficients) const;
 
   /// \brief Set coefficients.
   ///
   /// If any of these coefficients doen't exist, there is an error
-  void setCoefficients(const Coefficient::Map& coefficients);
+  void updateCoefficients(const CoefficientMap& coefficients);
 
   /// \brief return the number of coefficients
-  Key size() const;
+  size_t size() const;
 
   /// \brief clear the coefficients
   void clear();
@@ -119,22 +146,41 @@ class HermiteCoefficientManager {
   /// The one past the last valid time for the curve.
   Time getMaxTime() const;
 
+  CoefficientIter coefficientBegin() const {
+    return timeToCoefficient_.begin();
+  }
+
+  CoefficientIter coefficientEnd() const {
+    return timeToCoefficient_.end();
+  }
+
   /// Check the internal consistency of the data structure
   /// If doExit is true, the function will call exit(0) at
   /// the end. This is useful for gtest death tests
   void checkInternalConsistency(bool doExit = false) const;
 
+  /// Initialize a GTSAM values structure with the desired keys
+  void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
+
+  /// Initialize a GTSAM values structure for all keys
+  void initializeGTSAMValues(gtsam::Values* values) const;
+
+  // updates the relevant curve coefficients from the GTSAM values structure
+  void updateFromGTSAMValues(const gtsam::Values& values);
+
  private:
   /// Key to coefficient mapping
-  boost::unordered_map<Key, KeyCoefficientTime> coefficients_;
+  boost::unordered_map<Key, CoefficientIter> keyToCoefficient_;
 
   /// Time to coefficient mapping
-  std::map<Time, KeyCoefficientTime*> timeToCoefficient_;
+  TimeToKeyCoefficientMap timeToCoefficient_;
 
-  bool hasCoefficientAtTime(Time time, std::map<Time, KeyCoefficientTime*>::iterator *it);
+  bool hasCoefficientAtTime(Time time, CoefficientIter *it, double tol = 0);
+
 };
 
 } // namespace curves
 
+#include "LocalSupport2CoefficientManager-inl.hpp"
 
-#endif /* CT_HERMITE_COEFFICIENT_MANAGER_HPP */
+#endif /* CT_LOCAL_SUPPORT_2_COEFFICIENT_MANAGER_HPP */

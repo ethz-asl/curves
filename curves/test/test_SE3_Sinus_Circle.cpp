@@ -8,11 +8,10 @@
 
 #include <gtest/gtest.h>
 #include <curves/SlerpSE3Curve.hpp>
-#include <curves/SE3CoefficientImplementation.hpp>
 #include "gtsam/nonlinear/Expression.h"
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
-#include "gtsam_unstable/nonlinear/ExpressionFactor.h"
+#include "gtsam/nonlinear/ExpressionFactor.h"
 #include <gtsam/base/numericalDerivative.h>
 
 #include <Eigen/Core>
@@ -29,75 +28,14 @@ using namespace std;
 using namespace gtsam;
 
 typedef SlerpSE3Curve::ValueType ValueType;
-typedef SlerpSE3Curve::EvaluatorTypePtr EvaluatorTypePtr;
+typedef SlerpSE3Curve::CoefficientIter CoefficientIter;
 
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
 typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
 
-// definition of traits for SE3 (to act as gtsam values)
-namespace gtsam {
-namespace traits {
-
-template<>
-struct equals<SE3> {
-  typedef SE3 type;
-  typedef bool result_type;
-  bool operator()(const SE3& a, const SE3& b, double tol) {
-    Eigen::Matrix<double,6,1> delta;
-
-    cout << "error " << (a.log() -b.log()).cwiseAbs().maxCoeff() << endl;
-    return (a.log() -b.log()).cwiseAbs().maxCoeff() < tol;
-  }
-};
-
-template<>
-struct print<SE3> {
-  typedef SE3 type;
-  typedef void result_type;
-  void operator()(const SE3& obj, const std::string& str) {
-    // make nicer layout
-    std:: cout << str << std::endl;
-    std:: cout << "Position: " << obj.getPosition() << std::endl;
-    std:: cout << "Rotation: "<< obj.getRotation() << std::endl;
-  }
-};
-
-template <>
-struct is_manifold<ChartValue<ValueType> > : public boost::true_type {};
-} // namespace traits
-} // namespace gtsam
-
-// definition of charts for SE3, to be used in gtsam framework
-namespace gtsam {
-typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
-template<>
-struct DefaultChart<SE3> {
-  typedef SE3 type;
-  typedef Eigen::Matrix<double, 6, 1> vector;
-  static vector local(const SE3& origin, const SE3& other) {
-    vector diff;
-    SE3CoefficientImplementation::localCoordinates(origin, other, &diff);
-    return diff;
-  }
-  static SE3 retract(const SE3& origin, const vector& d) {
-    SE3 retracted;
-    SE3CoefficientImplementation::retract(origin, d, &retracted);
-    return retracted;
-  }
-  static int getDimension(const SE3& origin) {
-    return 6;
-  }
-};
-
-} //namespace gtsam
-
-
 // test a greater example of using more factors, creating gtsam factor graph and optimizing it
 TEST(CurvesTestSuite, testSE3AbsolutePoseFactor_3333_SOxR3_GPS) {
-
-  typedef SlerpSE3Curve::ValueType ValueType;
-  typedef SlerpSE3Curve::EvaluatorTypePtr EvaluatorTypePtr;
 
   // load the true coefficients' values for comparison
   double val;
@@ -107,7 +45,7 @@ TEST(CurvesTestSuite, testSE3AbsolutePoseFactor_3333_SOxR3_GPS) {
   CHECK(coeffData.good()) << "error in csv read in";
   getline (coeffData, value, ','); // initial comma
   std::vector<Time> times;
-  std::vector<ValueType> valuesCoef;
+  std::vector<ValueType> valuesCoef, initialsCoef;
   Eigen::VectorXd m(7);
   SE3 pose;
   int nCoef = 401;
@@ -123,6 +61,7 @@ TEST(CurvesTestSuite, testSE3AbsolutePoseFactor_3333_SOxR3_GPS) {
     }
     pose = SE3(SO3(m[3], m[4], m[5], m[6]),(SE3::Position() << m[0],m[1],m[2]).finished());
     valuesCoef.push_back(pose);
+    initialsCoef.push_back(SE3(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
     counterCoef++;
   }
   coeffData.close();
@@ -130,7 +69,8 @@ TEST(CurvesTestSuite, testSE3AbsolutePoseFactor_3333_SOxR3_GPS) {
 
   // fit curve to the coefficients (only time spacing is important here, but constructor demands coefficients as well)
   SlerpSE3Curve curve;
-  curve.fitCurve(times, valuesCoef);
+  std::vector<gtsam::Key> outKeys;
+  curve.fitCurve(times, initialsCoef, &outKeys);
 
   // read the GPS measurements from file
   std::ifstream GPSData ("3D_sinus_circle_GPS_clean.csv");
@@ -158,13 +98,15 @@ TEST(CurvesTestSuite, testSE3AbsolutePoseFactor_3333_SOxR3_GPS) {
 
   }
   GPSData.close();
-  //cout << "valuesGPS " << valuesGPS.size();
 
   // noise models
-  gtsam::noiseModel::Diagonal::shared_ptr GPSNoise = gtsam::noiseModel::Diagonal::
-      Sigmas((gtsam::Vector(DIM) << 0.05, 0.05, 0.05, 0.05, 0.05, 0.05)); //noise model for GPS
-  gtsam::noiseModel::Diagonal::shared_ptr priorNoise = gtsam::noiseModel::Diagonal::
-      Sigmas((gtsam::Vector(DIM) << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)); //noise model for prior
+  Vector6 gpsNoise;
+  gpsNoise << 0.05, 0.05, 0.05, 0.05, 0.05, 0.05;
+  Vector6 priNoise;
+  priNoise << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+
+  noiseModel::Diagonal::shared_ptr GPSNoise = noiseModel::Diagonal::Sigmas(gpsNoise);
+  noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas(priNoise);
 
   // factor graph
   gtsam::NonlinearFactorGraph graph;
@@ -172,39 +114,24 @@ TEST(CurvesTestSuite, testSE3AbsolutePoseFactor_3333_SOxR3_GPS) {
   // prior factor (an SE3AbsolutePoseFactor at the good first coefficient)
   SE3 prior(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0));
 
-  Expression<ChartValue<ValueType> > predictedPrior(convertToChartValue<ValueType>,
-                                                    curve.getEvalExpression2(times[0]));
+  Expression<ValueType> predictedPrior = curve.getValueExpression(times[0]);
 
-  ExpressionFactor<ChartValue<ValueType> > f(priorNoise,
-                                             ChartValue<ValueType>(prior),
-                                             predictedPrior);
+  ExpressionFactor<ValueType> f(priorNoise, prior, predictedPrior);
   graph.add(f);
 
-  for (int i=0; i < valuesGPS.size(); ++i) {
-    Expression<ChartValue<ValueType> > predicted(convertToChartValue<ValueType>,
-                                                 curve.getEvalExpression2(timesGPS[i]));
+  for (size_t i=0; i < valuesGPS.size(); ++i) {
+    Expression<ValueType> predicted = curve.getValueExpression(timesGPS[i]);
 
-    ExpressionFactor<ChartValue<ValueType> > f(GPSNoise,
-                                               ChartValue<ValueType>(valuesGPS[i]),
-                                               predicted);
+    ExpressionFactor<ValueType> f(GPSNoise, valuesGPS[i], predicted);
     graph.add(f);
   }
 
   // Populate GTSAM values
-  KeyCoefficientTime *rval0, *rval1;
+  CoefficientIter rval0, rval1;
   Values initials, expected;
-  for(int i=0; i< valuesCoef.size(); i++) {
-    curve.getCoefficientsAt(times[i], &rval0, &rval1);
-    Key key;
-    // todo use another method for getting the keys
-    // here a if is necessary since t=maxtime the coef is in rval1
-    if (i == valuesCoef.size() - 1) {
-      key = rval1->key;
-    } else {
-      key = rval0->key;
-    }
-    initials.insert(key,ValueType(SO3(1,SO3::Vector3(0.0,0.0,0.0)),SE3::Position(0.0,0.0,0.0)));
-    expected.insert(key,valuesCoef[i]);
+  curve.initializeGTSAMValues(&initials);
+  for(size_t i=0; i< outKeys.size(); i++) {
+    expected.insert(outKeys[i],valuesCoef[i]);
   }
 
   // optimize the trajectory
