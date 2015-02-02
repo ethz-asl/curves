@@ -309,6 +309,82 @@ TEST(CurvesTestSuite, testSlerpSE3RelativeExpression){
   ASSERT_TRUE(gtsamExpected.equals(result, 0.5));
 }
 
+// todo move to another file / place
+double multiplyVectors(Eigen::Vector3d a, Eigen::Vector3d b,
+                       OptionalJacobian<1,3> H) {
+
+  if(H)
+    *H = a.transpose();
+
+  return a.transpose() * b;
+}
+
+TEST(CurvesTestSuite, testPointProjection) {
+  const double t[] = {0, 10};
+  std::vector<Time> times(t,t+2);
+  std::vector<ValueType> initials;
+  initials.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
+  initials.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0.9,0,0)));
+
+  std::vector<ValueType> expected;
+  expected.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(0,0,0)));
+  expected.push_back(ValueType(SO3(1,SO3::Vector3(0,0,0)),SE3::Position(1,0,0)));
+
+  // Fit curve
+  std::vector<gtsam::Key> outKeys;
+  SlerpSE3Curve curve;
+  curve.fitCurve(times, initials, &outKeys);
+
+  Vector6 priNoise;
+  priNoise << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+  noiseModel::Diagonal::shared_ptr priorNoise = noiseModel::Diagonal::Sigmas(priNoise);
+  Eigen::Matrix<double,1,1> lNoise;
+  lNoise << 0.05;
+  gtsam::noiseModel::Diagonal::shared_ptr laserNoise = gtsam::noiseModel::Diagonal::
+      Sigmas(lNoise);
+
+  NonlinearFactorGraph graph;
+  Values gtsamInitial, gtsamExpected;
+  curve.initializeGTSAMValues(&gtsamInitial);
+  for(size_t i=0; i< outKeys.size(); i++) {
+    gtsamExpected.insert(outKeys[i],expected[i]);
+  }
+
+  //prior
+  Expression<ValueType> predictedPrior = curve.getValueExpression(times[0]);
+  ExpressionFactor<ValueType> f(priorNoise, initials[0], predictedPrior);
+  graph.push_back(f);
+
+  SE3::Position mu_W_SA, mu_W_SB, mu_A_SA, mu_B_SB;
+  mu_A_SA << 0, 1, 0;
+  mu_B_SB << -1, 1, 0;
+
+  Expression<Eigen::Vector3d> E_mu_A_SA(mu_A_SA);
+  Expression<Eigen::Vector3d> E_mu_B_SB(mu_B_SB);
+
+  Expression<SE3> T_W_A(curve.getValueExpression(times[0]));
+  Expression<SE3> T_W_B(curve.getValueExpression(times[1]));
+
+  Expression<Eigen::Vector3d> pointTransformedA = kindr::minimal::transform(T_W_A, E_mu_A_SA);
+  Expression<Eigen::Vector3d> pointTransformedB = kindr::minimal::transform(T_W_B, E_mu_B_SB);
+
+  Expression<Eigen::Vector3d> substracted = kindr::minimal::vectorDifference(pointTransformedA, pointTransformedB);
+
+  Eigen::Vector3d combinedNormal(-1, -1, 0);
+  combinedNormal /= combinedNormal.norm();
+  Expression<double> error(boost::bind(&multiplyVectors,combinedNormal,_1,_2),substracted);
+
+  ExpressionFactor<double> matchFactor(laserNoise,(double (0)), error);
+  graph.push_back(matchFactor);
+
+  // optimize the trajectory
+  gtsam::LevenbergMarquardtParams params;
+  gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, gtsamInitial, params).optimize();
+
+  ASSERT_TRUE(gtsamExpected.equals(result, 0.5));
+}
+
+
 TEST(CurvesTestSuite, testSlerpSE3ExpressionJacobians){
   // todo AG-RD
   ASSERT_TRUE(true);
