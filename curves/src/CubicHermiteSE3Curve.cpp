@@ -126,64 +126,150 @@ void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
   manager_.insertCoefficients(times, coefficients, outKeys);
 }
 
+CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::calculateSlope(const Time& timeA,
+                                                                          const Time& timeB,
+                                                                          const ValueType& coeffA,
+                                                                          const ValueType& coeffB) const {
+  Time period = timeB - timeA;
+  SE3 T_A_B = kindr::minimal::invertAndComposeImplementation(
+      coeffA,
+      coeffB,
+      boost::none,
+      boost::none);
+  kindr::minimal::AngleAxisTemplate<double> aa_A_B(T_A_B.getRotation());
+  double angle = aa_A_B.angle();
+  Eigen::Vector3d angularVelocity = aa_A_B.axis() * angle/period;
+  Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period;
+  // note: unit of derivative is m/ns for first 3 and rad/ns for last 3 entries
+  DerivativeType rVal;
+  rVal << velocity, angularVelocity;
+  return rVal;
+  //  return DerivativeType(velocity, angularVelocity);
+}
 void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
                                   const std::vector<ValueType>& values,
                                   std::vector<Key>* outKeys) {
 
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
-  CHECK_GE(times.size() + manager_.size(), 3) << "Hermite curve must be defined by > 2 coefficients";
 
   // construct the Hemrite coefficients
   std::vector<Coefficient> coefficients;
-  // fill the coefficients with ValueType and DerivativeType
-  // use Catmull-Rom interpolation for derivatives on knot points
+  DerivativeType derivative;
+  //cases:
   for (size_t i = 0; i < times.size(); ++i) {
 
-    DerivativeType derivative;
-    // catch the boundaries (i == 0 && i == max)
-    if ((i + manager_.size()) == 0) {
-      if (times.size() > 1) {
+    // only 1 new value in extend
+    if (times.size() == 1) {
+      // manager is empty
+      if (manager_.size() == 0) {
+        derivative << 0,0,0,0,0,0;
 
-        Time period = times[1] - times[0];
-        SE3 T_A_B = kindr::minimal::invertAndComposeImplementation(values[0], values[1], boost::none, boost::none);
-        SO3 q_A_B = T_A_B.getRotation();
-        kindr::minimal::AngleAxisTemplate<double> aa_A_B(q_A_B);
-        double angle = aa_A_B.angle();
-        Eigen::Vector3d angularVelocity = aa_A_B.axis() * angle/period;
-        Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period;
+        // 1 value in manager (2 in total)
+      } else if (manager_.size() == 1) {
+        // get latest coefficient from manager
+        CoefficientIter last = manager_.coefficientBegin();
+        Time t = last->first;
+        Time t1 = times[0];
+        SE3 se = last->second.coefficient.getTransformation();
+        SE3 se1 = values[0];
+        // calculate slope
         // note: unit of derivative is m/ns for first 3 and rad/ns for last 3 entries
-        derivative << velocity, angularVelocity;
+        derivative = calculateSlope(last->first,
+                                    times[0],
+                                    last->second.coefficient.getTransformation(),
+                                    values[0]);
+        // update previous coefficient
+        Coefficient updated(last->second.coefficient.getTransformation(), derivative);
+        manager_.updateCoefficientByKey(last->second.key, updated);
+        // more than 1 values in manager
+      } else if (manager_.size() > 1) {
+        // get latest 2 coefficients from manager
+        CoefficientIter rVal0, rVal1;
+        manager_.getCoefficientsAt(manager_.coefficientEnd()->first,
+                                   &rVal0,
+                                   &rVal1);
+        rVal0->second.coefficient;
+        rVal1->second.coefficient;
 
+        // update derivative of previous coefficient
+        DerivativeType derivative0;
+        derivative0 << calculateSlope(rVal0->first,
+                                      times[0],
+                                      rVal0->second.coefficient.getTransformation(),
+                                      values[0]);
+        Coefficient updated(rVal1->second.coefficient.getTransformation(), derivative0);
+        manager_.updateCoefficientByKey(rVal0->second.key, updated);
+
+        // calculate slope
+        derivative << calculateSlope(rVal1->first,
+                                     times[0],
+                                     rVal1->second.coefficient.getTransformation(),
+                                     values[0]);
+      }
+      // only 2 new values in extend
+    } else if (times.size() == 2) {
+
+      // manager is empty
+      if (manager_.size() == 0) {
+
+        derivative << calculateSlope(times[0],
+                                     times[1],
+                                     values[0],
+                                     values[1]);
+
+        // manager has at least one value
       } else {
 
-        // set velocities == 0 for start point if only one coefficient
-        derivative << 0,0,0,0,0,0;
+        if (i == 0) {
+          // get latest coefficient from manager
+          CoefficientIter last = manager_.coefficientEnd();
+          derivative << calculateSlope(last->first,
+                                       times[1],
+                                       last->second.coefficient.getTransformation(),
+                                       values[1]);
+        } else {
+          derivative << calculateSlope(times[0],
+                                       times[1],
+                                       values[0],
+                                       values[1]);
+        }
       }
 
-    } else if (i == times.size() - 1) {
+      // several new values in extend
+    } else if (times.size() > 2) {
 
-      Time period = times[i] - times[i-1];
-      SE3 T_A_B = kindr::minimal::invertAndComposeImplementation(values[i-1], values[i], boost::none, boost::none);
-      SO3 q_A_B = T_A_B.getRotation();
-      kindr::minimal::AngleAxisTemplate<double> aa_A_B(q_A_B);
-      double angle = aa_A_B.angle();
-      Eigen::Vector3d angularVelocity = aa_A_B.axis() * angle/period;
-      Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period;
-      // note: unit of derivative is m/ns for first 3 and rad/ns for last 3 entries
-      derivative << velocity, angularVelocity;
+      if (i == 0) {
+        // it is the first coefficient in curve
+        if (manager_.size() == 0) {
 
-    } else {
+          derivative << calculateSlope(times[0],
+                                       times[1],
+                                       values[0],
+                                       values[1]);
+          // i is between coefficients
+        } else {
+          CoefficientIter last = manager_.coefficientEnd();
+          derivative << calculateSlope(last->first,
+                                       times[1],
+                                       last->second.coefficient.getTransformation(),
+                                       values[1]);
+        }
 
-      Time period = times[i+1] - times[i-1];
-      SE3 T_A_B = kindr::minimal::invertAndComposeImplementation(values[i-1], values[i+1], boost::none, boost::none);
-      SO3 q_A_B = T_A_B.getRotation();
-      kindr::minimal::AngleAxisTemplate<double> aa_A_B(q_A_B);
-      double angle = aa_A_B.angle();
-      Eigen::Vector3d angularVelocity = aa_A_B.axis() * angle/period;
-      Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period;
-      // note: unit of derivative is m/ns for first 3 and rad/ns for last 3 entries
-      derivative << velocity, angularVelocity;
+        // i is between coefficients
+      } else if (i < times.size()-1) {
+        // get latest coefficient from manager
+        derivative << calculateSlope(times[i-1],
+                                     times[i+1],
+                                     values[i-1],
+                                     values[i+1]);
+        // i is last coefficient
+      } else {
+        derivative << calculateSlope(times[i-1],
+                                     times[i],
+                                     values[i-1],
+                                     values[i]);
 
+      }
     }
     coefficients.push_back(Coefficient(values[i], derivative));
   }

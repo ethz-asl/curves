@@ -170,6 +170,12 @@ class CubicHermiteSE3Curve : public SE3Curve {
   // return number of coefficients curve is composed of
   int size() const;
 
+  /// \brief calculate the slope between 2 coefficients
+  DerivativeType calculateSlope(const Time& timeA,
+                                const Time& timeB,
+                                const ValueType& coeffA,
+                                const ValueType& coeffB) const;
+
   /// Extend the curve so that it can be evaluated at these times.
   /// Try to make the curve fit to the values.
   /// Note: Assumes that extend times strictly increase the curve time
@@ -323,7 +329,7 @@ EVector3 velocitiesFromHermiteTransformation(
       &velocitiesFromHermiteTransformationImplementation, T);
 }
 
-/// \brief Rotate a point.
+/// \brief Scale a point.
 ///
 /// This is syntatic sugar to be able to write
 /// Expression<Eigen::Vector3d> walpha = w * alpha;
