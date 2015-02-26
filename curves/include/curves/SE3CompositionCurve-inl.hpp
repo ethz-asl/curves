@@ -1,10 +1,20 @@
 /*
  * @file CompositionCurve-inl.hpp
  * @date Feb 06, 2015
- * @author Abel Gawel, Renaud Dubé, Mike Bosse
+ * @author Renaud Dubé, Abel Gawel, Mike Bosse
  */
 
+// COMPOSITION_STRATEGY is used to select the strategy for composing the
+// correction curve with the base curve at the evaluation time t:
+// (1) corr(t) * base(t) is implemented
+// (2) corr is evaluated at the coefficient times (t1, t2) where the interpolation
+//     on base is computed resulting in
+//     interpolation(corr(t1) * base(t1), corr(t2) * base(t2), alpha)
+
+#define COMPOSITION_STRATEGY 1
+
 #include "SE3CompositionCurve.hpp"
+#include "../test/test_Helpers.hpp"
 
 namespace curves{
 
@@ -19,8 +29,50 @@ SE3CompositionCurve<C1, C2>::~SE3CompositionCurve() {
 }
 template <class C1, class C2>
 void SE3CompositionCurve<C1, C2>::print(const std::string& str) const {
+  std::cout << "=========================================" << std::endl;
+  std::cout << "===== CompositionCurve SE3 CURVE ========" << std::endl;
+  std::cout << str << std::endl;
   baseCurve_.print("Base curve");
   correctionCurve_.print("Correction curve");
+}
+
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::saveCurves(const std::string& filename) const {
+  std::vector<Time> baseCurveTimes;
+  baseCurve_.manager_.getTimes(&baseCurveTimes);
+
+  Eigen::VectorXd v(7);
+
+  std::vector<Eigen::VectorXd> baseCurveValues;
+  for (size_t i = 0; i < baseCurveTimes.size(); ++i) {
+    ValueType val = baseCurve_.evaluate(baseCurveTimes[i]);
+    v << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
+        val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
+    baseCurveValues.push_back(v);
+  }
+
+  std::vector<Time> correctionCurveTimes;
+  correctionCurve_.manager_.getTimes(&correctionCurveTimes);
+  std::vector<Eigen::VectorXd> correctionCurveValues;
+  for (size_t i = 0; i < correctionCurveTimes.size(); ++i) {
+    ValueType val = correctionCurve_.evaluate(correctionCurveTimes[i]);
+    v << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
+        val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
+    correctionCurveValues.push_back(v);
+  }
+
+  std::vector<Eigen::VectorXd> combinedCurveValues;
+  for (size_t i = 0; i < baseCurveTimes.size(); ++i) {
+    ValueType val = this->evaluate(baseCurveTimes[i]);
+    v << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
+        val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
+    combinedCurveValues.push_back(v);
+  }
+
+  CurvesTestHelpers::writeTimeVectorCSV(filename + "_base.csv", baseCurveTimes, baseCurveValues);
+  CurvesTestHelpers::writeTimeVectorCSV(filename + "_correction.csv", correctionCurveTimes, correctionCurveValues);
+  CurvesTestHelpers::writeTimeVectorCSV(filename + "_composed.csv", baseCurveTimes, combinedCurveValues);
+
 }
 
 template <class C1, class C2>
@@ -44,28 +96,147 @@ int SE3CompositionCurve<C1, C2>::size() const{
 }
 
 template <class C1, class C2>
+int SE3CompositionCurve<C1, C2>::correctionSize() const{
+  return correctionCurve_.size();
+}
+
+template <class C1, class C2>
 void SE3CompositionCurve<C1, C2>::extend(const std::vector<Time>& times,
                                          const std::vector<typename SE3CompositionCurve<C1, C2>::ValueType>& values,
-                                         std::vector<Key>* outKeys){
-  baseCurve_.extend(times, values, outKeys);
+                                         std::vector<Key>* outKeys) {
+  this->extend(times, values, 1, 0, outKeys);
+}
 
-  // Make sure that the correction curve can be evaluated at all times
-  // where the base curve is defined.
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::extend(const std::vector<Time>& times,
+                                         const std::vector<typename SE3CompositionCurve<C1, C2>::ValueType>& values,
+                                         int correctionSamplingPolicy,
+                                         Time samplingPeriod,
+                                         std::vector<Key>* outKeys){
+
+  // Find the new limit times of the curve
+  Time newMaxTime, newMinTime;
+
+  // first initialize
+  if (baseCurve_.isEmpty()) {
+    newMaxTime = 0;
+    newMinTime = 0;
+  } else {
+    newMaxTime = baseCurve_.getMaxTime();
+    newMinTime  = baseCurve_.getMinTime();
+  }
+
+  for (std::vector<Time>::const_iterator it = times.begin(); it != times.end(); ++it) {
+    if (newMaxTime < *it) {
+      newMaxTime = *it;
+    }
+    if (newMinTime > *it) {
+      newMinTime = *it;
+    }
+  }
+
+  // Extend the correction curves to these times
   std::vector<Time> correctionTimes;
   std::vector<ValueType> correctionValues;
-  if(correctionCurve_.getMinTime() > baseCurve_.getMinTime()) {
-    correctionTimes.push_back(baseCurve_.getMinTime());
-    ValueType identityTransform;
-    identityTransform.setIdentity();
-    correctionValues.push_back(identityTransform);
+
+  switch (correctionSamplingPolicy) {
+    // Case 1: If needed add nodes at the minimum and maximum time of
+    //         the baseCurve_ after it has been extended
+    case 1: {
+      if(correctionCurve_.isEmpty() || correctionCurve_.getMinTime() > newMinTime) {
+        correctionTimes.push_back(baseCurve_.getMinTime());
+        //    ValueType identityTransform;
+        //    identityTransform.setIdentity();
+        correctionValues.push_back(ValueType(ValueType::Position(0,0,0), ValueType::Rotation(1,0,0,0)));
+      }
+      if(correctionCurve_.isEmpty() || correctionCurve_.getMaxTime() < newMaxTime) {
+        correctionTimes.push_back(baseCurve_.getMaxTime());
+        correctionValues.push_back(ValueType(ValueType::Position(0,0,0), ValueType::Rotation(1,0,0,0)));
+      }
+      correctionCurve_.extend(correctionTimes, correctionValues);
+      break;
+    }
+    //Case 2: Add nodes at a fixed sampling frequency
+    case 2: {
+
+      if (correctionCurve_.isEmpty()) {
+        correctionTimes.push_back(newMinTime);
+        correctionValues.push_back(ValueType(ValueType::Position(0,0,0), ValueType::Rotation(1,0,0,0)));
+        correctionCurve_.extend(correctionTimes, correctionValues);
+      }
+      while (correctionCurve_.getMaxTime() < newMaxTime) {
+        correctionTimes.push_back(correctionCurve_.getMaxTime() + samplingPeriod);
+        correctionValues.push_back(correctionCurve_.evaluate(correctionCurve_.getMaxTime()));
+        correctionCurve_.extend(correctionTimes, correctionValues);
+      }
+      while (correctionCurve_.getMinTime() > newMinTime) {
+        correctionTimes.push_back(correctionCurve_.getMinTime() - samplingPeriod);
+        correctionValues.push_back(correctionCurve_.evaluate(correctionCurve_.getMinTime()));
+        correctionCurve_.extend(correctionTimes, correctionValues);
+      }
+
+      break;
+    }
+    //Case 3: Add nodes at a fixed sampling frequency. When the curve is extended
+    //at a lower frequency than this fixed frequency, add only a correction knot
+    //at the extended time. This prevents having knots unconstrained by odometry.
+    // todo This assumes that extend is called with only the latest time and measurement (no multiple values)
+    case 3: {
+      if (correctionCurve_.isEmpty()) {
+        correctionTimes.push_back(newMinTime);
+        correctionValues.push_back(ValueType(ValueType::Position(0,0,0), ValueType::Rotation(1,0,0,0)));
+        correctionCurve_.extend(correctionTimes, correctionValues);
+      }
+      if (correctionCurve_.getMaxTime() < newMaxTime) {
+        if (correctionCurve_.getMaxTime() + samplingPeriod >= newMaxTime) {
+          correctionTimes.push_back(correctionCurve_.getMaxTime() + samplingPeriod);
+        } else {
+          correctionTimes.push_back(newMaxTime);
+        }
+        correctionValues.push_back(correctionCurve_.evaluate(correctionCurve_.getMaxTime()));
+        correctionCurve_.extend(correctionTimes, correctionValues);
+      }
+      if (correctionCurve_.getMinTime() > newMinTime) {
+        if (correctionCurve_.getMinTime() - samplingPeriod <= newMinTime) {
+          correctionTimes.push_back(correctionCurve_.getMinTime() - samplingPeriod);
+        } else {
+          correctionTimes.push_back(newMinTime);
+        }
+        correctionValues.push_back(correctionCurve_.evaluate(correctionCurve_.getMinTime()));
+        correctionCurve_.extend(correctionTimes, correctionValues);
+      }
+    }
   }
-  if(correctionCurve_.getMaxTime() < baseCurve_.getMaxTime()) {
-    correctionTimes.push_back(baseCurve_.getMaxTime());
-    ValueType identityTransform;
-    identityTransform.setIdentity();
-    correctionValues.push_back(identityTransform);
+
+  //Compute the base curve updates accounting for the corrections
+  std::vector<ValueType> newValues;
+  std::vector<ValueType>::const_iterator itValues = values.begin();
+  for (std::vector<Time>::const_iterator it = times.begin(); it != times.end(); ++it) {
+    newValues.push_back(correctionCurve_.evaluate(*it).inverted() * (*itValues));
+    ++itValues;
   }
-  correctionCurve_.extend(correctionTimes, correctionValues);
+  baseCurve_.extend(times, newValues, outKeys);
+}
+
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::foldInCorrections() {
+  std::cout << "foldincorrections" << std::endl;
+  std::vector<Time> times;
+  std::vector<ValueType> newValues;
+  baseCurve_.manager_.getTimes(&times);
+  for (std::vector<Time>::const_iterator it = times.begin(); it != times.end(); ++it) {
+    newValues.push_back(this->evaluate(*it));
+  }
+  baseCurve_.clear();
+  baseCurve_.extend(times,newValues);
+  times.clear();
+  newValues.clear();
+  correctionCurve_.manager_.getTimes(&times);
+  for (std::vector<Time>::const_iterator it = times.begin(); it != times.end(); ++it) {
+    newValues.push_back(ValueType(ValueType::Position(0,0,0), ValueType::Rotation(1,0,0,0)));
+  }
+  correctionCurve_.clear();
+  correctionCurve_.extend(times,newValues);
 }
 
 template <class C1, class C2>
@@ -74,33 +245,124 @@ void SE3CompositionCurve<C1, C2>::fitCurve(const std::vector<Time>& times,
                                            std::vector<Key>* outKeys){
   extend(times, values, outKeys);
 }
+
 template <class C1, class C2>
-void SE3CompositionCurve<C1, C2>::addCorrectionCoefficients(const std::vector<Time>& times) {
+void SE3CompositionCurve<C1, C2>::setCorrectionTimes(const std::vector<Time>& times) {
+  // Evaluate the correction curve at these times
   std::vector<ValueType> values;
-  ValueType identityTransform;
-  identityTransform.setIdentity();
   for (size_t i = 0; i < times.size(); ++i) {
-    values.push_back(identityTransform);
+    values.push_back(correctionCurve_.evaluate(times[i]));
   }
+
+  // Redefine the correction curve
+  correctionCurve_.clear();
   correctionCurve_.extend(times, values);
+
+  CHECK_EQ(correctionCurve_.getMinTime(), baseCurve_.getMinTime()) << "Min time of correction curve and base curve are different";
+  CHECK_EQ(correctionCurve_.getMaxTime(), baseCurve_.getMaxTime()) << "Min time of correction curve and base curve are different";
 }
 
 template <class C1, class C2>
 typename SE3CompositionCurve<C1, C2>::ValueType SE3CompositionCurve<C1, C2>::evaluate(Time time) const{
+
+#if COMPOSITION_STRATEGY == 1
+  // (1) corr(t) * base(t) is implemented
   return correctionCurve_.evaluate(time) * baseCurve_.evaluate(time);
+#elif COMPOSITION_STRATEGY == 2
+  // (2) corr is evaluated at the coefficient times (t1, t2) where the interpolation
+  //     on base is computed resulting in
+  //     interpolation(corr(t1) * base(t1), corr(t2) * base(t2), alpha)
+  if (time == 0) {
+    return correctionCurve_.evaluate(time) * baseCurve_.evaluate(time);
+  }
+
+  typename C2::CoefficientIter it1, it2;
+  baseCurve_.manager_.getCoefficientsAt(time, &it1, &it2);
+  //todo Is it true that the value of a curve at a time where a coefficient
+  // is defined is always only dependent on this coefficient?
+  if(it1->first == time || it2->first == time) {
+    return correctionCurve_.evaluate(time) * baseCurve_.evaluate(time);
+  } else {
+    Time tA, tB;
+    ValueType A, B, dA, dB, T_W_A, T_W_B;
+    //if the iterators returned are in order ( last element bug)
+    if (it1->first < it2->first) {
+      tA = it1->first;
+      tB = it2->first;
+    } else {
+      tA = it2->first;
+      tB = it1->first;
+    }
+
+    double alpha = double(time - tA)/double(tB - tA);
+
+    A = baseCurve_.evaluate(tA);
+    B = baseCurve_.evaluate(tB);
+    dA = correctionCurve_.evaluate(tA);
+    dB = correctionCurve_.evaluate(tB);
+
+    T_W_A = dA * A;
+    T_W_B = dB * B;
+
+    //Implementation of T_W_I = T_W_A*exp(alpha*log(inv(T_W_A)*T_W_B))
+    using namespace kindr::minimal;
+    ValueType T_A_B = invertAndComposeImplementation(T_W_A, T_W_B, boost::none, boost::none);
+    gtsam::Vector6 log_T_A_B = transformationLogImplementation(T_A_B, boost::none);
+    gtsam::Vector6 log_T_A_I = vectorScalingImplementation<int(6)>(log_T_A_B, alpha, boost::none, boost::none);
+    ValueType T_A_I = transformationExpImplementation(log_T_A_I, boost::none);
+    return composeImplementation(T_W_A, T_A_I, boost::none, boost::none);
+  }
+#endif
+}
+
+template <class C1, class C2>
+gtsam::Expression<typename SE3CompositionCurve<C1, C2>::ValueType>
+SE3CompositionCurve<C1, C2>::getValueExpression(const Time& time) const{
+
+#if COMPOSITION_STRATEGY == 1
+  // (1) corr(t) * base(t) is implemented
+  return kindr::minimal::compose(correctionCurve_.getValueExpression(time),
+                                 gtsam::Expression<ValueType>(baseCurve_.evaluate(time)));
+#elif COMPOSITION_STRATEGY == 2
+  // (2) corr is evaluated at the coefficient times (t1, t2) where the interpolation
+  //     on base is computed resulting in
+  //     interpolation(corr(t1) * base(t1), corr(t2) * base(t2), alpha)
+  typename C2::CoefficientIter it1, it2;
+  baseCurve_.manager_.getCoefficientsAt(time, &it1, &it2);
+  if(it1->first == time || it2->first == time) {
+    return kindr::minimal::compose(correctionCurve_.getValueExpression(time),
+                                   gtsam::Expression<ValueType>(baseCurve_.evaluate(time)));
+  } else {
+    //if the iterators returned are in order (last element bug)
+    Time tA, tB;
+    if (it1->first < it2->first) {
+      tA = it1->first;
+      tB = it2->first;
+    } else {
+      tA = it2->first;
+      tB = it1->first;
+    }
+
+    gtsam::Expression<ValueType> E_dA = correctionCurve_.getValueExpression(tA);
+    gtsam::Expression<ValueType> E_dB = correctionCurve_.getValueExpression(tB);
+
+    gtsam::Expression<ValueType> E_A(baseCurve_.evaluate(tA));
+    gtsam::Expression<ValueType> E_B(baseCurve_.evaluate(tB));
+
+    gtsam::Expression<ValueType> E_dAA = kindr::minimal::compose(E_dA, E_A);
+    gtsam::Expression<ValueType> E_dBB = kindr::minimal::compose(E_dB, E_B);
+
+    double alpha = double(time - tA)/double(tB - tA);
+
+    return kindr::minimal::slerp(E_dAA, E_dBB, alpha);
+  }
+#endif
 }
 
 template <class C1, class C2>
 typename SE3CompositionCurve<C1, C2>::DerivativeType SE3CompositionCurve<C1, C2>::evaluateDerivative(Time time,
                                                                                                      unsigned derivativeOrder) const{
   //todo
-}
-
-template <class C1, class C2>
-gtsam::Expression<typename SE3CompositionCurve<C1, C2>::ValueType>
-SE3CompositionCurve<C1, C2>::getValueExpression(const Time& time) const{
-  return kindr::minimal::compose(correctionCurve_.getValueExpression(time),
-                                 gtsam::Expression<ValueType>(baseCurve_.evaluate(time)));
 }
 
 template <class C1, class C2>
@@ -187,6 +449,23 @@ void SE3CompositionCurve<C1, C2>::initializeGTSAMValues(gtsam::Values* values) c
 template <class C1, class C2>
 void SE3CompositionCurve<C1, C2>::updateFromGTSAMValues(const gtsam::Values& values){
   correctionCurve_.updateFromGTSAMValues(values);
+}
+
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::clear(){
+  baseCurve_.clear();
+  correctionCurve_.clear();
+}
+
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::removeCorrectionCoefficientAtTime(Time time) {
+  CHECK(correctionCurve_.manager_.hasCoefficientAtTime(time));
+  correctionCurve_.manager_.removeCoefficientAtTime(time);
+}
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::setCorrectionCoefficientAtTime(Time time, ValueType value) {
+  CHECK(correctionCurve_.manager_.hasCoefficientAtTime(time));
+  correctionCurve_.manager_.insertCoefficient(time, value);
 }
 
 } // namespace curves

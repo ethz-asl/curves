@@ -95,6 +95,7 @@ class Curve
    // updates the relevant curve coefficients from the GTSAM values structure
    virtual void updateFromGTSAMValues(const gtsam::Values& values) = 0;
 
+   virtual void clear() = 0;
 };
 
 } // namespace curves

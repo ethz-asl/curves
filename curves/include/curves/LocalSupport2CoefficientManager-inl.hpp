@@ -121,6 +121,28 @@ void LocalSupport2CoefficientManager<Coefficient>::insertCoefficients(const std:
   }
 }
 
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::removeCoefficientWithKey(Key key) {
+  CHECK(hasCoefficientWithKey(key)) << "No coefficient with that key.";
+  typename TimeToKeyCoefficientMap::iterator it1;
+  typename boost::unordered_map<Key, CoefficientIter>::iterator it2;
+  it2 = keyToCoefficient_.find(key);
+  it1 = timeToCoefficient_.find(it1->second->first);
+  timeToCoefficient_.erase(it1);
+  keyToCoefficient_.erase(it2);
+}
+
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::removeCoefficientAtTime(Time time) {
+  CHECK(this->hasCoefficientAtTime(time)) << "No coefficient at that time.";
+  typename TimeToKeyCoefficientMap::iterator it1;
+  typename boost::unordered_map<Key, CoefficientIter>::iterator it2;
+  it1 = timeToCoefficient_.find(time);
+  it2 = keyToCoefficient_.find(it1->second.key);
+  timeToCoefficient_.erase(it1);
+  keyToCoefficient_.erase(it2);
+}
+
 /// \brief return true if there is a coefficient at this time
 template <class Coefficient>
 bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientAtTime(Time time) const {

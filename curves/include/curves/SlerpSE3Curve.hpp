@@ -9,6 +9,7 @@
 
 #include "SE3Curve.hpp"
 #include "LocalSupport2CoefficientManager.hpp"
+#include "SE3CompositionCurve.hpp"
 
 namespace curves {
 
@@ -16,6 +17,7 @@ namespace curves {
 /// The Slerp interpolation function is defined as, with the respective Jacobians regarding  A and B:
 /// \f[ T = A(A^{-1}B)^{\alpha} \f]
 class SlerpSE3Curve : public SE3Curve {
+  friend class SE3CompositionCurve<SlerpSE3Curve, SlerpSE3Curve>;
  public:
   typedef SE3Curve::ValueType ValueType;
   typedef SE3Curve::DerivativeType DerivativeType;
@@ -127,6 +129,8 @@ class SlerpSE3Curve : public SE3Curve {
 
   // updates the relevant curve coefficients from the GTSAM values structure
   virtual void updateFromGTSAMValues(const gtsam::Values& values);
+
+  virtual void clear();
 
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;

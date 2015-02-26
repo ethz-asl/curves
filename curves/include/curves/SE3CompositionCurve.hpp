@@ -1,7 +1,7 @@
 /*
  * @file CompositionCurve.hpp
  * @date Feb 06, 2015
- * @author Abel Gawel, Renaud Dubé, Mike Bosse
+ * @author Renaud Dubé, Abel Gawel, Mike Bosse
  */
 
 #ifndef CURVES_COMPOSITION_CURVE_HPP
@@ -11,8 +11,8 @@ namespace curves {
 
 // SE3CompositionCurve is a curve composed of a base and a correction curve.
 // The corrections can be sampled at a lower frequency than the base curve,
-// Therefore reducing the optimization state space.
-// The corrections are applied on the left side.
+// therefore reducing the optimization state space. The corrections are applied
+// on the left side.
 
 template <class C1, class C2>
 class SE3CompositionCurve : public SE3Curve {
@@ -26,26 +26,44 @@ class SE3CompositionCurve : public SE3Curve {
   SE3CompositionCurve();
   ~SE3CompositionCurve();
 
-  /// Print the value of the coefficient, for debugging and unit tests
+    /// \brief Print the value of the base and corrections curves coefficients
     virtual void print(const std::string& str = "") const;
 
-    /// The first valid time for the curve.
+    /// \brief Save curves data as .csv file
+    void saveCurves(const std::string& filename) const;
+
+    /// \brief Returns the first valid time for the curve.
     virtual Time getMinTime() const;
 
-    /// The one past the last valid time for the curve.
+    /// \brief Returns the last valid time for the curve.
     virtual Time getMaxTime() const;
 
+    /// \brief Checks if the curve is empty.
     bool isEmpty() const;
 
-    // return number of coefficients curve is composed of
+    /// \brief Returns the number of coefficients in the base curve
     int size() const;
 
-    /// Extend the curve so that it can be evaluated at these times.
-    /// Try to make the curve fit to the values.
-    /// Underneath the curve should have some default policy for fitting.
+    /// \brief Returns the number of coefficients in the correction curve
+    int correctionSize() const;
+
+    /// \brief Extend the curve so that it can be evaluated at these times by
+    ///        using a default correction sampling policy.
     virtual void extend(const std::vector<Time>& times,
                         const std::vector<ValueType>& values,
                         std::vector<Key>* outKeys = NULL);
+
+    /// \brief Extend the curve so that it can be evaluated at these times by
+    ///        specifying the correction sampling strategy and the sampling period.
+    virtual void extend(const std::vector<Time>& times,
+                        const std::vector<ValueType>& values,
+                        int correctionSamplingPolicy,
+                        Time samplingPeriod,
+                        std::vector<Key>* outKeys = NULL);
+
+    /// \brief Fold in the correction curve into the base curve and reinitialize
+    ///        correction curve coefficients to identity transformations.
+    void foldInCorrections();
 
     /// \brief Fit a new curve to these data points.
     ///
@@ -55,8 +73,8 @@ class SE3CompositionCurve : public SE3Curve {
                           const std::vector<ValueType>& values,
                           std::vector<Key>* outKeys = NULL);
 
-    /// \brief Add coefficients to the correction curve at given times
-    void addCorrectionCoefficients(const std::vector<Time>& times);
+    /// \brief Add coefficients to the correction curve at given times.
+    void setCorrectionTimes(const std::vector<Time>& times);
 
     /// Evaluate the ambient space of the curve.
     virtual ValueType evaluate(Time time) const;
@@ -121,14 +139,23 @@ class SE3CompositionCurve : public SE3Curve {
     ///        and the angular velocity (3,4,5).
     virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
 
-    /// Initialize a GTSAM values structure with the desired keys
+    /// \brief Initialize a GTSAM values structure with the desired keys
     virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
 
-    /// Initialize a GTSAM values structure for all keys
+    /// \brief Initialize a GTSAM values structure for all keys
     virtual void initializeGTSAMValues(gtsam::Values* values) const;
 
-    // updates the relevant curve coefficients from the GTSAM values structure
+    /// \brief Update the relevant curve coefficients from the GTSAM values structure
     virtual void updateFromGTSAMValues(const gtsam::Values& values);
+
+    /// \brief Clear the base and correction curves.
+    virtual void clear();
+
+    /// \brief Remove a correction coefficient at the specified time.
+    void removeCorrectionCoefficientAtTime(Time time);
+
+    /// \brief Set the correction coefficient value at the specified time.
+    void setCorrectionCoefficientAtTime(Time time, ValueType value);
 
 };
 
