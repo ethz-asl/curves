@@ -9,7 +9,7 @@
 
 #include "SE3Curve.hpp"
 #include "LocalSupport2CoefficientManager.hpp"
-#include "kindr/minimal/cubic-hermite-translation-gtsam.h"
+#include "kindr/minimal/cubic-hermite-interpolation-gtsam.h"
 #include "kindr/minimal/cubic-hermite-quaternion-gtsam.h"
 #include "kindr/minimal/rotation-quaternion-gtsam.h"
 #include "kindr/minimal/common-gtsam.h"
