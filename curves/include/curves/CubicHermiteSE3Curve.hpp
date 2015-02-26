@@ -262,6 +262,9 @@ class CubicHermiteSE3Curve : public SE3Curve {
   // updates the relevant curve coefficients from the GTSAM values structure
   virtual void updateFromGTSAMValues(const gtsam::Values& values);
 
+  // clear the curve
+  virtual void clear();
+
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
 };
