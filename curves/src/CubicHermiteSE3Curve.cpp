@@ -5,6 +5,7 @@
  */
 
 #include <curves/CubicHermiteSE3Curve.hpp>
+#include "gtsam/nonlinear/ExpressionFactor.h"
 #include <iostream>
 
 namespace curves {
@@ -84,9 +85,9 @@ void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
         SO3 q_A_B = T_A_B.getRotation();
         kindr::minimal::AngleAxisTemplate<double> aa_A_B(q_A_B);
         double angle = aa_A_B.angle();
-        Eigen::Vector3d angularVelocity = aa_A_B.axis() * angle/period;
-        Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period;
-        // note: unit of derivative is m/ns for first 3 and rad/ns for last 3 entries
+        Eigen::Vector3d angularVelocity = aa_A_B.axis() * angle/period * 1e9;
+        Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period * 1e9;
+        // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
         derivative << velocity, angularVelocity;
 
       } else {
@@ -102,9 +103,9 @@ void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
       SO3 q_A_B = T_A_B.getRotation();
       kindr::minimal::AngleAxisTemplate<double> aa_A_B(q_A_B);
       double angle = aa_A_B.angle();
-      Eigen::Vector3d angularVelocity = aa_A_B.axis() * angle/period;
-      Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period;
-      // note: unit of derivative is m/ns for first 3 and rad/ns for last 3 entries
+      Eigen::Vector3d angularVelocity = aa_A_B.axis() * angle/period * 1e9;
+      Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period * 1e9;
+      // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
       derivative << velocity, angularVelocity;
 
     } else {
@@ -114,9 +115,9 @@ void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
       SO3 q_A_B = T_A_B.getRotation();
       kindr::minimal::AngleAxisTemplate<double> aa_A_B(q_A_B);
       double angle = aa_A_B.angle();
-      Eigen::Vector3d angularVelocity = aa_A_B.axis() * angle/period;
-      Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period;
-      // note: unit of derivative is m/ns for first 3 and rad/ns for last 3 entries
+      Eigen::Vector3d angularVelocity = aa_A_B.axis() * angle/period * 1e9;
+      Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period * 1e9;
+      // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
       derivative << velocity, angularVelocity;
     }
 
@@ -126,25 +127,20 @@ void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
   manager_.insertCoefficients(times, coefficients, outKeys);
 }
 
-CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::calculateSlope(const Time& timeA,
-                                                                          const Time& timeB,
-                                                                          const ValueType& coeffA,
-                                                                          const ValueType& coeffB) const {
-  Time period = timeB - timeA;
-  SE3 T_A_B = kindr::minimal::invertAndComposeImplementation(
-      coeffA,
-      coeffB,
-      boost::none,
-      boost::none);
-  kindr::minimal::AngleAxisTemplate<double> aa_A_B(T_A_B.getRotation());
-  double angle = aa_A_B.angle();
-  Eigen::Vector3d angularVelocity = aa_A_B.axis() * angle/period;
-  Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period;
-  // note: unit of derivative is m/ns for first 3 and rad/ns for last 3 entries
+CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::calculateSlope(const Time& timeA_ns,
+                                                                          const Time& timeB_ns,
+                                                                          const ValueType& T_W_A,
+                                                                          const ValueType& T_W_B) const {
+  double inverse_dt_sec = 1e9/double(timeB_ns - timeA_ns);
+  SO3 R_W_A_B = T_W_B.getRotation() * T_W_A.getRotation().inverted();
+  kindr::minimal::AngleAxisTemplate<double> aa_W_A_B(R_W_A_B);
+  double angle = aa_W_A_B.angle();
+  Eigen::Vector3d angularVelocity_rad_s = aa_W_A_B.axis() * angle * inverse_dt_sec;
+  Eigen::Vector3d velocity_m_s = (T_W_B.getPosition() - T_W_A.getPosition()) * inverse_dt_sec;
+  // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
   DerivativeType rVal;
-  rVal << velocity, angularVelocity;
+  rVal << velocity_m_s, angularVelocity_rad_s;
   return rVal;
-  //  return DerivativeType(velocity, angularVelocity);
 }
 void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
                                   const std::vector<ValueType>& values,
@@ -173,7 +169,7 @@ void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
         SE3 se = last->second.coefficient.getTransformation();
         SE3 se1 = values[0];
         // calculate slope
-        // note: unit of derivative is m/ns for first 3 and rad/ns for last 3 entries
+        // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
         derivative = calculateSlope(last->first,
                                     times[0],
                                     last->second.coefficient.getTransformation(),
@@ -188,8 +184,6 @@ void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
         manager_.getCoefficientsAt(manager_.coefficientEnd()->first,
                                    &rVal0,
                                    &rVal1);
-        rVal0->second.coefficient;
-        rVal1->second.coefficient;
 
         // update derivative of previous coefficient
         DerivativeType derivative0;
@@ -198,7 +192,7 @@ void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
                                       rVal0->second.coefficient.getTransformation(),
                                       values[0]);
         Coefficient updated(rVal1->second.coefficient.getTransformation(), derivative0);
-        manager_.updateCoefficientByKey(rVal0->second.key, updated);
+        manager_.updateCoefficientByKey(rVal1->second.key, updated);
 
         // calculate slope
         derivative << calculateSlope(rVal1->first,
@@ -246,7 +240,6 @@ void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
                                        times[1],
                                        values[0],
                                        values[1]);
-          // i is between coefficients
         } else {
           CoefficientIter last = manager_.coefficientEnd();
           derivative << calculateSlope(last->first,
@@ -274,6 +267,7 @@ void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
     coefficients.push_back(Coefficient(values[i], derivative));
   }
   manager_.insertCoefficients(times, coefficients, outKeys);
+
 }
 
 typename CubicHermiteSE3Curve::DerivativeType
@@ -298,8 +292,8 @@ CubicHermiteSE3Curve::getValueExpression(const Time& time) const {
   EHermiteTransformation leaf1(rval0->second.key);
   EHermiteTransformation leaf2(rval1->second.key);
 
-  double dt = rval1->first - rval0->first;
-  double alpha = double(time - rval0->first)/dt;
+  double dt_sec = (rval1->first - rval0->first) * 1e-9;
+  double alpha = double(time - rval0->first)/(rval1->first - rval0->first);
 
   // construct the necessary Expressions (and underlying Jacobians) for evaluation
   ETransformation transformation1 = kindr::minimal::transformationFromHermiteTransformation(leaf1);
@@ -314,19 +308,19 @@ CubicHermiteSE3Curve::getValueExpression(const Time& time) const {
   EQuaternion quat2 = kindr::minimal::rotationFromTransformation(transformation2);
   EVector3 trans2 = kindr::minimal::translationFromTransformation(transformation2);
 
-  EQuaternion quat = kindr::minimal::hermiteInterpolation(quat1,
+  EQuaternion quat = kindr::minimal::hermiteQuaternionInterpolation(quat1,
                                                           angVel1,
                                                           quat2,
                                                           angVel2,
                                                           alpha,
-                                                          dt);
+                                                          dt_sec);
 
-  EVector3 trans = kindr::minimal::hermiteTranslationInterpolation(trans1,
+  EVector3 trans = kindr::minimal::hermiteInterpolation<Vector3>(trans1,
                                                                    vel1,
                                                                    trans2,
                                                                    vel2,
                                                                    alpha,
-                                                                   dt);
+                                                                   dt_sec);
 
   return kindr::minimal::transformationFromComponents(quat, trans);
 }
@@ -355,8 +349,8 @@ SE3 CubicHermiteSE3Curve::evaluate(Time time) const {
     gtsam::Vector6 d_W_B = b->second.coefficient.getTransformationDerivative();
 
     // make alpha
-    double dt = b->first - a->first;
-    double alpha = double(time - a->first)/dt;
+    double dt_sec = (b->first - a->first) * 1e-9;
+    double alpha = double(time - a->first)/(b->first - a->first);
 
     // Implemantation of Hermite Interpolation not easy and not fun (without expressions)!
 
@@ -370,13 +364,13 @@ SE3 CubicHermiteSE3Curve::evaluate(Time time) const {
     double beta3 = alpha3 - alpha2;
 
     Eigen::Vector3d translation = T_W_A.getPosition() * beta0 + T_W_B.getPosition() * beta1 +
-        d_W_A.head<3>() * beta2 * dt + d_W_B.head<3>() * beta3 * dt;
+        d_W_A.head<3>() * (beta2 * dt_sec) + d_W_B.head<3>() * (beta3 * dt_sec);
 
     // rotational part (hard):
     using namespace kindr::minimal;
     const double one_third = 1.0 / 3.0;
-    Eigen::Vector3d scaled_d_W_A = vectorScalingImplementation<int(3)>(d_W_A.tail<3>(), one_third * dt, boost::none, boost::none);
-    Eigen::Vector3d scaled_d_W_B = vectorScalingImplementation<int(3)>(d_W_B.tail<3>(), one_third * dt, boost::none, boost::none);
+    Eigen::Vector3d scaled_d_W_A = vectorScalingImplementation<int(3)>(d_W_A.tail<3>(), one_third * dt_sec, boost::none, boost::none);
+    Eigen::Vector3d scaled_d_W_B = vectorScalingImplementation<int(3)>(d_W_B.tail<3>(), one_third * dt_sec, boost::none, boost::none);
 
     Eigen::Vector3d w1 = inverse_rotate_point(T_W_A.getRotation(), scaled_d_W_A, boost::none, boost::none);
     Eigen::Vector3d w3 = inverse_rotate_point(T_W_B.getRotation(), scaled_d_W_B, boost::none, boost::none);
@@ -407,6 +401,25 @@ SE3 CubicHermiteSE3Curve::evaluate(Time time) const {
 
     return QuatTransformation(rotation, translation);
   }
+}
+
+void CubicHermiteSE3Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const {
+
+  gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(gtsam::traits<Coefficient>::dimension);
+
+  //Add one fixed prior at priorTime and two before to ensure that at least two
+  CoefficientIter rVal0, rVal1;
+  manager_.getCoefficientsAt(priorTime, &rVal0, &rVal1);
+
+  gtsam::ExpressionFactor<Coefficient> f0(priorNoise,
+                                          rVal0->second.coefficient,
+                                          gtsam::Expression<Coefficient>(rVal0->second.key));
+  gtsam::ExpressionFactor<Coefficient> f1(priorNoise,
+                                          rVal1->second.coefficient,
+                                          gtsam::Expression<Coefficient>(rVal1->second.key));
+  graph->push_back(f0);
+  graph->push_back(f1);
+
 }
 
 void CubicHermiteSE3Curve::setTimeRange(Time minTime, Time maxTime) {

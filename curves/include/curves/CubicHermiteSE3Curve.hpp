@@ -13,6 +13,7 @@
 #include "kindr/minimal/cubic-hermite-quaternion-gtsam.h"
 #include "kindr/minimal/rotation-quaternion-gtsam.h"
 #include "kindr/minimal/common-gtsam.h"
+#include "gtsam/nonlinear/NonlinearFactorGraph.h"
 
 // wrapper class for Hermite-style coefficients (made of QuatTransformation and Vector6)
 namespace kindr {
@@ -20,6 +21,7 @@ namespace minimal {
 
 typedef gtsam::Expression<kindr::minimal::RotationQuaternion> EQuaternion;
 typedef gtsam::Expression<Eigen::Vector3d> EVector3;
+typedef gtsam::Expression<Eigen::Matrix<double, 6, 1>> EVector6;
 typedef gtsam::Expression<kindr::minimal::QuatTransformation> ETransformation;
 
 template <typename Scalar>
@@ -86,7 +88,7 @@ template<> struct traits<kindr::minimal::HermiteTransformation<double>> {
                     const std::string& str) {
     if(str.size() > 0) { std::cout << str << ":\n";}
     std::cout << T.getTransformation().getTransformationMatrix() << std::endl;
-    std::cout << T.getTransformationDerivative() << std::endl;
+    std::cout << T.getTransformationDerivative().transpose() << std::endl;
   }
 
   // Check the equality of two values.
@@ -107,6 +109,7 @@ template<> struct traits<kindr::minimal::HermiteTransformation<double>> {
   static type Retract(const type& origin, const vector& d) {
     type rval;
     rval.setTransformation(QuatTransformation(Vector6(d.head<6>())) * origin.getTransformation());
+
     rval.setTransformationDerivative(Vector6(d.tail<6>()) + origin.getTransformationDerivative());
     return rval;
   }
@@ -202,6 +205,8 @@ class CubicHermiteSE3Curve : public SE3Curve {
 
   virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const;
 
+  void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
+
   virtual void setTimeRange(Time minTime, Time maxTime);
 
   /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
@@ -277,8 +282,11 @@ namespace kindr {
 namespace minimal {
 
 typedef gtsam::Expression<kindr::minimal::HermiteTransformation<double>> EHermiteTransformation;
+typedef curves::SE3Curve::ValueType ValueType;
+typedef curves::SE3Curve::DerivativeType DerivativeType;
+typedef kindr::minimal::HermiteTransformation<double> Coefficient;
 // Expressions for HermiteTransformation -> Transformation
-QuatTransformation transformationFromHermiteTransformationImplementation(
+static QuatTransformation transformationFromHermiteTransformationImplementation(
     const HermiteTransformation<double>& T, gtsam::OptionalJacobian<6, 12> HT) {
   if(HT) {
     HT->leftCols<6>().setIdentity();
@@ -287,14 +295,14 @@ QuatTransformation transformationFromHermiteTransformationImplementation(
   return T.getTransformation();
 }
 
-ETransformation transformationFromHermiteTransformation(
+static ETransformation transformationFromHermiteTransformation(
     const EHermiteTransformation& T) {
   return ETransformation(
       &transformationFromHermiteTransformationImplementation, T);
 }
 
 // Expressions for HermiteTransformation -> AngularVelocities
-Eigen::Vector3d angularVelocitiesFromHermiteTransformationImplementation(
+static Eigen::Vector3d angularVelocitiesFromHermiteTransformationImplementation(
     const HermiteTransformation<double>& T, gtsam::OptionalJacobian<3, 12> HT) {
   if(HT) {
     HT->block(0,0,3,3).setZero();
@@ -305,14 +313,14 @@ Eigen::Vector3d angularVelocitiesFromHermiteTransformationImplementation(
   return T.getTransformationDerivative().tail<3>();
 }
 
-EVector3 angularVelocitiesFromHermiteTransformation(
+static EVector3 angularVelocitiesFromHermiteTransformation(
     const EHermiteTransformation& T) {
   return EVector3(
       &angularVelocitiesFromHermiteTransformationImplementation, T);
 }
 
 // Expressions for HermiteTransformation -> Velocities
-Eigen::Vector3d velocitiesFromHermiteTransformationImplementation(
+static Eigen::Vector3d velocitiesFromHermiteTransformationImplementation(
     const HermiteTransformation<double>& T, gtsam::OptionalJacobian<3, 12> HT) {
   if(HT) {
     HT->block(0,0,3,3).setZero();
@@ -323,19 +331,41 @@ Eigen::Vector3d velocitiesFromHermiteTransformationImplementation(
   return T.getTransformationDerivative().head<3>();
 }
 
-EVector3 velocitiesFromHermiteTransformation(
+static EVector3 velocitiesFromHermiteTransformation(
     const EHermiteTransformation& T) {
   return EVector3(
       &velocitiesFromHermiteTransformationImplementation, T);
 }
 
+static Coefficient composeHermiteTransformationImplementation(
+    const ValueType& T, const DerivativeType& v,
+    gtsam::OptionalJacobian<12, 6> H1,
+    gtsam::OptionalJacobian<12, 6> H2) {
+  if (H1) {
+    H1->topRows<6>().setIdentity();
+    H1->bottomRows<6>().setZero();
+  }
+  if (H2) {
+    H2->topRows<6>().setZero();
+    H2->bottomRows<6>().setIdentity();
+  }
+  return Coefficient(T, v);
+}
+
+// Expression for Transformation & Velocities -> HermiteTransformation
+static EHermiteTransformation composeHermiteTransformation(
+    const ETransformation& T,
+    const EVector6& v) {
+  return EHermiteTransformation(
+      &composeHermiteTransformationImplementation, T, v);
+}
 /// \brief Scale a point.
 ///
 /// This is syntatic sugar to be able to write
 /// Expression<Eigen::Vector3d> walpha = w * alpha;
 /// instead of
 /// Expression<Eigen::Vector3d> walpha = Expression<Eigen::Vector3d>(&vectorScaling, w, alpha);
-EVector3 operator*(const EVector3& w, const double& alpha) {
+static EVector3 operator*(const EVector3& w, const double& alpha) {
   return vectorScaling(w, alpha);
 }
 
