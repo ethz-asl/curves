@@ -184,4 +184,10 @@ void LinearInterpolationVectorSpaceCurve<N>::updateFromGTSAMValues(const gtsam::
   manager_.updateFromGTSAMValues(values);
 }
 
+template<int N>
+void LinearInterpolationVectorSpaceCurve<N>::clear() {
+  manager_.clear();
+}
+
+
 } // namespace curves

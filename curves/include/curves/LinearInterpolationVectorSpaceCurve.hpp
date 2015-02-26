@@ -72,6 +72,8 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   // updates the relevant curve coefficients from the GTSAM values structure
   virtual void updateFromGTSAMValues(const gtsam::Values& values);
 
+  virtual void clear();
+
  private:
   typedef Eigen::Matrix<double,N,1> Coefficient;
   typedef typename LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;
