@@ -101,23 +101,22 @@ int SE3CompositionCurve<C1, C2>::correctionSize() const{
 }
 
 template <class C1, class C2>
-void SE3CompositionCurve<C1, C2>::extend(const std::vector<Time>& times,
-                                         const std::vector<typename SE3CompositionCurve<C1, C2>::ValueType>& values,
-                                         std::vector<Key>* outKeys) {
-  this->extend(times, values, 1, 0, outKeys);
+void SE3CompositionCurve<C1, C2>::setMinSamplingPeriod(const Time minSamplingPeriod) {
+  baseCurve_.setMinSamplingPeriod(0);
+  correctionCurve_.setMinSamplingPeriod(minSamplingPeriod);
 }
 
 template <class C1, class C2>
 void SE3CompositionCurve<C1, C2>::extend(const std::vector<Time>& times,
                                          const std::vector<typename SE3CompositionCurve<C1, C2>::ValueType>& values,
-                                         int correctionSamplingPolicy,
-                                         Time samplingPeriod,
-                                         std::vector<Key>* outKeys){
+                                         std::vector<Key>* outKeys) {
+  //todo: Treat case when times.size() != 1
+  CHECK_EQ(times.size(), 1) << "Extend was called with more than one time.";
+  CHECK_EQ(values.size(), 1) << "Extend was called with more than one value.";
 
   // Find the new limit times of the curve
   Time newMaxTime, newMinTime;
 
-  // first initialize
   if (baseCurve_.isEmpty()) {
     newMaxTime = 0;
     newMinTime = 0;
@@ -139,73 +138,22 @@ void SE3CompositionCurve<C1, C2>::extend(const std::vector<Time>& times,
   std::vector<Time> correctionTimes;
   std::vector<ValueType> correctionValues;
 
-  switch (correctionSamplingPolicy) {
-    // Case 1: If needed add nodes at the minimum and maximum time of
-    //         the baseCurve_ after it has been extended
-    case 1: {
-      if(correctionCurve_.isEmpty() || correctionCurve_.getMinTime() > newMinTime) {
-        correctionTimes.push_back(baseCurve_.getMinTime());
-        //    ValueType identityTransform;
-        //    identityTransform.setIdentity();
-        correctionValues.push_back(ValueType(ValueType::Position(0,0,0), ValueType::Rotation(1,0,0,0)));
-      }
-      if(correctionCurve_.isEmpty() || correctionCurve_.getMaxTime() < newMaxTime) {
-        correctionTimes.push_back(baseCurve_.getMaxTime());
-        correctionValues.push_back(ValueType(ValueType::Position(0,0,0), ValueType::Rotation(1,0,0,0)));
-      }
-      correctionCurve_.extend(correctionTimes, correctionValues);
-      break;
-    }
-    //Case 2: Add nodes at a fixed sampling frequency
-    case 2: {
+  if (correctionCurve_.isEmpty()) {
+    correctionTimes.push_back(newMinTime);
+    correctionValues.push_back(ValueType(ValueType::Position(0,0,0), ValueType::Rotation(1,0,0,0)));
+    correctionCurve_.extend(correctionTimes, correctionValues);
+  }
 
-      if (correctionCurve_.isEmpty()) {
-        correctionTimes.push_back(newMinTime);
-        correctionValues.push_back(ValueType(ValueType::Position(0,0,0), ValueType::Rotation(1,0,0,0)));
-        correctionCurve_.extend(correctionTimes, correctionValues);
-      }
-      while (correctionCurve_.getMaxTime() < newMaxTime) {
-        correctionTimes.push_back(correctionCurve_.getMaxTime() + samplingPeriod);
-        correctionValues.push_back(correctionCurve_.evaluate(correctionCurve_.getMaxTime()));
-        correctionCurve_.extend(correctionTimes, correctionValues);
-      }
-      while (correctionCurve_.getMinTime() > newMinTime) {
-        correctionTimes.push_back(correctionCurve_.getMinTime() - samplingPeriod);
-        correctionValues.push_back(correctionCurve_.evaluate(correctionCurve_.getMinTime()));
-        correctionCurve_.extend(correctionTimes, correctionValues);
-      }
+  if (correctionCurve_.getMaxTime() < newMaxTime) {
+    correctionTimes.push_back(newMaxTime);
+    correctionValues.push_back(correctionCurve_.evaluate(correctionCurve_.getMaxTime()));
+    correctionCurve_.extend(correctionTimes, correctionValues);
+  }
 
-      break;
-    }
-    //Case 3: Add nodes at a fixed sampling frequency. When the curve is extended
-    //at a lower frequency than this fixed frequency, add only a correction knot
-    //at the extended time. This prevents having knots unconstrained by odometry.
-    // todo This assumes that extend is called with only the latest time and measurement (no multiple values)
-    case 3: {
-      if (correctionCurve_.isEmpty()) {
-        correctionTimes.push_back(newMinTime);
-        correctionValues.push_back(ValueType(ValueType::Position(0,0,0), ValueType::Rotation(1,0,0,0)));
-        correctionCurve_.extend(correctionTimes, correctionValues);
-      }
-      if (correctionCurve_.getMaxTime() < newMaxTime) {
-        if (correctionCurve_.getMaxTime() + samplingPeriod >= newMaxTime) {
-          correctionTimes.push_back(correctionCurve_.getMaxTime() + samplingPeriod);
-        } else {
-          correctionTimes.push_back(newMaxTime);
-        }
-        correctionValues.push_back(correctionCurve_.evaluate(correctionCurve_.getMaxTime()));
-        correctionCurve_.extend(correctionTimes, correctionValues);
-      }
-      if (correctionCurve_.getMinTime() > newMinTime) {
-        if (correctionCurve_.getMinTime() - samplingPeriod <= newMinTime) {
-          correctionTimes.push_back(correctionCurve_.getMinTime() - samplingPeriod);
-        } else {
-          correctionTimes.push_back(newMinTime);
-        }
-        correctionValues.push_back(correctionCurve_.evaluate(correctionCurve_.getMinTime()));
-        correctionCurve_.extend(correctionTimes, correctionValues);
-      }
-    }
+  if (correctionCurve_.getMinTime() > newMinTime) {
+    correctionTimes.push_back(newMinTime);
+    correctionValues.push_back(correctionCurve_.evaluate(correctionCurve_.getMinTime()));
+    correctionCurve_.extend(correctionTimes, correctionValues);
   }
 
   //Compute the base curve updates accounting for the corrections

@@ -16,9 +16,11 @@ namespace curves {
 
 template <class C1, class C2>
 class SE3CompositionCurve : public SE3Curve {
+
  private:
   C1 baseCurve_;
   C2 correctionCurve_;
+
  public:
   typedef SE3Curve::ValueType ValueType;
   typedef SE3Curve::DerivativeType DerivativeType;
@@ -53,13 +55,9 @@ class SE3CompositionCurve : public SE3Curve {
                         const std::vector<ValueType>& values,
                         std::vector<Key>* outKeys = NULL);
 
-    /// \brief Extend the curve so that it can be evaluated at these times by
-    ///        specifying the correction sampling strategy and the sampling period.
-    virtual void extend(const std::vector<Time>& times,
-                        const std::vector<ValueType>& values,
-                        int correctionSamplingPolicy,
-                        Time samplingPeriod,
-                        std::vector<Key>* outKeys = NULL);
+    /// \brief Set the minimum sampling period for the correction curve.
+    ///        Overloads the function defined in SE3Curve base class.
+    void setMinSamplingPeriod(const Time minSamplingPeriod);
 
     /// \brief Fold in the correction curve into the base curve and reinitialize
     ///        correction curve coefficients to identity transformations.
