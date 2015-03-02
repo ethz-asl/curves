@@ -14,6 +14,7 @@
 #include "kindr/minimal/rotation-quaternion-gtsam.h"
 #include "kindr/minimal/common-gtsam.h"
 #include "gtsam/nonlinear/NonlinearFactorGraph.h"
+#include "SamplingPolicy.hpp"
 
 // wrapper class for Hermite-style coefficients (made of QuatTransformation and Vector6)
 namespace kindr {
@@ -179,6 +180,15 @@ class CubicHermiteSE3Curve : public SE3Curve {
                                 const ValueType& coeffA,
                                 const ValueType& coeffB) const;
 
+  /// Default method for extending the curve
+  Key defaultExtend(const Time& time,
+                    const ValueType& value);
+
+  /// interpolation variant for extending the curve
+  /// creates or updates the most recent coefficient depending on policy
+  Key interpolationExtend(const Time& time,
+                          const ValueType& value);
+
   /// Extend the curve so that it can be evaluated at these times.
   /// Try to make the curve fit to the values.
   /// Note: Assumes that extend times strictly increase the curve time
@@ -267,6 +277,7 @@ class CubicHermiteSE3Curve : public SE3Curve {
 
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
+  SamplingPolicy<SE3Config> hermitePolicy_;
 };
 
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
@@ -374,5 +385,6 @@ static EVector3 operator*(const EVector3& w, const double& alpha) {
 
 }
 }
+
 
 #endif /* CURVES_CUBIC_HERMITE_SE3_CURVE_HPP */
