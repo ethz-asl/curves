@@ -92,7 +92,8 @@ bool SE3CompositionCurve<C1, C2>::isEmpty() const{
 
 template <class C1, class C2>
 int SE3CompositionCurve<C1, C2>::size() const{
-  return baseCurve_.size();
+//  return baseCurve_.size();
+  return correctionCurve_.size();
 }
 
 template <class C1, class C2>
@@ -414,6 +415,11 @@ template <class C1, class C2>
 void SE3CompositionCurve<C1, C2>::setCorrectionCoefficientAtTime(Time time, ValueType value) {
   CHECK(correctionCurve_.manager_.hasCoefficientAtTime(time));
   correctionCurve_.manager_.insertCoefficient(time, value);
+}
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::addPriorFactors(gtsam::NonlinearFactorGraph* graph,
+                                                  Time priorTime) const {
+  correctionCurve_.addPriorFactors(graph, priorTime);
 }
 
 } // namespace curves

@@ -10,6 +10,7 @@
 #include "SE3Curve.hpp"
 #include "LocalSupport2CoefficientManager.hpp"
 #include "SE3CompositionCurve.hpp"
+#include "gtsam/nonlinear/NonlinearFactorGraph.h"
 
 namespace curves {
 
@@ -131,6 +132,9 @@ class SlerpSE3Curve : public SE3Curve {
   virtual void updateFromGTSAMValues(const gtsam::Values& values);
 
   virtual void clear();
+
+  /// \brief Add factors to constrain the variables active at this time.
+  void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
 
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;

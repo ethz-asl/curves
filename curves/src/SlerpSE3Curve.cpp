@@ -7,6 +7,8 @@
 #include <curves/SlerpSE3Curve.hpp>
 #include <iostream>
 
+#include "gtsam/nonlinear/ExpressionFactor.h"
+
 namespace curves {
 
 SlerpSE3Curve::SlerpSE3Curve() : SE3Curve() {}
@@ -78,6 +80,7 @@ void SlerpSE3Curve::extend(const std::vector<Time>& times,
                            std::vector<Key>* outKeys) {
 
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
+
   //todo: deal with minSamplingPeriod_ when extending with multiple times
   if (times.size() != 1) {
     manager_.insertCoefficients(times, values, outKeys);
@@ -291,6 +294,25 @@ void SlerpSE3Curve::updateFromGTSAMValues(const gtsam::Values& values) {
 
 void SlerpSE3Curve::clear() {
   manager_.clear();
+}
+
+void SlerpSE3Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const {
+
+  gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(gtsam::traits<Coefficient>::dimension);
+
+  //Add one fixed prior at priorTime and two before to ensure that at least two
+  CoefficientIter rVal0, rVal1;
+  manager_.getCoefficientsAt(priorTime, &rVal0, &rVal1);
+
+  gtsam::ExpressionFactor<Coefficient> f0(priorNoise,
+                                          rVal0->second.coefficient,
+                                          gtsam::Expression<Coefficient>(rVal0->second.key));
+  gtsam::ExpressionFactor<Coefficient> f1(priorNoise,
+                                          rVal1->second.coefficient,
+                                          gtsam::Expression<Coefficient>(rVal1->second.key));
+  graph->push_back(f0);
+  graph->push_back(f1);
+
 }
 
 } // namespace curves

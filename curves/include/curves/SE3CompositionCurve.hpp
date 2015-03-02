@@ -7,6 +7,8 @@
 #ifndef CURVES_COMPOSITION_CURVE_HPP
 #define CURVES_COMPOSITION_CURVE_HPP
 
+#include "gtsam/nonlinear/NonlinearFactorGraph.h"
+
 namespace curves {
 
 // SE3CompositionCurve is a curve composed of a base and a correction curve.
@@ -154,6 +156,9 @@ class SE3CompositionCurve : public SE3Curve {
 
     /// \brief Set the correction coefficient value at the specified time.
     void setCorrectionCoefficientAtTime(Time time, ValueType value);
+
+    /// \brief Add factors to constrain the variables active at this time.
+    void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
 
 };
 

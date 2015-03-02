@@ -189,5 +189,23 @@ void LinearInterpolationVectorSpaceCurve<N>::clear() {
   manager_.clear();
 }
 
+template<int N>
+void LinearInterpolationVectorSpaceCurve<N>::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const {
+  gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(gtsam::traits<Coefficient>::dimension);
+
+  //Add one fixed prior at priorTime and two before to ensure that at least two
+  CoefficientIter rVal0, rVal1;
+  manager_.getCoefficientsAt(priorTime, &rVal0, &rVal1);
+
+  gtsam::ExpressionFactor<Coefficient> f0(priorNoise,
+                                          rVal0->second.coefficient,
+                                          gtsam::Expression<Coefficient>(rVal0->second.key));
+  gtsam::ExpressionFactor<Coefficient> f1(priorNoise,
+                                          rVal1->second.coefficient,
+                                          gtsam::Expression<Coefficient>(rVal1->second.key));
+  graph->push_back(f0);
+  graph->push_back(f1);
+
+}
 
 } // namespace curves
