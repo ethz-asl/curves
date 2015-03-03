@@ -18,8 +18,6 @@ typedef size_t Key;
 template<typename CurveConfig>
 class Curve
 {
- protected:
-  Time minSamplingPeriod_ = 0;
  public:
   
   /// The value type of the curve.
@@ -77,11 +75,6 @@ class Curve
   virtual void extend(const std::vector<Time>& times,
                       const std::vector<ValueType>& values,
                       std::vector<Key>* outKeys) = 0;
-
-  /// \brief Set the minimum sampling period for the correction curve.
-  void setMinSamplingPeriod(const Time minSamplingPeriod) {
-    minSamplingPeriod_ = minSamplingPeriod;
-  };
 
   /// \brief Fit a new curve to these data points.
   ///

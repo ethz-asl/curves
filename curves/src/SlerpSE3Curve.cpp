@@ -80,42 +80,7 @@ void SlerpSE3Curve::extend(const std::vector<Time>& times,
                            std::vector<Key>* outKeys) {
 
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
-
-  //todo: deal with minSamplingPeriod_ when extending with multiple times
-  if (times.size() != 1) {
-    manager_.insertCoefficients(times, values, outKeys);
-  } else {
-    //If the curve is empty or of size 1, simply add the new coefficient
-    if (this->isEmpty() || this->size() == 1) {
-      manager_.insertCoefficients(times, values, outKeys);
-    } else {
-      //todo: deal with extending curve with decreasing time
-      std::vector<Time> oldTimes;
-      manager_.getTimes(&oldTimes);
-      Time tPrev = oldTimes[oldTimes.size()-1];
-      Time tPrevPrev = oldTimes[oldTimes.size()-2];
-
-      if (tPrev - tPrevPrev >= minSamplingPeriod_) {
-        // case 1 : the time delta between the two last knots is larger or equal to the minSamplingPeriod_
-        // simply add a new coefficient and keep the previous one fixed
-        manager_.insertCoefficients(times, values, outKeys);
-      } else if (times[0] - tPrevPrev > minSamplingPeriod_){
-        //  add knot at tNew + move tPrev to tPrevPrev + minSamplingPeriod_ with value = interpolation
-        manager_.insertCoefficients(times, values, outKeys);
-        std::vector<ValueType> newValue;
-        std::vector<Time> newTime;
-        newValue.push_back(this->evaluate(tPrevPrev + minSamplingPeriod_));
-        newTime.push_back(tPrevPrev + minSamplingPeriod_);
-        // todo: implement real knot moving method
-        manager_.insertCoefficients(newTime, newValue);
-        manager_.removeCoefficientAtTime(tPrev);
-      } else {
-        // move knot at tNew with value = new value
-        manager_.removeCoefficientAtTime(tPrev);
-        manager_.insertCoefficients(times, values, outKeys);
-      }
-    }
-  }
+  slerpPolicy_.extend<SlerpSE3Curve, ValueType>(times, values, this, outKeys);
 }
 
 typename SlerpSE3Curve::DerivativeType
@@ -290,6 +255,10 @@ void SlerpSE3Curve::initializeGTSAMValues(gtsam::Values* values) const {
 
 void SlerpSE3Curve::updateFromGTSAMValues(const gtsam::Values& values) {
   manager_.updateFromGTSAMValues(values);
+}
+
+void SlerpSE3Curve::setMinSamplingPeriod(Time time) {
+  slerpPolicy_.setMinSamplingPeriod(time);
 }
 
 void SlerpSE3Curve::clear() {
