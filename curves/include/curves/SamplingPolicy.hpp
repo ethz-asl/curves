@@ -19,18 +19,21 @@ class SamplingPolicy {
   int measurementsSinceLastExtend_;
   int minimumMeasurements_;
   Time minSamplingPeriod_;
+  Time lastExtend_;
 
  public:
 
   SamplingPolicy() :
     measurementsSinceLastExtend_(0),
     minimumMeasurements_(1),
-    minSamplingPeriod_(0) {};
+    minSamplingPeriod_(0),
+    lastExtend_(0) {};
 
   SamplingPolicy(int minimumMeasurements, Time minSamplingPeriod) :
     minimumMeasurements_(minimumMeasurements),
     measurementsSinceLastExtend_(0),
-    minSamplingPeriod_(minSamplingPeriod) {};
+    minSamplingPeriod_(minSamplingPeriod),
+    lastExtend_(0) {};
 
   ~SamplingPolicy() {};
 
@@ -45,6 +48,14 @@ class SamplingPolicy {
 
   Time getMinSamplingPeriod() {
     return minSamplingPeriod_;
+  }
+
+  Time getLastExtendTime() {
+    return lastExtend_;
+  }
+
+  void setLastExtendTime(Time time) {
+    lastExtend_ = time;
   }
 
   void setMinimumMeasurements(int n) {

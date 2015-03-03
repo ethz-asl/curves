@@ -10,7 +10,9 @@
 
 namespace curves {
 
-CubicHermiteSE3Curve::CubicHermiteSE3Curve() : SE3Curve() {}
+CubicHermiteSE3Curve::CubicHermiteSE3Curve() : SE3Curve() {
+  hermitePolicy_.setMinimumMeasurements(4);
+}
 
 CubicHermiteSE3Curve::~CubicHermiteSE3Curve() {}
 
@@ -152,7 +154,6 @@ Key CubicHermiteSE3Curve::defaultExtend(const Time& time,
   // manager is empty
   if (manager_.size() == 0) {
     derivative << 0,0,0,0,0,0;
-
     // 1 value in manager (2 in total)
   } else if (manager_.size() == 1) {
     // get latest coefficient from manager
@@ -170,7 +171,8 @@ Key CubicHermiteSE3Curve::defaultExtend(const Time& time,
   } else if (manager_.size() > 1) {
     // get latest 2 coefficients from manager
     CoefficientIter rVal0, rVal1;
-    manager_.getCoefficientsAt(manager_.coefficientEnd()->first,
+    CoefficientIter last = --manager_.coefficientEnd();
+    manager_.getCoefficientsAt(last->first,
                                &rVal0,
                                &rVal1);
 
@@ -190,6 +192,7 @@ Key CubicHermiteSE3Curve::defaultExtend(const Time& time,
                                  value);
   }
   hermitePolicy_.setMeasurementsSinceLastExtend_(0);
+  hermitePolicy_.setLastExtendTime(time);
   return manager_.insertCoefficient(time, Coefficient(value, derivative));
 }
 
@@ -198,22 +201,27 @@ Key CubicHermiteSE3Curve::interpolationExtend(const Time& time,
   DerivativeType derivative;
   if (hermitePolicy_.getMeasurementsSinceLastExtend() == 0) {
     // extend curve with new interpolation coefficient if necessary
-
-    derivative << 0,0,0,0,0,0;
+    CoefficientIter rValInterp = --manager_.coefficientEnd();
+    CoefficientIter last = --manager_.coefficientEnd();
+    derivative << last->second.coefficient.getTransformationDerivative();
   } else {
     // assumes the interpolation coefficient is already set (at end of curve)
     // assumes same velocities as last Coefficient
     CoefficientIter rVal0, rValInterp;
-    manager_.getCoefficientsAt(manager_.coefficientEnd()->first,
+    CoefficientIter last = --manager_.coefficientEnd();
+    manager_.getCoefficientsAt(last->first,
                                &rVal0,
                                &rValInterp);
 
-    Vector6d derivative = rVal0->second.coefficient.getTransformationDerivative();
-    SE3 transform0 = rVal0->second.coefficient.getTransformation();
+    derivative << calculateSlope(rVal0->first,
+                                 time,
+                                 rVal0->second.coefficient.getTransformation(),
+                                 value);
 
     // update the interpolated coefficient with given values and velocities from last coefficeint
     manager_.removeCoefficientAtTime(rValInterp->first);
   }
+
   hermitePolicy_.incrementMeasurementsTaken(1);
   return manager_.insertCoefficient(time, Coefficient(value, derivative));
 }
@@ -238,9 +246,13 @@ void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
     // ensure time strictly increases
     CHECK((times[i] > manager_.getMaxTime()) || manager_.size() == 0) << "curve can only be extended into the future. Requested = "
         << times[i] << " < curve max time = " << manager_.getMaxTime();
-    if((hermitePolicy_.getMeasurementsSinceLastExtend() >= hermitePolicy_.getMinimumMeasurements() &&
-        manager_.getMaxTime() + hermitePolicy_.getMinSamplingPeriod() < times[i]) ||
-        manager_.size() == 0) {
+    if (manager_.size() == 0) {
+      defaultExtend(times[i], values[i]);
+    } else if((hermitePolicy_.getMeasurementsSinceLastExtend() >= hermitePolicy_.getMinimumMeasurements() &&
+        hermitePolicy_.getLastExtendTime() + hermitePolicy_.getMinSamplingPeriod() < times[i])) {
+      // delete interpolated coefficient
+      CoefficientIter last = --manager_.coefficientEnd();
+      manager_.removeCoefficientAtTime(last->first);
       // todo write outkeys
       defaultExtend(times[i], values[i]);
     } else {
