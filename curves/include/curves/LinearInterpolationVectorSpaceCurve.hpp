@@ -9,6 +9,7 @@
 
 #include "VectorSpaceCurve.hpp"
 #include "LocalSupport2CoefficientManager.hpp"
+#include "gtsam/nonlinear/NonlinearFactorGraph.h"
 
 namespace curves {
 template<int N>
@@ -73,6 +74,8 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
   virtual void updateFromGTSAMValues(const gtsam::Values& values);
 
   virtual void clear();
+
+  void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
 
  private:
   typedef Eigen::Matrix<double,N,1> Coefficient;
