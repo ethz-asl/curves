@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 #include <curves/SlerpSE3Curve.hpp>
+#include <curves/CubicHermiteSE3Curve.hpp>
 #include <curves/SE3CompositionCurve.hpp>
 #include "gtsam/nonlinear/Expression.h"
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
@@ -29,6 +30,45 @@
 using namespace curves;
 using namespace gtsam;
 using namespace std;
+
+template <typename CurveType_, boost::int64_t MinSamplingPeriod_>
+class CurveWrapper {
+ public:
+  typedef CurveType_ CurveType;
+
+ private:
+  CurveType curve_;
+
+ public:
+  CurveWrapper() {
+    curve_.setMinSamplingPeriod(MinSamplingPeriod_);
+  }
+
+  CurveType getCurve() {
+    return curve_;
+  }
+};
+
+template <typename CurveWrapperType_>
+class SinusCircleTestSuites : public ::testing::Test {
+ public:
+
+  typedef typename CurveWrapperType_::CurveType CurveType;
+
+  CurveType createCurve() {
+    CurveWrapperType_ curveWrapper;
+    return curveWrapper.getCurve();
+  }
+};
+
+typedef ::testing::Types<
+//    CurveWrapper<SlerpSE3Curve,0>,
+    //    CurveWrapper<SE3CompositionCurve<SlerpSE3Curve, CubicHermiteSE3Curve>, 500000000>,
+    CurveWrapper<SE3CompositionCurve<SlerpSE3Curve, SlerpSE3Curve>, 1000000000>,
+    CurveWrapper<SE3CompositionCurve<SlerpSE3Curve, SlerpSE3Curve>, 500000000>
+> TestTypes;
+
+TYPED_TEST_CASE(SinusCircleTestSuites, TestTypes);
 
 typedef typename SlerpSE3Curve::ValueType ValueType;
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
@@ -62,7 +102,7 @@ double multiplyVectors(Eigen::Vector3d a, Eigen::Vector3d b,
   return a.transpose() * b;
 }
 
-TEST(CurvesTestSuite, testSE3CompositionCurve_SinusCircle) {
+TYPED_TEST(SinusCircleTestSuites, testSE3CompositionCurve_SinusCircle) {
 
   // Load the true coefficients
   double val;
@@ -135,8 +175,7 @@ TEST(CurvesTestSuite, testSE3CompositionCurve_SinusCircle) {
   }
 
   // Make the composition curve
-  SE3CompositionCurve<SlerpSE3Curve, SlerpSE3Curve> curve;
-  curve.setMinSamplingPeriod(500000000);
+  typename TypeParam::CurveType curve = this->createCurve();
   for (size_t i=0; i < nBaseCoefToConsider; ++i) {
     std::vector<Time> timeToAdd;
     std::vector<ValueType> valueToAdd;
@@ -145,9 +184,9 @@ TEST(CurvesTestSuite, testSE3CompositionCurve_SinusCircle) {
     curve.extend(timeToAdd, valueToAdd);
   }
 
-//  std::cout << "matches.size() " << matches.size() << std::endl;
-//  std::cout << "trueCurve.size() " << trueCurve.size() << std::endl;
-//  std::cout << "correction.size() " << curve.correctionSize() << std::endl;
+  //  std::cout << "matches.size() " << matches.size() << std::endl;
+  //  std::cout << "trueCurve.size() " << trueCurve.size() << std::endl;
+  //  std::cout << "correction.size() " << curve.correctionSize() << std::endl;
 
   // noise models
   Vector6 measNoise;
@@ -265,8 +304,8 @@ TEST(CurvesTestSuite, testSE3CompositionCurve_SinusCircle) {
 
     // Perform optimization
     gtsam::LevenbergMarquardtParams params;
-//    params.setVerbosity("ERROR");
-//    params.setVerbosityLM("TRYLAMBDA");
+    //    params.setVerbosity("ERROR");
+    //    params.setVerbosityLM("TRYLAMBDA");
     gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, initials, params).optimize();
 
     curve.updateFromGTSAMValues(result);
