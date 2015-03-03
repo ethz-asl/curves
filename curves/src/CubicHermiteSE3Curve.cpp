@@ -142,132 +142,111 @@ CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::calculateSlope(const 
   rVal << velocity_m_s, angularVelocity_rad_s;
   return rVal;
 }
+
+Key CubicHermiteSE3Curve::defaultExtend(const Time& time,
+                                        const ValueType& value) {
+
+  DerivativeType derivative;
+  //cases:
+
+  // manager is empty
+  if (manager_.size() == 0) {
+    derivative << 0,0,0,0,0,0;
+
+    // 1 value in manager (2 in total)
+  } else if (manager_.size() == 1) {
+    // get latest coefficient from manager
+    CoefficientIter last = manager_.coefficientBegin();
+    // calculate slope
+    // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
+    derivative = calculateSlope(last->first,
+                                time,
+                                last->second.coefficient.getTransformation(),
+                                value);
+    // update previous coefficient
+    Coefficient updated(last->second.coefficient.getTransformation(), derivative);
+    manager_.updateCoefficientByKey(last->second.key, updated);
+    // more than 1 values in manager
+  } else if (manager_.size() > 1) {
+    // get latest 2 coefficients from manager
+    CoefficientIter rVal0, rVal1;
+    manager_.getCoefficientsAt(manager_.coefficientEnd()->first,
+                               &rVal0,
+                               &rVal1);
+
+    // update derivative of previous coefficient
+    DerivativeType derivative0;
+    derivative0 << calculateSlope(rVal0->first,
+                                  time,
+                                  rVal0->second.coefficient.getTransformation(),
+                                  value);
+    Coefficient updated(rVal1->second.coefficient.getTransformation(), derivative0);
+    manager_.updateCoefficientByKey(rVal1->second.key, updated);
+
+    // calculate slope
+    derivative << calculateSlope(rVal1->first,
+                                 time,
+                                 rVal1->second.coefficient.getTransformation(),
+                                 value);
+  }
+  hermitePolicy_.setMeasurementsSinceLastExtend_(0);
+  return manager_.insertCoefficient(time, Coefficient(value, derivative));
+}
+
+Key CubicHermiteSE3Curve::interpolationExtend(const Time& time,
+                                              const ValueType& value) {
+  DerivativeType derivative;
+  if (hermitePolicy_.getMeasurementsSinceLastExtend() == 0) {
+    // extend curve with new interpolation coefficient if necessary
+
+    derivative << 0,0,0,0,0,0;
+  } else {
+    // assumes the interpolation coefficient is already set (at end of curve)
+    // assumes same velocities as last Coefficient
+    CoefficientIter rVal0, rValInterp;
+    manager_.getCoefficientsAt(manager_.coefficientEnd()->first,
+                               &rVal0,
+                               &rValInterp);
+
+    Vector6d derivative = rVal0->second.coefficient.getTransformationDerivative();
+    SE3 transform0 = rVal0->second.coefficient.getTransformation();
+
+    // update the interpolated coefficient with given values and velocities from last coefficeint
+    manager_.removeCoefficientAtTime(rValInterp->first);
+  }
+  hermitePolicy_.incrementMeasurementsTaken(1);
+  return manager_.insertCoefficient(time, Coefficient(value, derivative));
+}
+
 void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
                                   const std::vector<ValueType>& values,
                                   std::vector<Key>* outKeys) {
 
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
 
-  // construct the Hemrite coefficients
-  std::vector<Coefficient> coefficients;
-  DerivativeType derivative;
-  //cases:
-  for (size_t i = 0; i < times.size(); ++i) {
+  // New values in extend first need to be checked if they can be added to curve
+  // otherwise the most recent coefficient will be an interpolation based on the last
+  // coefficient and the requested time-value pair
 
-    // only 1 new value in extend
-    if (times.size() == 1) {
-      // manager is empty
-      if (manager_.size() == 0) {
-        derivative << 0,0,0,0,0,0;
-
-        // 1 value in manager (2 in total)
-      } else if (manager_.size() == 1) {
-        // get latest coefficient from manager
-        CoefficientIter last = manager_.coefficientBegin();
-        Time t = last->first;
-        Time t1 = times[0];
-        SE3 se = last->second.coefficient.getTransformation();
-        SE3 se1 = values[0];
-        // calculate slope
-        // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
-        derivative = calculateSlope(last->first,
-                                    times[0],
-                                    last->second.coefficient.getTransformation(),
-                                    values[0]);
-        // update previous coefficient
-        Coefficient updated(last->second.coefficient.getTransformation(), derivative);
-        manager_.updateCoefficientByKey(last->second.key, updated);
-        // more than 1 values in manager
-      } else if (manager_.size() > 1) {
-        // get latest 2 coefficients from manager
-        CoefficientIter rVal0, rVal1;
-        manager_.getCoefficientsAt(manager_.coefficientEnd()->first,
-                                   &rVal0,
-                                   &rVal1);
-
-        // update derivative of previous coefficient
-        DerivativeType derivative0;
-        derivative0 << calculateSlope(rVal0->first,
-                                      times[0],
-                                      rVal0->second.coefficient.getTransformation(),
-                                      values[0]);
-        Coefficient updated(rVal1->second.coefficient.getTransformation(), derivative0);
-        manager_.updateCoefficientByKey(rVal1->second.key, updated);
-
-        // calculate slope
-        derivative << calculateSlope(rVal1->first,
-                                     times[0],
-                                     rVal1->second.coefficient.getTransformation(),
-                                     values[0]);
-      }
-      // only 2 new values in extend
-    } else if (times.size() == 2) {
-
-      // manager is empty
-      if (manager_.size() == 0) {
-
-        derivative << calculateSlope(times[0],
-                                     times[1],
-                                     values[0],
-                                     values[1]);
-
-        // manager has at least one value
-      } else {
-
-        if (i == 0) {
-          // get latest coefficient from manager
-          CoefficientIter last = manager_.coefficientEnd();
-          derivative << calculateSlope(last->first,
-                                       times[1],
-                                       last->second.coefficient.getTransformation(),
-                                       values[1]);
-        } else {
-          derivative << calculateSlope(times[0],
-                                       times[1],
-                                       values[0],
-                                       values[1]);
-        }
-      }
-
-      // several new values in extend
-    } else if (times.size() > 2) {
-
-      if (i == 0) {
-        // it is the first coefficient in curve
-        if (manager_.size() == 0) {
-
-          derivative << calculateSlope(times[0],
-                                       times[1],
-                                       values[0],
-                                       values[1]);
-        } else {
-          CoefficientIter last = manager_.coefficientEnd();
-          derivative << calculateSlope(last->first,
-                                       times[1],
-                                       last->second.coefficient.getTransformation(),
-                                       values[1]);
-        }
-
-        // i is between coefficients
-      } else if (i < times.size()-1) {
-        // get latest coefficient from manager
-        derivative << calculateSlope(times[i-1],
-                                     times[i+1],
-                                     values[i-1],
-                                     values[i+1]);
-        // i is last coefficient
-      } else {
-        derivative << calculateSlope(times[i-1],
-                                     times[i],
-                                     values[i-1],
-                                     values[i]);
-
-      }
+  // switch extension curve between default and interpolation (with regard to policy)
+  // - default extend if the minimum time gap between 2 coefficients is satisfied
+  // - default extend if enough measurements were taken between 2 coefficients, so
+  //   the curve is well defined
+  // - default extend if curve is empty
+  // - interpolation extend otherwise
+  for (int i = 0; i < times.size(); ++i) {
+    // ensure time strictly increases
+    CHECK((times[i] > manager_.getMaxTime()) || manager_.size() == 0) << "curve can only be extended into the future. Requested = "
+        << times[i] << " < curve max time = " << manager_.getMaxTime();
+    if((hermitePolicy_.getMeasurementsSinceLastExtend() >= hermitePolicy_.getMinimumMeasurements() &&
+        manager_.getMaxTime() + hermitePolicy_.getMinSamplingPeriod() < times[i]) ||
+        manager_.size() == 0) {
+      // todo write outkeys
+      defaultExtend(times[i], values[i]);
+    } else {
+      interpolationExtend(times[i], values[i]);
     }
-    coefficients.push_back(Coefficient(values[i], derivative));
   }
-  manager_.insertCoefficients(times, coefficients, outKeys);
-
 }
 
 typename CubicHermiteSE3Curve::DerivativeType
@@ -309,18 +288,18 @@ CubicHermiteSE3Curve::getValueExpression(const Time& time) const {
   EVector3 trans2 = kindr::minimal::translationFromTransformation(transformation2);
 
   EQuaternion quat = kindr::minimal::hermiteQuaternionInterpolation(quat1,
-                                                          angVel1,
-                                                          quat2,
-                                                          angVel2,
-                                                          alpha,
-                                                          dt_sec);
+                                                                    angVel1,
+                                                                    quat2,
+                                                                    angVel2,
+                                                                    alpha,
+                                                                    dt_sec);
 
   EVector3 trans = kindr::minimal::hermiteInterpolation<Vector3>(trans1,
-                                                                   vel1,
-                                                                   trans2,
-                                                                   vel2,
-                                                                   alpha,
-                                                                   dt_sec);
+                                                                 vel1,
+                                                                 trans2,
+                                                                 vel2,
+                                                                 alpha,
+                                                                 dt_sec);
 
   return kindr::minimal::transformationFromComponents(quat, trans);
 }
