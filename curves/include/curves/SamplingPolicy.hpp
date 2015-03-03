@@ -7,13 +7,11 @@
 #ifndef SAMPLING_POLICY_HPP
 #define SAMPLING_POLICY_HPP
 
+#include <typeinfo>
+
 namespace curves {
 
-template<typename CurveConfig>
 class SamplingPolicy {
-  friend class Curve<CurveConfig>;
-
-  typedef typename Curve<CurveConfig>::ValueType ValueType;
 
  protected:
   int measurementsSinceLastExtend_;
@@ -36,6 +34,28 @@ class SamplingPolicy {
     lastExtend_(0) {};
 
   ~SamplingPolicy() {};
+
+  template<typename CurveType, typename ValueType>
+  Key interpolationExtend(const Time& time,
+                          const ValueType& value,
+                          CurveType* curve) {
+    CHECK(false) << "no interpolation extend policy implemented for " <<  typeid(CurveType).name();
+  }
+
+  template<typename CurveType, typename ValueType>
+  Key defaultExtend(const Time& time,
+                    const ValueType& value,
+                    CurveType* curve) {
+    CHECK(false) << "no default extend policy implemented for " <<  typeid(CurveType).name();
+  }
+
+  template<typename CurveType, typename ValueType>
+  void extend(const std::vector<Time>& times,
+              const std::vector<ValueType>& values,
+              CurveType* curve,
+              std::vector<Key>* outKeys = NULL) {
+    CHECK(false) << "no extend policy implemented for " <<  typeid(CurveType).name();
+  }
 
   /// Print the value of the coefficient, for debugging and unit tests
   int getMeasurementsSinceLastExtend() {
@@ -74,6 +94,7 @@ class SamplingPolicy {
     measurementsSinceLastExtend_ = num;
   }
 };
+
 
 } // namespace curves
 

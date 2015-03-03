@@ -145,92 +145,9 @@ CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::calculateSlope(const 
   return rVal;
 }
 
-Key CubicHermiteSE3Curve::defaultExtend(const Time& time,
-                                        const ValueType& value) {
-
-  DerivativeType derivative;
-  //cases:
-
-  // manager is empty
-  if (manager_.size() == 0) {
-    derivative << 0,0,0,0,0,0;
-    // 1 value in manager (2 in total)
-  } else if (manager_.size() == 1) {
-    // get latest coefficient from manager
-    CoefficientIter last = manager_.coefficientBegin();
-    // calculate slope
-    // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
-    derivative = calculateSlope(last->first,
-                                time,
-                                last->second.coefficient.getTransformation(),
-                                value);
-    // update previous coefficient
-    Coefficient updated(last->second.coefficient.getTransformation(), derivative);
-    manager_.updateCoefficientByKey(last->second.key, updated);
-    // more than 1 values in manager
-  } else if (manager_.size() > 1) {
-    // get latest 2 coefficients from manager
-    CoefficientIter rVal0, rVal1;
-    CoefficientIter last = --manager_.coefficientEnd();
-    manager_.getCoefficientsAt(last->first,
-                               &rVal0,
-                               &rVal1);
-
-    // update derivative of previous coefficient
-    DerivativeType derivative0;
-    derivative0 << calculateSlope(rVal0->first,
-                                  time,
-                                  rVal0->second.coefficient.getTransformation(),
-                                  value);
-    Coefficient updated(rVal1->second.coefficient.getTransformation(), derivative0);
-    manager_.updateCoefficientByKey(rVal1->second.key, updated);
-
-    // calculate slope
-    derivative << calculateSlope(rVal1->first,
-                                 time,
-                                 rVal1->second.coefficient.getTransformation(),
-                                 value);
-  }
-  hermitePolicy_.setMeasurementsSinceLastExtend_(0);
-  hermitePolicy_.setLastExtendTime(time);
-  return manager_.insertCoefficient(time, Coefficient(value, derivative));
-}
-
-Key CubicHermiteSE3Curve::interpolationExtend(const Time& time,
-                                              const ValueType& value) {
-  DerivativeType derivative;
-  if (hermitePolicy_.getMeasurementsSinceLastExtend() == 0) {
-    // extend curve with new interpolation coefficient if necessary
-    CoefficientIter rValInterp = --manager_.coefficientEnd();
-    CoefficientIter last = --manager_.coefficientEnd();
-    derivative << last->second.coefficient.getTransformationDerivative();
-  } else {
-    // assumes the interpolation coefficient is already set (at end of curve)
-    // assumes same velocities as last Coefficient
-    CoefficientIter rVal0, rValInterp;
-    CoefficientIter last = --manager_.coefficientEnd();
-    manager_.getCoefficientsAt(last->first,
-                               &rVal0,
-                               &rValInterp);
-
-    derivative << calculateSlope(rVal0->first,
-                                 time,
-                                 rVal0->second.coefficient.getTransformation(),
-                                 value);
-
-    // update the interpolated coefficient with given values and velocities from last coefficeint
-    manager_.removeCoefficientAtTime(rValInterp->first);
-  }
-
-  hermitePolicy_.incrementMeasurementsTaken(1);
-  return manager_.insertCoefficient(time, Coefficient(value, derivative));
-}
-
 void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
                                   const std::vector<ValueType>& values,
                                   std::vector<Key>* outKeys) {
-
-  CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
 
   // New values in extend first need to be checked if they can be added to curve
   // otherwise the most recent coefficient will be an interpolation based on the last
@@ -242,23 +159,9 @@ void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
   //   the curve is well defined
   // - default extend if curve is empty
   // - interpolation extend otherwise
-  for (int i = 0; i < times.size(); ++i) {
-    // ensure time strictly increases
-    CHECK((times[i] > manager_.getMaxTime()) || manager_.size() == 0) << "curve can only be extended into the future. Requested = "
-        << times[i] << " < curve max time = " << manager_.getMaxTime();
-    if (manager_.size() == 0) {
-      defaultExtend(times[i], values[i]);
-    } else if((hermitePolicy_.getMeasurementsSinceLastExtend() >= hermitePolicy_.getMinimumMeasurements() &&
-        hermitePolicy_.getLastExtendTime() + hermitePolicy_.getMinSamplingPeriod() < times[i])) {
-      // delete interpolated coefficient
-      CoefficientIter last = --manager_.coefficientEnd();
-      manager_.removeCoefficientAtTime(last->first);
-      // todo write outkeys
-      defaultExtend(times[i], values[i]);
-    } else {
-      interpolationExtend(times[i], values[i]);
-    }
-  }
+
+  CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
+  hermitePolicy_.extend<CubicHermiteSE3Curve, ValueType>(times, values, this, outKeys);
 }
 
 typename CubicHermiteSE3Curve::DerivativeType
