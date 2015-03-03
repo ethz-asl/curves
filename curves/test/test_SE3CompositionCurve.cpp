@@ -136,12 +136,13 @@ TEST(CurvesTestSuite, testSE3CompositionCurve_SinusCircle) {
 
   // Make the composition curve
   SE3CompositionCurve<SlerpSE3Curve, SlerpSE3Curve> curve;
+  curve.setMinSamplingPeriod(500000000);
   for (size_t i=0; i < nBaseCoefToConsider; ++i) {
     std::vector<Time> timeToAdd;
     std::vector<ValueType> valueToAdd;
     timeToAdd.push_back(times[i]);
     valueToAdd.push_back(noisyInitials[i]);
-    curve.extend(timeToAdd, valueToAdd, 2, 500000000);
+    curve.extend(timeToAdd, valueToAdd);
   }
 
 //  std::cout << "matches.size() " << matches.size() << std::endl;
