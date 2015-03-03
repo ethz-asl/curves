@@ -390,6 +390,10 @@ void CubicHermiteSE3Curve::updateFromGTSAMValues(const gtsam::Values& values) {
   manager_.updateFromGTSAMValues(values);
 }
 
+void CubicHermiteSE3Curve::setMinSamplingPeriod(Time time) {
+  hermitePolicy_.setMinSamplingPeriod(time);
+}
+
 void CubicHermiteSE3Curve::clear() {
   manager_.clear();
 }

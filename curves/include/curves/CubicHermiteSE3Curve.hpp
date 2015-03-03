@@ -125,8 +125,7 @@ template<> struct traits<kindr::minimal::HermiteTransformation<double>> {
 namespace curves {
 
 typedef SE3Curve::ValueType ValueType;
-typedef SE3Curve::DerivativeType DerivativeType;
-typedef kindr::minimal::HermiteTransformation<double> Coefficient;
+typedef SE3Curve::DerivativeType DerivativeType;typedef kindr::minimal::HermiteTransformation<double> Coefficient;
 typedef LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;
 typedef LocalSupport2CoefficientManager<Coefficient>::CoefficientIter CoefficientIter;
 
@@ -159,6 +158,7 @@ class CubicHermiteSE3Curve : public SE3Curve {
   friend class SamplingPolicy;
  public:
 
+  typedef kindr::minimal::HermiteTransformation<double> Coefficient;
   CubicHermiteSE3Curve();
   virtual ~CubicHermiteSE3Curve();
 
@@ -265,6 +265,9 @@ class CubicHermiteSE3Curve : public SE3Curve {
   // updates the relevant curve coefficients from the GTSAM values structure
   virtual void updateFromGTSAMValues(const gtsam::Values& values);
 
+  // set the minimum sampling period
+  void setMinSamplingPeriod(Time time);
+
   // clear the curve
   virtual void clear();
 
@@ -286,7 +289,7 @@ SE3 inverseTransformation(SE3 T);
 
 // implements the special (extend) policies for Cubic Hermite curves
 template <>
-Key SamplingPolicy::defaultExtend<CubicHermiteSE3Curve, ValueType>(const Time& time,
+inline Key SamplingPolicy::defaultExtend<CubicHermiteSE3Curve, ValueType>(const Time& time,
                   const ValueType& value,
                   CubicHermiteSE3Curve* curve) {
 
@@ -339,7 +342,7 @@ Key SamplingPolicy::defaultExtend<CubicHermiteSE3Curve, ValueType>(const Time& t
 }
 
 template <>
-Key SamplingPolicy::interpolationExtend<CubicHermiteSE3Curve, ValueType>(const Time& time,
+inline Key SamplingPolicy::interpolationExtend<CubicHermiteSE3Curve, ValueType>(const Time& time,
                         const ValueType& value,
                         CubicHermiteSE3Curve* curve) {
   DerivativeType derivative;
@@ -371,7 +374,7 @@ Key SamplingPolicy::interpolationExtend<CubicHermiteSE3Curve, ValueType>(const T
 }
 
 template<>
-void SamplingPolicy::extend<CubicHermiteSE3Curve, ValueType>(const std::vector<Time>& times,
+inline void SamplingPolicy::extend<CubicHermiteSE3Curve, ValueType>(const std::vector<Time>& times,
                                                              const std::vector<ValueType>& values,
                                                              CubicHermiteSE3Curve* curve,
                                                              std::vector<Key>* outKeys) {
