@@ -320,7 +320,11 @@ void LocalSupport2CoefficientManager<Coefficient>::checkInternalConsistency(bool
 template <class Coefficient>
 void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
   for (unsigned int i = 0; i < keys.size(); ++i) {
-    values->insert(keys[i],keyToCoefficient_.find(keys[i])->second->second.coefficient);
+    typename boost::unordered_map<Key, CoefficientIter>::const_iterator it = keyToCoefficient_.find(keys[i]);
+    // Only add the values for the keys which are requested and belong to this curve
+    if (it != keyToCoefficient_.end()) {
+      values->insert(keys[i],it->second->second.coefficient);
+    }
   }
 }
 
@@ -335,7 +339,10 @@ template <class Coefficient>
 void LocalSupport2CoefficientManager<Coefficient>::updateFromGTSAMValues(const gtsam::Values& values) {
   gtsam::Values::const_iterator iter;
   for (iter = values.begin(); iter != values.end(); ++iter) {
-    updateCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
+    // Only update the curve coefficients
+    if (keyToCoefficient_.find(iter->key) != keyToCoefficient_.end()) {
+      updateCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
+    }
   }
 }
 
