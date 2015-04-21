@@ -96,6 +96,10 @@ class Curve
    virtual void updateFromGTSAMValues(const gtsam::Values& values) = 0;
 
    virtual void clear() = 0;
+
+   /// \brief Perform a rigid transformation on the left side of the curve
+   virtual void transformCurve(const ValueType T) = 0;
+
 };
 
 } // namespace curves

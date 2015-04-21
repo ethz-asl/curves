@@ -160,6 +160,9 @@ class SE3CompositionCurve : public SE3Curve {
     /// \brief Add factors to constrain the variables active at this time.
     void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
 
+    /// \brief Perform a rigid transformation on the left side of the curve
+    void transformCurve(const ValueType T);
+
 };
 
 } // namespace curves

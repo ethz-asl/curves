@@ -398,4 +398,8 @@ void CubicHermiteSE3Curve::clear() {
   manager_.clear();
 }
 
+void CubicHermiteSE3Curve::transformCurve(const ValueType T) {
+  //todo
+}
+
 } // namespace curves

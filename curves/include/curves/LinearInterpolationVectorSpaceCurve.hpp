@@ -77,6 +77,9 @@ class LinearInterpolationVectorSpaceCurve : public VectorSpaceCurve<N> {
 
   void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
 
+  /// \brief Perform a rigid transformation on the left side of the curve
+  void transformCurve(const ValueType T);
+
  private:
   typedef Eigen::Matrix<double,N,1> Coefficient;
   typedef typename LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;

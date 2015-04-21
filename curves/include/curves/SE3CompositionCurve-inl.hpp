@@ -422,4 +422,10 @@ void SE3CompositionCurve<C1, C2>::addPriorFactors(gtsam::NonlinearFactorGraph* g
   correctionCurve_.addPriorFactors(graph, priorTime);
 }
 
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::transformCurve(const ValueType T) {
+  // Apply the transformation on the left side
+  correctionCurve_.transformCurve(T);
+}
+
 } // namespace curves

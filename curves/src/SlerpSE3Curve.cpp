@@ -284,4 +284,13 @@ void SlerpSE3Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time pri
 
 }
 
+void SlerpSE3Curve::transformCurve(const ValueType T) {
+  std::vector<Time> coefTimes;
+  manager_.getTimes(&coefTimes);
+  for (size_t i = 0; i < coefTimes.size(); ++i) {
+    // Apply a rigid transformation to every coefficient (on the left side).
+    manager_.insertCoefficient(coefTimes[i],T*evaluate(coefTimes[i]));
+  }
+}
+
 } // namespace curves

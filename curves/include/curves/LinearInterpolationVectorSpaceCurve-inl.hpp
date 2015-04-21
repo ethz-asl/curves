@@ -208,4 +208,9 @@ void LinearInterpolationVectorSpaceCurve<N>::addPriorFactors(gtsam::NonlinearFac
 
 }
 
+template<int N>
+void LinearInterpolationVectorSpaceCurve<N>::transformCurve(const ValueType T) {
+  //todo
+}
+
 } // namespace curves

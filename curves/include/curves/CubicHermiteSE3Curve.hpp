@@ -271,6 +271,9 @@ class CubicHermiteSE3Curve : public SE3Curve {
   // clear the curve
   virtual void clear();
 
+  /// \brief Perform a rigid transformation on the left side of the curve
+  void transformCurve(const ValueType T);
+
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
   SamplingPolicy hermitePolicy_;
