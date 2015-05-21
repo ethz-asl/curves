@@ -122,6 +122,34 @@ void LocalSupport2CoefficientManager<Coefficient>::insertCoefficients(const std:
 }
 
 template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::addCoefficientAtEnd(Time time, const Coefficient& coefficient, std::vector<Key>* outKeys) {
+  CHECK(time > getMaxTime()) << "Time to add is not greater than curve max time";
+
+  Key key = KeyGenerator::getNextKey();
+
+  // Insert the coefficient with a hint that it goes at the end
+  CoefficientIter it = timeToCoefficient_.insert(--(timeToCoefficient_.end()),
+                                                 std::pair<Time, KeyCoefficient>(time, KeyCoefficient(key, coefficient)));
+
+  keyToCoefficient_.insert(keyToCoefficient_.end(), std::pair<Key, CoefficientIter>(key,it));
+  if (outKeys != NULL) {
+    outKeys->push_back(key);
+  }
+}
+
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::modifyCoefficient(typename TimeToKeyCoefficientMap::iterator it,
+                                                                     Time time, const Coefficient& coefficient) {
+  // This is used by slerp sampling policy.
+  // In this case a new coefficient should be placed slightly later than the initial one.
+  CoefficientIter newIt = timeToCoefficient_.insert(it,std::pair<Time, KeyCoefficient>(time, KeyCoefficient(it->second.key, coefficient)));
+  // Update keyToCoefficient_
+  keyToCoefficient_[it->second.key] = newIt;
+  // Remove the old coefficient
+  timeToCoefficient_.erase(it);
+}
+
+template <class Coefficient>
 void LocalSupport2CoefficientManager<Coefficient>::removeCoefficientWithKey(Key key) {
   CHECK(hasCoefficientWithKey(key)) << "No coefficient with that key.";
   typename TimeToKeyCoefficientMap::iterator it1;
@@ -266,7 +294,12 @@ void LocalSupport2CoefficientManager<Coefficient>::updateCoefficients(
 /// \brief return the number of coefficients
 template <class Coefficient>
 Key LocalSupport2CoefficientManager<Coefficient>::size() const {
-  return keyToCoefficient_.size();
+  return timeToCoefficient_.size();
+}
+
+template <class Coefficient>
+bool LocalSupport2CoefficientManager<Coefficient>::empty() const {
+  return timeToCoefficient_.empty();
 }
 
 /// \brief clear the coefficients

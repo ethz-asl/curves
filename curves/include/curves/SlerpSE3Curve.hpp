@@ -174,33 +174,28 @@ inline void SamplingPolicy::extend<SlerpSE3Curve, SE3>(const std::vector<Time>& 
       curve->manager_.insertCoefficients(times, values, outKeys);
     } else {
       //todo: deal with extending curve with decreasing time
-      std::vector<Time> oldTimes;
-      curve->manager_.getTimes(&oldTimes);
-      Time tPrev = oldTimes[oldTimes.size()-1];
-      Time tPrevPrev = oldTimes[oldTimes.size()-2];
+      // Get an iterator to the previous two coefficients
+      SlerpSE3Curve::TimeToKeyCoefficientMap::iterator itPrev = (--curve->manager_.coefficientEnd());
+      SlerpSE3Curve::TimeToKeyCoefficientMap::iterator itPrevPrev = (--(--curve->manager_.coefficientEnd()));
 
+      Time tPrev = itPrev->first;
+      Time tPrevPrev = itPrevPrev->first;
       if (tPrev - tPrevPrev >= minSamplingPeriod_) {
         // case 1 : the time delta between the two last knots is larger or equal to the minSamplingPeriod_
         // simply add a new coefficient and keep the previous one fixed
-        curve->manager_.insertCoefficients(times, values, outKeys);
+        curve->manager_.addCoefficientAtEnd(times[0], values[0], outKeys);
       } else if (times[0] - tPrevPrev > minSamplingPeriod_){
         //  add knot at tNew + move tPrev to tPrevPrev + minSamplingPeriod_ with value = interpolation
-        curve->manager_.insertCoefficients(times, values, outKeys);
-        std::vector<SE3> newValue;
-        std::vector<Time> newTime;
-        newValue.push_back(curve->evaluate(tPrevPrev + minSamplingPeriod_));
-        newTime.push_back(tPrevPrev + minSamplingPeriod_);
-        // todo: implement real knot moving method
-        curve->manager_.insertCoefficients(newTime, newValue);
-        curve->manager_.removeCoefficientAtTime(tPrev);
+        curve->manager_.addCoefficientAtEnd(times[0], values[0], outKeys);
+        SE3 newValue = curve->evaluate(tPrevPrev + minSamplingPeriod_);
+        Time newTime = tPrevPrev + minSamplingPeriod_;
+        curve->manager_.modifyCoefficient(itPrev, newTime, newValue);
       } else {
         // move knot at tNew with value = new value
-        curve->manager_.removeCoefficientAtTime(tPrev);
-        curve->manager_.insertCoefficients(times, values, outKeys);
+        curve->manager_.modifyCoefficient(itPrev, times[0], values[0]);
       }
     }
   }
-
 }
 
 } // namespace curves

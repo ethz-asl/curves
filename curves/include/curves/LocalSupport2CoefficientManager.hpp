@@ -84,6 +84,12 @@ class LocalSupport2CoefficientManager {
                           const std::vector<Coefficient>& values,
                           std::vector<Key>* outKeys = NULL);
 
+  /// \brief Efficient function for adding a coefficient at the end of the map
+  void addCoefficientAtEnd(Time time, const Coefficient& coefficient, std::vector<Key>* outKeys = NULL);
+
+  /// \brief Modify a coefficient by specifying a new time and value
+  void modifyCoefficient(typename TimeToKeyCoefficientMap::iterator it, Time time, const Coefficient& coefficient);
+
   /// \brief Remove the coefficient with this key.
   ///
   /// It is an error if the key does not exist.
@@ -137,6 +143,9 @@ class LocalSupport2CoefficientManager {
   /// \brief return the number of coefficients
   size_t size() const;
 
+  /// \brief Check if the manager is empty.
+  bool empty() const;
+
   /// \brief clear the coefficients
   void clear();
 
@@ -151,6 +160,14 @@ class LocalSupport2CoefficientManager {
   }
 
   CoefficientIter coefficientEnd() const {
+    return timeToCoefficient_.end();
+  }
+
+  typename TimeToKeyCoefficientMap::iterator coefficientBegin() {
+    return timeToCoefficient_.begin();
+  }
+
+  typename TimeToKeyCoefficientMap::iterator coefficientEnd() {
     return timeToCoefficient_.end();
   }
 
