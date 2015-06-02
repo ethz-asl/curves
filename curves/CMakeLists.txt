@@ -4,7 +4,7 @@ project(curves)
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 find_package(catkin_simple 0.1.0 REQUIRED)
-
+find_package(Eigen3 REQUIRED)
 
 # Skip ALL_DEPS_REQUIRED so that we can run without gtsam.
 catkin_simple()
