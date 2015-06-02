@@ -21,6 +21,8 @@
 #include "robotUtils/function_approximators/polynomialSplines/PolynomialSplineQuintic.hpp"
 #include "robotUtils/function_approximators/polynomialSplines/PolynomialSplineCubic.hpp"
 
+using namespace robotUtils;
+
 namespace curves {
 
 template<typename SplineType, int N>
