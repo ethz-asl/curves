@@ -9,6 +9,9 @@
 
 #include "SE3Curve.hpp"
 #include "LocalSupport2CoefficientManager.hpp"
+#include "SE3CompositionCurve.hpp"
+#include "gtsam/nonlinear/NonlinearFactorGraph.h"
+#include "SamplingPolicy.hpp"
 
 namespace curves {
 
@@ -16,13 +19,14 @@ namespace curves {
 /// The Slerp interpolation function is defined as, with the respective Jacobians regarding  A and B:
 /// \f[ T = A(A^{-1}B)^{\alpha} \f]
 class SlerpSE3Curve : public SE3Curve {
+  friend class SE3CompositionCurve<SlerpSE3Curve, SlerpSE3Curve>;
+  friend class SamplingPolicy;
  public:
   typedef SE3Curve::ValueType ValueType;
   typedef SE3Curve::DerivativeType DerivativeType;
   typedef ValueType Coefficient;
   typedef LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;
   typedef LocalSupport2CoefficientManager<Coefficient>::CoefficientIter CoefficientIter;
-//  typedef LocalSupport2CoefficientManager<Coefficient>::KeyCoefficientMap KeyCoefficientTime;
 
   SlerpSE3Curve();
   virtual ~SlerpSE3Curve();
@@ -128,8 +132,17 @@ class SlerpSE3Curve : public SE3Curve {
   // updates the relevant curve coefficients from the GTSAM values structure
   virtual void updateFromGTSAMValues(const gtsam::Values& values);
 
+  // set minimum sampling period
+  void setMinSamplingPeriod(Time time);
+
+  virtual void clear();
+
+  /// \brief Add factors to constrain the variables active at this time.
+  void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
+
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
+  SamplingPolicy slerpPolicy_;
 };
 
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
@@ -141,6 +154,51 @@ SE3 transformationPower(SE3  T, double alpha);
 SE3 composeTransformations(SE3 A, SE3 B);
 
 SE3 inverseTransformation(SE3 T);
+
+// extend policy for slerp curves
+template<>
+inline void SamplingPolicy::extend<SlerpSE3Curve, SE3>(const std::vector<Time>& times,
+                                                const std::vector<SE3>& values,
+                                                SlerpSE3Curve* curve,
+                                                std::vector<Key>* outKeys) {
+
+  //todo: deal with minSamplingPeriod_ when extending with multiple times
+  if (times.size() != 1) {
+    curve->manager_.insertCoefficients(times, values, outKeys);
+  } else {
+    //If the curve is empty or of size 1, simply add the new coefficient
+    if (curve->isEmpty() || curve->size() == 1) {
+      curve->manager_.insertCoefficients(times, values, outKeys);
+    } else {
+      //todo: deal with extending curve with decreasing time
+      std::vector<Time> oldTimes;
+      curve->manager_.getTimes(&oldTimes);
+      Time tPrev = oldTimes[oldTimes.size()-1];
+      Time tPrevPrev = oldTimes[oldTimes.size()-2];
+
+      if (tPrev - tPrevPrev >= minSamplingPeriod_) {
+        // case 1 : the time delta between the two last knots is larger or equal to the minSamplingPeriod_
+        // simply add a new coefficient and keep the previous one fixed
+        curve->manager_.insertCoefficients(times, values, outKeys);
+      } else if (times[0] - tPrevPrev > minSamplingPeriod_){
+        //  add knot at tNew + move tPrev to tPrevPrev + minSamplingPeriod_ with value = interpolation
+        curve->manager_.insertCoefficients(times, values, outKeys);
+        std::vector<SE3> newValue;
+        std::vector<Time> newTime;
+        newValue.push_back(curve->evaluate(tPrevPrev + minSamplingPeriod_));
+        newTime.push_back(tPrevPrev + minSamplingPeriod_);
+        // todo: implement real knot moving method
+        curve->manager_.insertCoefficients(newTime, newValue);
+        curve->manager_.removeCoefficientAtTime(tPrev);
+      } else {
+        // move knot at tNew with value = new value
+        curve->manager_.removeCoefficientAtTime(tPrev);
+        curve->manager_.insertCoefficients(times, values, outKeys);
+      }
+    }
+  }
+
+}
 
 } // namespace curves
 

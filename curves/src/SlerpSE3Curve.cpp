@@ -7,6 +7,8 @@
 #include <curves/SlerpSE3Curve.hpp>
 #include <iostream>
 
+#include "gtsam/nonlinear/ExpressionFactor.h"
+
 namespace curves {
 
 SlerpSE3Curve::SlerpSE3Curve() : SE3Curve() {}
@@ -26,6 +28,15 @@ void SlerpSE3Curve::print(const std::string& str) const {
   manager_.getKeys(&keys);
   std::cout << "curve defined between times: " << manager_.getMinTime() <<
       " and " << manager_.getMaxTime() <<std::endl;
+  double sum_dp = 0;
+  Eigen::Vector3d p1, p2;
+  for(size_t i = 0; i < times.size()-1; ++i) {
+    p1 = evaluate(times[i]).getPosition();
+    p2 = evaluate(times[i+1]).getPosition();
+    sum_dp += (p1-p2).norm();
+  }
+  std::cout << "average dt between coefficients: " << (manager_.getMaxTime() -manager_.getMinTime())  / (times.size()-1) << " ns." << std::endl;
+  std::cout << "average distance between coefficients: " << sum_dp / double((times.size()-1))<< " m." << std::endl;
   std::cout <<"=========================================" <<std::endl;
   for (size_t i = 0; i < manager_.size(); i++) {
     ss << "coefficient " << keys[i] << ": ";
@@ -69,8 +80,7 @@ void SlerpSE3Curve::extend(const std::vector<Time>& times,
                            std::vector<Key>* outKeys) {
 
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
-
-  manager_.insertCoefficients(times, values, outKeys);
+  slerpPolicy_.extend<SlerpSE3Curve, ValueType>(times, values, this, outKeys);
 }
 
 typename SlerpSE3Curve::DerivativeType
@@ -240,6 +250,33 @@ void SlerpSE3Curve::initializeGTSAMValues(gtsam::Values* values) const {
 
 void SlerpSE3Curve::updateFromGTSAMValues(const gtsam::Values& values) {
   manager_.updateFromGTSAMValues(values);
+}
+
+void SlerpSE3Curve::setMinSamplingPeriod(Time time) {
+  slerpPolicy_.setMinSamplingPeriod(time);
+}
+
+void SlerpSE3Curve::clear() {
+  manager_.clear();
+}
+
+void SlerpSE3Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const {
+
+  gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(gtsam::traits<Coefficient>::dimension);
+
+  //Add one fixed prior at priorTime and two before to ensure that at least two
+  CoefficientIter rVal0, rVal1;
+  manager_.getCoefficientsAt(priorTime, &rVal0, &rVal1);
+
+  gtsam::ExpressionFactor<Coefficient> f0(priorNoise,
+                                          rVal0->second.coefficient,
+                                          gtsam::Expression<Coefficient>(rVal0->second.key));
+  gtsam::ExpressionFactor<Coefficient> f1(priorNoise,
+                                          rVal1->second.coefficient,
+                                          gtsam::Expression<Coefficient>(rVal1->second.key));
+  graph->push_back(f0);
+  graph->push_back(f1);
+
 }
 
 } // namespace curves
