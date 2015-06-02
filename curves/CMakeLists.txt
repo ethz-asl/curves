@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(curves)
 
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+
 find_package(catkin_simple 0.1.0 REQUIRED)
+
 
 # Skip ALL_DEPS_REQUIRED so that we can run without gtsam.
 catkin_simple()
@@ -14,6 +17,20 @@ if(USE_GTSAM)
   add_definitions(-DCURVES_USE_GTSAM)
 endif()
 
+include_directories(
+  include
+  ${EIGEN3_INCLUDE_DIR}
+  ${Kindr_INCLUDE_DIRS}
+)
+
+# Attempt to find catkinized kindr
+find_package(kindr QUIET)
+if(NOT kindr_FOUND)
+  # Attempt to find package-based kindr
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(kindr kindr REQUIRED)
+endif()
+
 cs_add_library(${PROJECT_NAME} 
   src/KeyGenerator.cpp
   src/CubicHermiteSE3Curve.cpp
@@ -22,6 +39,7 @@ cs_add_library(${PROJECT_NAME}
 )
 
 find_package(Boost REQUIRED COMPONENTS system thread)
+find_package(Eigen3 REQUIRED)
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 catkin_add_gtest(${PROJECT_NAME}_tests 
@@ -39,7 +57,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
 message(glog_catkin_LIBRARIES: ${glog_catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
 
-add_doxygen(NOT_AUTOMATIC)
+#add_doxygen(NOT_AUTOMATIC)
 
 cs_install()
 cs_export(CFG_EXTRAS curves-extras.cmake)

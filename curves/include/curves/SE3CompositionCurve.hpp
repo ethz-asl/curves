@@ -1,8 +1,9 @@
 /*
+
  * @file CompositionCurve.hpp
  * @date Feb 06, 2015
  * @author Renaud Dubé, Abel Gawel, Mike Bosse
- */
+
 
 #ifndef CURVES_COMPOSITION_CURVE_HPP
 #define CURVES_COMPOSITION_CURVE_HPP
@@ -167,4 +168,5 @@ class SE3CompositionCurve : public SE3Curve {
 
 #include "SE3CompositionCurve-inl.hpp"
 
-#endif /* CURVES_COMPOSITION_CURVE_HPP */
+#endif  CURVES_COMPOSITION_CURVE_HPP
+*/

@@ -1,7 +1,9 @@
 /*
- * @file KeyGenerator.cpp
- * @date Aug 19, 2014
- * @author Paul Furgale
+ * KeyGenerator.cpp
+ *
+ *  Created on: Aug 19, 2014
+ *      Author: Paul Furgale, Péter Fankhauser
+ *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
 #include <curves/KeyGenerator.hpp>
@@ -16,5 +18,4 @@ size_t KeyGenerator::getNextKey() {
   return ++key;
 }
 
-
-} // namespace curves
+} // namespace

@@ -1,25 +1,23 @@
 /*
- * @file SE3Config.hpp
- * @date Oct 03, 2014
- * @author Paul Furgale
+ * ScalarCurveConfig.hpp
+ *
+ *  Created on: Mar 5, 2015
+ *      Author: Paul Furgale, Péter Fankhauser
+ *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#ifndef SE3CONFIG_H_
-#define SE3CONFIG_H_
+#pragma once
 
 #include <Eigen/Core>
-#include "kindr/minimal/quat-transformation-gtsam.h"
+#include "kindr/poses/PoseEigen.hpp"
 
 namespace curves {
 
 typedef Eigen::Matrix<double, 6, 1> Vector6d;
 
 struct SE3Config {
-  typedef kindr::minimal::QuatTransformationTemplate<double> ValueType;
+  typedef kindr::poses::eigen_impl::HomogeneousTransformationPosition3RotationQuaternionD ValueType;
   typedef Vector6d DerivativeType;
 };
 
-}  // namespace curves
-
-
-#endif // SE3CONFIG_H_
+} // namespace

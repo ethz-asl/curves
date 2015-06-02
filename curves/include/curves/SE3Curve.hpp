@@ -1,16 +1,20 @@
 /*
- * @file SE3Curve.hpp
- * @date Oct 03, 2014
- * @author Paul Furgale, Renaud Dube
+ * ScalarCurveConfig.hpp
+ *
+ *  Created on: Mar 5, 2015
+ *      Author: Paul Furgale, Renaud Dube, Péter Fankhauser
+ *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#ifndef SE3_CURVE_H_
-#define SE3_CURVE_H_
+#pragma once
 
-#include "SE3Config.hpp"
-#include "Curve.hpp"
+#include "curves/SE3Config.hpp"
+#include "curves/Curve.hpp"
+
+#include <Eigen/Core>
 
 namespace curves {
+
 
 // Curves over SE3 inherit the interface from Curve and CurveBase and define specific
 // methods to support physical interpretations of temporal derivatives.
@@ -76,8 +80,7 @@ class SE3Curve : public Curve<SE3Config> {
   //virtual size_t dim() const;
   ///@}
  private:
+
 };
 
-}  // namespace curves
-
-#endif // SE3_CURVE_H_
+} // namespace

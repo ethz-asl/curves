@@ -1,8 +1,9 @@
 /*
+
  * @file CompositionCurve-inl.hpp
  * @date Feb 06, 2015
  * @author Renaud Dubé, Abel Gawel, Mike Bosse
- */
+
 
 // COMPOSITION_STRATEGY is used to select the strategy for composing the
 // correction curve with the base curve at the evaluation time t:
@@ -423,3 +424,4 @@ void SE3CompositionCurve<C1, C2>::addPriorFactors(gtsam::NonlinearFactorGraph* g
 }
 
 } // namespace curves
+*/
