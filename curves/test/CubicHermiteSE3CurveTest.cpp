@@ -8,12 +8,12 @@
 
 #include <gtest/gtest.h>
 
-#include "robotUtils/curves/CubicHermiteSE3Curve.hpp"
+#include "curves/CubicHermiteSE3Curve.hpp"
 
-using namespace robotUtils;
+using namespace curves;
 
-typedef typename robotUtils::CubicHermiteSE3Curve::ValueType ValueType; // kindr::poses::eigen_impl::HomogeneousTransformationPosition3RotationQuaternionD ValueType
-typedef typename robotUtils::Time Time;
+typedef typename curves::CubicHermiteSE3Curve::ValueType ValueType; // kindr::poses::eigen_impl::HomogeneousTransformationPosition3RotationQuaternionD ValueType
+typedef typename curves::Time Time;
 
 TEST(Evaluate, IdentityPoses)
 {
