@@ -1,7 +1,7 @@
 (Min)Curves
 =====
 
-A library for curves representation and manipulation.
+A library for curves generation.
 
 Forked from: [https://github.com/ethz-asl/curves](https://github.com/ethz-asl/curves)
 
