@@ -62,6 +62,15 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
 
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const
   {
+    switch (derivativeOrder) {
+      case(1): {
+        return container_.getVelocityAtTime(time);
+      } break;
+
+      case(2): {
+        return container_.getAccelerationAtTime(time);
+      } break;
+    }
   }
 
   virtual void extend(const std::vector<Time>& times, const std::vector<ValueType>& values,
