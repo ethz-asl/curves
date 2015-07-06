@@ -117,6 +117,9 @@ class LocalSupport2CoefficientManager {
   /// \brief get the coefficient associated with this key
   Coefficient getCoefficientByKey(Key key) const;
 
+  /// \brief get the coefficient time associated with this key
+  Time getCoefficientTimeByKey(Key key) const;
+
   /// \brief Get the coefficients that are active at a certain time.
   ///
   /// This method can fail if the time is out of bounds. If it
@@ -177,7 +180,7 @@ class LocalSupport2CoefficientManager {
   void checkInternalConsistency(bool doExit = false) const;
 
   /// Initialize a GTSAM values structure with the desired keys
-  void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
+  void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const;
 
   /// Initialize a GTSAM values structure for all keys
   void initializeGTSAMValues(gtsam::Values* values) const;

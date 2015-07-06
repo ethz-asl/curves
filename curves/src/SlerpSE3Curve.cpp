@@ -248,7 +248,7 @@ Vector6d SlerpSE3Curve::evaluateDerivativeB(unsigned derivativeOrder, Time time)
   CHECK(false) << "Not implemented";
 }
 
-void SlerpSE3Curve::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
+void SlerpSE3Curve::initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const {
   manager_.initializeGTSAMValues(keys, values);
 }
 
@@ -294,6 +294,10 @@ void SlerpSE3Curve::transformCurve(const ValueType T) {
     // Apply a rigid transformation to every coefficient (on the left side).
     manager_.insertCoefficient(coefTimes[i],T*evaluate(coefTimes[i]));
   }
+}
+
+Time SlerpSE3Curve::getTimeAtKey(gtsam::Key key) const {
+  return manager_.getCoefficientTimeByKey(key);
 }
 
 } // namespace curves

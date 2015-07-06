@@ -386,7 +386,7 @@ Vector6d SE3CompositionCurve<C1, C2>::evaluateDerivativeB(unsigned derivativeOrd
 }
 
 template <class C1, class C2>
-void SE3CompositionCurve<C1, C2>::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const{
+void SE3CompositionCurve<C1, C2>::initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const{
   correctionCurve_.initializeGTSAMValues(keys, values);
 }
 
@@ -426,6 +426,11 @@ template <class C1, class C2>
 void SE3CompositionCurve<C1, C2>::transformCurve(const ValueType T) {
   // Apply the transformation on the left side
   correctionCurve_.transformCurve(T);
+}
+
+template <class C1, class C2>
+Time SE3CompositionCurve<C1, C2>::getTimeAtKey(gtsam::Key key) const {
+  return correctionCurve_.getTimeAtKey(key);
 }
 
 } // namespace curves

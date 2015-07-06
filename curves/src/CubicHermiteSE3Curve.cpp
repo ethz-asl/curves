@@ -378,7 +378,7 @@ Vector6d CubicHermiteSE3Curve::evaluateDerivativeB(unsigned derivativeOrder, Tim
   CHECK(false) << "Not implemented";
 }
 
-void CubicHermiteSE3Curve::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
+void CubicHermiteSE3Curve::initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const {
   manager_.initializeGTSAMValues(keys, values);
 }
 
@@ -400,6 +400,10 @@ void CubicHermiteSE3Curve::clear() {
 
 void CubicHermiteSE3Curve::transformCurve(const ValueType T) {
   //todo
+}
+
+Time CubicHermiteSE3Curve::getTimeAtKey(gtsam::Key key) const {
+  return manager_.getCoefficientTimeByKey(key);
 }
 
 } // namespace curves

@@ -140,7 +140,7 @@ class SE3CompositionCurve : public SE3Curve {
     virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
 
     /// \brief Initialize a GTSAM values structure with the desired keys
-    virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
+    virtual void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const;
 
     /// \brief Initialize a GTSAM values structure for all keys
     virtual void initializeGTSAMValues(gtsam::Values* values) const;
@@ -163,6 +163,7 @@ class SE3CompositionCurve : public SE3Curve {
     /// \brief Perform a rigid transformation on the left side of the curve
     void transformCurve(const ValueType T);
 
+    virtual Time getTimeAtKey(gtsam::Key key) const;
 };
 
 } // namespace curves

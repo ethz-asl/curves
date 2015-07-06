@@ -203,6 +203,13 @@ Coefficient LocalSupport2CoefficientManager<Coefficient>::getCoefficientByKey(Ke
   CHECK( it != keyToCoefficient_.end() ) << "Key " << key << " is not in the container.";
   return it->second->second.coefficient;
 }
+template <class Coefficient>
+Time LocalSupport2CoefficientManager<Coefficient>::getCoefficientTimeByKey(Key key) const {
+  typename  boost::unordered_map<Key, CoefficientIter>::const_iterator it = keyToCoefficient_.find(key);
+  CHECK( it != keyToCoefficient_.end() ) << "Key " << key << " is not in the container.";
+  return it->second->first;
+}
+
 
 /// \brief Get the coefficients that are active at a certain time.
 template <class Coefficient>
@@ -351,12 +358,12 @@ void LocalSupport2CoefficientManager<Coefficient>::checkInternalConsistency(bool
 }
 
 template <class Coefficient>
-void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
-  for (unsigned int i = 0; i < keys.size(); ++i) {
-    typename boost::unordered_map<Key, CoefficientIter>::const_iterator it = keyToCoefficient_.find(keys[i]);
+void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const {
+  for (gtsam::KeySet::const_iterator it1 = keys.begin(); it1 != keys.end(); ++it1 ) {
+    typename boost::unordered_map<Key, CoefficientIter>::const_iterator it2 = keyToCoefficient_.find(*it1);
     // Only add the values for the keys which are requested and belong to this curve
-    if (it != keyToCoefficient_.end()) {
-      values->insert(keys[i],it->second->second.coefficient);
+    if (it2 != keyToCoefficient_.end()) {
+      values->insert(*it1,it2->second->second.coefficient);
     }
   }
 }
@@ -365,7 +372,14 @@ template <class Coefficient>
 void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::Values* values) const {
   std::vector<Key> allKeys;
   getKeys(&allKeys);
-  initializeGTSAMValues(allKeys, values);
+  gtsam::KeySet keySet;
+
+  //todo way to make this more efficient?
+  for (size_t i = 0; i < allKeys.size(); ++i) {
+    keySet.insert(allKeys[i]);
+  }
+
+  initializeGTSAMValues(keySet, values);
 }
 
 template <class Coefficient>

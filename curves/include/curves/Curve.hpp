@@ -87,7 +87,7 @@ class Curve
   ///@}
 
    /// Initialize a GTSAM values structure with the desired keys
-   virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const = 0;
+   virtual void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const = 0;
 
    /// Initialize a GTSAM values structure for all keys
    virtual void initializeGTSAMValues(gtsam::Values* values) const = 0;
@@ -99,6 +99,8 @@ class Curve
 
    /// \brief Perform a rigid transformation on the left side of the curve
    virtual void transformCurve(const ValueType T) = 0;
+
+   virtual Time getTimeAtKey(gtsam::Key key) const = 0;
 
 };
 
