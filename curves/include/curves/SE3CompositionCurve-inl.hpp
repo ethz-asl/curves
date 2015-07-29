@@ -433,4 +433,50 @@ Time SE3CompositionCurve<C1, C2>::getTimeAtKey(gtsam::Key key) const {
   return correctionCurve_.getTimeAtKey(key);
 }
 
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::resetCorrectionCurve(const std::vector<Time>& times) {
+  std::vector<ValueType> values;
+  for (size_t i = 0; i < times.size(); ++i) {
+    values.push_back(ValueType(ValueType::Position(0,0,0), ValueType::Rotation(1,0,0,0)));
+  }
+
+  // Redefine the correction curve
+  correctionCurve_.fitCurve(times, values);
+
+  CHECK_EQ(correctionCurve_.getMinTime(), baseCurve_.getMinTime()) << "Min time of correction curve and base curve are different";
+  CHECK_EQ(correctionCurve_.getMaxTime(), baseCurve_.getMaxTime()) << "Min time of correction curve and base curve are different";
+}
+
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::setBaseCurve(const std::vector<Time>& times, const std::vector<ValueType>& values) {
+  baseCurve_.fitCurve(times, values);
+  CHECK_EQ(correctionCurve_.getMinTime(), baseCurve_.getMinTime()) << "Min time of correction curve and base curve are different";
+  CHECK_EQ(correctionCurve_.getMaxTime(), baseCurve_.getMaxTime()) << "Min time of correction curve and base curve are different";
+}
+
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::saveCurveTimesAndValues(const std::string& filename) const {
+  std::vector<Time> curveTimes;
+  baseCurve_.manager_.getTimes(&curveTimes);
+
+  Eigen::VectorXd v(7);
+
+  std::vector<Eigen::VectorXd> curveValues;
+  ValueType val;
+  for (size_t i = 0; i < curveTimes.size(); ++i) {
+    val = this->evaluate(curveTimes[i]);
+    v << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
+        val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
+    curveValues.push_back(v);
+  }
+
+  CurvesTestHelpers::writeTimeVectorCSV(filename, curveTimes, curveValues);
+}
+
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::getBaseCurveTimes(std::vector<Time>* outTimes) const {
+  baseCurve_.manager_.getTimes(outTimes);
+}
+
+
 } // namespace curves

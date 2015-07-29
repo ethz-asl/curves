@@ -408,8 +408,8 @@ TEST(CurvesTestSuite, test_MITb_ISAM2) {
       graph.push_back(f);
     } else {
       // Create gtsam initial values to be pushed to ISAM2 and expected results.
-      FastVector<Key> keys = graph.keys();
-      FastVector<Key>::const_iterator it = keys.begin();
+      gtsam::KeySet keys = graph.keys();
+      gtsam::KeySet::const_iterator it = keys.begin();
       for (; it != keys.end(); ++it) {
         if ( !gtsamExpected.exists(*it) ) {
           gtsamInitial.insert(*it, mapInitialValues.at(*it));

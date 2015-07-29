@@ -170,7 +170,7 @@ LinearInterpolationVectorSpaceCurve<N>::getDerivativeExpression(const Time& time
 }
 
 template<int N>
-void LinearInterpolationVectorSpaceCurve<N>::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
+void LinearInterpolationVectorSpaceCurve<N>::initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const {
   manager_.initializeGTSAMValues(keys, values);
 }
 
@@ -211,6 +211,11 @@ void LinearInterpolationVectorSpaceCurve<N>::addPriorFactors(gtsam::NonlinearFac
 template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::transformCurve(const ValueType T) {
   //todo
+}
+
+template<int N>
+Time LinearInterpolationVectorSpaceCurve<N>::getTimeAtKey(gtsam::Key key) const {
+  return manager_.getCoefficientTimeByKey(key);
 }
 
 } // namespace curves

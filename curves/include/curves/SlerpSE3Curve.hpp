@@ -145,6 +145,8 @@ class SlerpSE3Curve : public SE3Curve {
 
   virtual Time getTimeAtKey(gtsam::Key key) const;
 
+  void saveCurveTimesAndValues(const std::string& filename) const;
+
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
   SamplingPolicy slerpPolicy_;

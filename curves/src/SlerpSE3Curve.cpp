@@ -69,6 +69,7 @@ void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
                              std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size());
   if(times.size() > 0) {
+    clear();
     manager_.insertCoefficients(times,values, outKeys);
   }
 }
@@ -298,6 +299,24 @@ void SlerpSE3Curve::transformCurve(const ValueType T) {
 
 Time SlerpSE3Curve::getTimeAtKey(gtsam::Key key) const {
   return manager_.getCoefficientTimeByKey(key);
+}
+
+void SlerpSE3Curve::saveCurveTimesAndValues(const std::string& filename) const {
+  std::vector<Time> curveTimes;
+  manager_.getTimes(&curveTimes);
+
+  Eigen::VectorXd v(7);
+
+  std::vector<Eigen::VectorXd> curveValues;
+  ValueType val;
+  for (size_t i = 0; i < curveTimes.size(); ++i) {
+    val = evaluate(curveTimes[i]);
+    v << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
+        val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
+    curveValues.push_back(v);
+  }
+
+  CurvesTestHelpers::writeTimeVectorCSV(filename, curveTimes, curveValues);
 }
 
 } // namespace curves

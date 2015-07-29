@@ -163,7 +163,19 @@ class SE3CompositionCurve : public SE3Curve {
     /// \brief Perform a rigid transformation on the left side of the curve
     void transformCurve(const ValueType T);
 
+    /// \brief Get the time of the selected coefficient
     virtual Time getTimeAtKey(gtsam::Key key) const;
+
+    /// \brief Reset the correction curve to identity values with knots at desired times
+    void resetCorrectionCurve(const std::vector<Time>& times);
+
+    /// \brief Reset the correction curve to identity values with knots at desired times
+    void setBaseCurve(const std::vector<Time>& times, const std::vector<ValueType>& values);
+
+    /// \brief Save the base curve times and composed curve values
+    void saveCurveTimesAndValues(const std::string& filename) const;
+
+    void getBaseCurveTimes(std::vector<Time>* outTimes) const;
 };
 
 } // namespace curves
