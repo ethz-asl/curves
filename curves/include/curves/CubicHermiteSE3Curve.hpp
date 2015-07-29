@@ -99,7 +99,7 @@ template<> struct traits<kindr::minimal::HermiteTransformation<double>> {
         gtsam::traits<Vector6>::Equals(T1.getTransformationDerivative(), T2.getTransformationDerivative());
   }
 
-  // todo verify this composition of rval
+  // v_local = [log(T_w_other * T_w_origin^-1); V_other - V_origin]
   static vector Local(const type& origin, const type& other) {
     vector rval;
     rval << (other.getTransformation() * origin.getTransformation().inverted()).log(),
@@ -109,6 +109,7 @@ template<> struct traits<kindr::minimal::HermiteTransformation<double>> {
 
   static type Retract(const type& origin, const vector& d) {
     type rval;
+    // The QuatTransformation constructor is using the exp map compatible with log
     rval.setTransformation(QuatTransformation(Vector6(d.head<6>())) * origin.getTransformation());
 
     rval.setTransformationDerivative(Vector6(d.tail<6>()) + origin.getTransformationDerivative());
@@ -125,7 +126,8 @@ template<> struct traits<kindr::minimal::HermiteTransformation<double>> {
 namespace curves {
 
 typedef SE3Curve::ValueType ValueType;
-typedef SE3Curve::DerivativeType DerivativeType;typedef kindr::minimal::HermiteTransformation<double> Coefficient;
+typedef SE3Curve::DerivativeType DerivativeType;
+typedef kindr::minimal::HermiteTransformation<double> Coefficient;
 typedef LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;
 typedef LocalSupport2CoefficientManager<Coefficient>::CoefficientIter CoefficientIter;
 
