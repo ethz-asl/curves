@@ -265,15 +265,32 @@ void SlerpSE3Curve::setMinSamplingPeriod(Time time) {
   slerpPolicy_.setMinSamplingPeriod(time);
 }
 
+///   eg. 4 will add a coefficient every 4 extend
+void SlerpSE3Curve::setSamplingRatio(const int ratio) {
+  slerpPolicy_.setMinimumMeasurements(ratio);
+}
+
 void SlerpSE3Curve::clear() {
   manager_.clear();
 }
 
 void SlerpSE3Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const {
 
-  gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(gtsam::traits<Coefficient>::dimension);
+//  gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(gtsam::traits<Coefficient>::dimension, 1e5);
 
-  //Add one fixed prior at priorTime and two before to ensure that at least two
+  Eigen::Matrix<double,6,1> noise;
+  noise(0) = 0.0000001;
+  noise(1) = 0.0000001;
+  noise(2) = 0.0000001;
+  noise(3) = 0.0000001;
+  noise(4) = 0.0000001;
+  noise(5) = 0.0000001;
+
+  gtsam::noiseModel::Diagonal::shared_ptr priorNoise = gtsam::noiseModel::Diagonal::
+        Sigmas(noise);
+
+
+
   CoefficientIter rVal0, rVal1;
   manager_.getCoefficientsAt(priorTime, &rVal0, &rVal1);
 

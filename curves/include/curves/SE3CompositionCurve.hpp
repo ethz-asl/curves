@@ -61,6 +61,10 @@ class SE3CompositionCurve : public SE3Curve {
     ///        Overloads the function defined in SE3Curve base class.
     void setMinSamplingPeriod(const Time minSamplingPeriod);
 
+    /// \brief Set the sampling ratio for the correction curve.
+    ///   eg. 4 will add a coefficient every 4 extend
+    void setSamplingRatio(const int ratio);
+
     /// \brief Fold in the correction curve into the base curve and reinitialize
     ///        correction curve coefficients to identity transformations.
     void foldInCorrections();

@@ -108,6 +108,12 @@ void SE3CompositionCurve<C1, C2>::setMinSamplingPeriod(const Time minSamplingPer
 }
 
 template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::setSamplingRatio(const int ratio) {
+  baseCurve_.setSamplingRatio(1);
+  correctionCurve_.setSamplingRatio(ratio);
+}
+
+template <class C1, class C2>
 void SE3CompositionCurve<C1, C2>::extend(const std::vector<Time>& times,
                                          const std::vector<typename SE3CompositionCurve<C1, C2>::ValueType>& values,
                                          std::vector<Key>* outKeys) {
