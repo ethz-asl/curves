@@ -15,6 +15,34 @@ using namespace curves;
 typedef typename curves::PolynomialSplineQuinticVector3Curve::ValueType ValueType; // kindr::poses::eigen_impl::HomogeneousTransformationPosition3RotationQuaternionD ValueType
 typedef typename curves::Time Time;
 
+TEST(PolynomialSplineQuinticVector3Curve, Overflow)
+{
+  PolynomialSplineQuinticVector3Curve curve;
+  std::vector<Time> times;
+  std::vector<ValueType> values;
+
+  times.push_back(0.0);
+  values.push_back(ValueType(0.0, 0.0, 0.0));
+  times.push_back(4.0);
+  values.push_back(ValueType(1.0, 1.0, 1.0));
+
+  curve.fitCurve(times, values);
+
+  EXPECT_NEAR(0.0, curve.evaluate(-0.1)[0], 1e-10);
+  EXPECT_NEAR(0.0, curve.evaluate(0.0)[0], 1e-10);
+  EXPECT_NEAR(1.0, curve.evaluate(4.0)[0], 1e-10);
+  EXPECT_NEAR(1.0, curve.evaluate(4.1)[0], 1e-10);
+  EXPECT_NEAR(0.0, curve.evaluate(-0.1)[1], 1e-10);
+  EXPECT_NEAR(0.0, curve.evaluate(0.0)[1], 1e-10);
+  EXPECT_NEAR(1.0, curve.evaluate(4.0)[1], 1e-10);
+  EXPECT_NEAR(1.0, curve.evaluate(4.1)[1], 1e-10);
+  EXPECT_NEAR(0.0, curve.evaluate(-0.1)[2], 1e-10);
+  EXPECT_NEAR(0.0, curve.evaluate(0.0)[2], 1e-10);
+  EXPECT_NEAR(1.0, curve.evaluate(4.0)[2], 1e-10);
+  EXPECT_NEAR(1.0, curve.evaluate(4.1)[2], 1e-10);
+}
+
+
 TEST(PolynomialSplineQuinticVector3Curve, Debugging)
 {
   PolynomialSplineQuinticVector3Curve curve;
