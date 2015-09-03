@@ -60,6 +60,11 @@ class SlerpSE3Curve : public SE3Curve {
                         const std::vector<ValueType>& values,
                         std::vector<Key>* outKeys = NULL);
 
+  /// \brief Set some coefficients of the curve
+  /// The existing curve will NOT be cleared.
+  void setCurve(const std::vector<Time>& times,
+                const std::vector<ValueType>& values);
+
   /// Evaluate the ambient space of the curve.
   virtual ValueType evaluate(Time time) const;
 

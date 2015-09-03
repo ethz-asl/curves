@@ -72,7 +72,7 @@ HermiteTransformation<Scalar>::~HermiteTransformation() {};
 
 // traits for Hermite-style coefficients wrapper
 namespace gtsam {
-template<> struct traits<kindr::minimal::HermiteTransformation<double>> {
+template<> struct traits<kindr::minimal::HermiteTransformation<double> > {
   // The dimension of the manifold.
   enum {
     dimension = 12

@@ -74,6 +74,15 @@ void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
   }
 }
 
+void SlerpSE3Curve::setCurve(const std::vector<Time>& times,
+              const std::vector<ValueType>& values) {
+  CHECK_EQ(times.size(), values.size());
+  if(times.size() > 0) {
+    manager_.insertCoefficients(times,values);
+  }
+}
+
+
 void SlerpSE3Curve::extend(const std::vector<Time>& times,
                            const std::vector<ValueType>& values,
                            std::vector<Key>* outKeys) {

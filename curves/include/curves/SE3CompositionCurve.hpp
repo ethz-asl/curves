@@ -173,13 +173,19 @@ class SE3CompositionCurve : public SE3Curve {
     /// \brief Reset the correction curve to identity values with knots at desired times
     void resetCorrectionCurve(const std::vector<Time>& times);
 
-    /// \brief Reset the correction curve to identity values with knots at desired times
+    /// \brief Set the base curve to given values with knots at desired times
+    /// Resets the curve beforehand.
     void setBaseCurve(const std::vector<Time>& times, const std::vector<ValueType>& values);
+
+    /// \brief Add / replace the given coefficients without resetting the curve.
+    void setBaseCurvePart(const std::vector<Time>& times, const std::vector<ValueType>& values);
 
     /// \brief Save the base curve times and composed curve values
     void saveCurveTimesAndValues(const std::string& filename) const;
 
     void getBaseCurveTimes(std::vector<Time>* outTimes) const;
+
+    void getBaseCurveTimesInWindow(std::vector<Time>* outTimes, Time begTime, Time endTime) const;
 };
 
 } // namespace curves

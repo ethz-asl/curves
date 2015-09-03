@@ -84,6 +84,26 @@ void LocalSupport2CoefficientManager<Coefficient>::getTimes(std::vector<Time>* o
 }
 
 template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::getTimesInWindow(std::vector<Time>* outTimes,
+                                                                    Time begTime, Time endTime) const {
+  CHECK_EQ(endTime, getMaxTime()) << "Not implemented for window not at the end.";
+  CHECK(begTime >= getMinTime()) << "Asked for times outside the curve.";
+  CHECK_NOTNULL(outTimes);
+
+  outTimes->clear();
+  CoefficientIter it = --(timeToCoefficient_.end());
+
+  do {
+    if (it->first >= begTime) {
+      outTimes->push_back(it->first);
+    }
+    --it;
+  } while (it->first >= begTime && it != timeToCoefficient_.begin());
+
+  //todo sort?
+}
+
+template <class Coefficient>
 void LocalSupport2CoefficientManager<Coefficient>::print(const std::string& str) const {
   // \todo (Abel or Renaud)
 }

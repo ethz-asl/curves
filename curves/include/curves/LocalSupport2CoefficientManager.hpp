@@ -70,6 +70,9 @@ class LocalSupport2CoefficientManager {
   /// Get a sorted list of coefficient times
   void getTimes(std::vector<Time>* outTimes) const;
 
+  /// Get a sorted list of coefficient times in a given time window
+  void getTimesInWindow(std::vector<Time>* outTimes, Time begTime, Time endTime) const;
+
   /// \brief insert a coefficient at a time and return
   ///        the key for the coefficient
   ///
