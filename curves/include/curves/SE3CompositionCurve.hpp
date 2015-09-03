@@ -180,6 +180,10 @@ class SE3CompositionCurve : public SE3Curve {
     /// \brief Add / replace the given coefficients without resetting the curve.
     void setBaseCurvePart(const std::vector<Time>& times, const std::vector<ValueType>& values);
 
+    /// \brief Modifies values of the base coefficient in batch, starting at times[0] and assuming that
+    /// a coefficient exists at all the specified times.
+    void modifyBaseCoefficientsValuesInBatch(const std::vector<Time>& times, const std::vector<ValueType>& values);
+
     /// \brief Save the base curve times and composed curve values
     void saveCurveTimesAndValues(const std::string& filename) const;
 

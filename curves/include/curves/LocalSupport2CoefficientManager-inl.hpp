@@ -100,7 +100,7 @@ void LocalSupport2CoefficientManager<Coefficient>::getTimesInWindow(std::vector<
     --it;
   } while (it->first >= begTime && it != timeToCoefficient_.begin());
 
-  //todo sort?
+  std::reverse(outTimes->begin(),outTimes->end());
 }
 
 template <class Coefficient>
@@ -138,6 +138,24 @@ void LocalSupport2CoefficientManager<Coefficient>::insertCoefficients(const std:
     } else {
       insertCoefficient(times[i], values[i]);
     }
+  }
+}
+
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::modifyCoefficientsValuesInBatch(const std::vector<Time>& times,
+                                                                                   const std::vector<Coefficient>& values) {
+  CHECK_EQ(times.size(), values.size());
+  // Get an iterator to the first coefficient
+  typename TimeToKeyCoefficientMap::iterator it = timeToCoefficient_.end();
+
+  do {
+    --it;
+  } while (it->first != times[0]);
+
+  for (size_t i = 0; i < times.size(); ++i) {
+    CHECK_EQ(it->first,times[i]);
+    it->second.coefficient = values[i];
+    ++it;
   }
 }
 

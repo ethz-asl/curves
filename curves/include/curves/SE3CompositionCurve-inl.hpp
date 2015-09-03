@@ -468,6 +468,13 @@ void SE3CompositionCurve<C1, C2>::setBaseCurvePart(const std::vector<Time>& time
 }
 
 template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::modifyBaseCoefficientsValuesInBatch(const std::vector<Time>& times, const std::vector<ValueType>& values) {
+  baseCurve_.manager_.modifyCoefficientsValuesInBatch(times, values);
+  CHECK_EQ(correctionCurve_.getMinTime(), baseCurve_.getMinTime()) << "Min time of correction curve and base curve are different";
+  CHECK_EQ(correctionCurve_.getMaxTime(), baseCurve_.getMaxTime()) << "Min time of correction curve and base curve are different";
+}
+
+template <class C1, class C2>
 void SE3CompositionCurve<C1, C2>::saveCurveTimesAndValues(const std::string& filename) const {
   std::vector<Time> curveTimes;
   baseCurve_.manager_.getTimes(&curveTimes);

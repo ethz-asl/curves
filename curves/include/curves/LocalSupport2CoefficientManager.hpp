@@ -73,6 +73,11 @@ class LocalSupport2CoefficientManager {
   /// Get a sorted list of coefficient times in a given time window
   void getTimesInWindow(std::vector<Time>* outTimes, Time begTime, Time endTime) const;
 
+  /// Modify multiple coefficient values. Time is assumed to be ordered.
+  void modifyCoefficientsValuesInBatch(const std::vector<Time>& times,
+                                       const std::vector<Coefficient>& values);
+
+
   /// \brief insert a coefficient at a time and return
   ///        the key for the coefficient
   ///
