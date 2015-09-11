@@ -12,6 +12,8 @@
 #include "SE3CompositionCurve.hpp"
 #include "gtsam/nonlinear/NonlinearFactorGraph.h"
 #include "SamplingPolicy.hpp"
+#include "CubicHermiteSE3Curve.hpp"
+
 
 namespace curves {
 
@@ -20,6 +22,7 @@ namespace curves {
 /// \f[ T = A(A^{-1}B)^{\alpha} \f]
 class SlerpSE3Curve : public SE3Curve {
   friend class SE3CompositionCurve<SlerpSE3Curve, SlerpSE3Curve>;
+  friend class SE3CompositionCurve<SlerpSE3Curve, CubicHermiteSE3Curve>;
   friend class SamplingPolicy;
  public:
   typedef SE3Curve::ValueType ValueType;

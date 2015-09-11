@@ -70,6 +70,8 @@ void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
   CHECK_EQ(times.size(), values.size());
   CHECK_GE(times.size(), 3) << "Hermite curve must be defined by > 2 coefficients";
 
+  clear();
+
   // construct the Hemrite coefficients
   std::vector<Coefficient> coefficients;
   // fill the coefficients with ValueType and DerivativeType
