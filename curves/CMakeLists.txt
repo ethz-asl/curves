@@ -19,6 +19,8 @@ cs_add_library(${PROJECT_NAME}
   src/CubicHermiteSE3Curve.cpp
   src/SlerpSE3Curve.cpp
   src/SE3Curve.cpp
+  src/SE2Curve.cpp
+  src/SlerpSE2Curve.cpp
 )
 
 find_package(Boost REQUIRED COMPONENTS system thread)
