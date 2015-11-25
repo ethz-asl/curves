@@ -16,39 +16,39 @@ typedef gtsam::OptionalJacobian<3, 3> ChartJacobian;
 typedef gtsam::Vector3 Vector3;
 typedef gtsam::Expression<gtsam::Vector3> EVector3;
 
-SE2 inverseImplementation(
+inline SE2 inverseImplementation(
     const SE2& T, ChartJacobian HT) {
   return T.inverse(HT);
 }
 
-ETransformation inverse(
+inline ETransformation inverse(
     const ETransformation& T) {
   return ETransformation(&inverseImplementation, T);
 }
 
-SE2 composeImplementation(const SE2& T1, const SE2& T2,
+inline SE2 composeImplementation(const SE2& T1, const SE2& T2,
                           ChartJacobian HT1, ChartJacobian HT2) {
   return T1.compose(T2, HT1, HT2);
 }
 
-ETransformation compose(const ETransformation& T1, const ETransformation& T2) {
+inline ETransformation compose(const ETransformation& T1, const ETransformation& T2) {
   return ETransformation(&composeImplementation, T1, T2);
 }
 
-Vector3 transformationLogImplementation(const SE2& T, ChartJacobian HT) {
+inline Vector3 transformationLogImplementation(const SE2& T, ChartJacobian HT) {
   return gtsam::Pose2::Logmap(T, HT);
 }
 
-EVector3 transformationLog(const ETransformation& T) {
+inline EVector3 transformationLog(const ETransformation& T) {
   return EVector3(&transformationLogImplementation, T);
 }
 
-SE2 transformationExpImplementation(const Vector3& params,
+inline SE2 transformationExpImplementation(const Vector3& params,
                                                 ChartJacobian Hp) {
   return gtsam::Pose2::Expmap(params, Hp);
 }
 
-ETransformation transformationExp(const EVector3& params) {
+inline ETransformation transformationExp(const EVector3& params) {
   return ETransformation(&transformationExpImplementation, params);
 }
 
@@ -70,7 +70,7 @@ gtsam::Expression<Eigen::Matrix<double, N, 1> > vectorScaling(const gtsam::Expre
   return gtsam::Expression<Eigen::Matrix<double, N, 1> >(boost::bind(&vectorScalingImplementation<N>, _1, alpha, _2, boost::none), v);
 }
 
-ETransformation slerp(
+inline ETransformation slerp(
     const ETransformation& T0,
     const ETransformation& T1,
     double alpha) {

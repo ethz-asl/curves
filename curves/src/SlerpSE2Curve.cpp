@@ -23,7 +23,7 @@ void SlerpSE2Curve::print(const std::string& str) const {
   std::cout << "=========== Slerp SE2 CURVE =============" << std::endl;
   std::cout << str << std::endl;
   std::cout << "num of coefficients: " << manager_.size() << std::endl;
-  std::cout << "dimension: " << 6 << std::endl;
+  std::cout << "dimension: " <<  3 << std::endl;
   std::stringstream ss;
   std::vector<Key> keys;
   std::vector<Time> times;
