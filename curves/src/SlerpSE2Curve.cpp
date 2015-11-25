@@ -5,9 +5,12 @@
  */
 
 #include <curves/SlerpSE2Curve.hpp>
+#include <curves/Pose2_Expressions.hpp>
+
 #include <iostream>
 
 #include "gtsam/nonlinear/ExpressionFactor.h"
+
 
 namespace curves {
 
@@ -147,25 +150,22 @@ SE2 inverseTransformation(SE2 T) {
 gtsam::Expression<typename SlerpSE2Curve::ValueType>
 SlerpSE2Curve::getValueExpression(const Time& time) const {
 
-  // \todo Abel and Renaud
-  CHECK(false) << "Not implemented";
+  typedef typename SlerpSE2Curve::ValueType ValueType;
+  using namespace gtsam;
+  CoefficientIter rval0, rval1;
+  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
+  CHECK(success) << "Unable to get the coefficients at time " << time;
+  Expression<ValueType> leaf1(rval0->second.key);
+  Expression<ValueType> leaf2(rval1->second.key);
+  double alpha = double(time - rval0->first)/double(rval1->first - rval0->first);
 
-//  typedef typename SlerpSE2Curve::ValueType ValueType;
-//  using namespace gtsam;
-//  CoefficientIter rval0, rval1;
-//  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
-//  CHECK(success) << "Unable to get the coefficients at time " << time;
-//  Expression<ValueType> leaf1(rval0->second.key);
-//  Expression<ValueType> leaf2(rval1->second.key);
-//  double alpha = double(time - rval0->first)/double(rval1->first - rval0->first);
-//
-//  if (alpha == 0) {
-//    return leaf1;
-//  } else if (alpha == 1) {
-//    return leaf2;
-//  } else {
-//    return slerp(leaf1, leaf2, alpha);
-//  }
+  if (alpha == 0) {
+    return leaf1;
+  } else if (alpha == 1) {
+    return leaf2;
+  } else {
+    return slerp(leaf1, leaf2, alpha);
+  }
 }
 
 gtsam::Expression<typename SlerpSE2Curve::DerivativeType>
