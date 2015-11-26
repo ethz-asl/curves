@@ -166,7 +166,6 @@ class SlerpSE2Curve : public SE2Curve {
 
 typedef gtsam::Pose2 SE2;
 typedef gtsam::Rot2 SO2;
-//typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
 
 SE2 transformationPower(SE2  T, double alpha);
 

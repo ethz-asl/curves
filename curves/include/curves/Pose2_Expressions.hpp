@@ -2,6 +2,9 @@
  * @file Pose2_Expressions.hpp
  * @date Nov 24, 2015
  * @author Renaud Dubé, Abel Gawel
+ *
+ * This helper implements expressions for Pose2 objects in order to
+ * perform spherical linear interpolation (slerp) in SE2.
  */
 
 #ifndef POSE2_EXPRESSIONS_HPP

@@ -1,5 +1,5 @@
 /*
- * @file test_Expressions.cpp
+ * @file test_Pose2_Expressions.cpp
  * @date Nov 25, 2015
  * @author Renaud Dubé, Abel Gawel
  */

@@ -27,12 +27,13 @@ typedef typename SlerpSE2Curve::ValueType ValueType;
 typedef Pose2 SE2;
 typedef Rot2 SO2;
 
+// Check for consistency between curve.evaluate() and curve.getValueExpression()
 TEST(CurvesTestSuite, testSlerpSE2EvaluationVSExpression) {
   SlerpSE2Curve curve;
   const double t[] = {0, 10};
   const double evalTime = 5;
 
-  // setup two SE3 objects
+  // setup two SE2 objects
   ValueType poseA(0,0,0);
   ValueType poseB(2,2,M_PI/8);
 
@@ -50,7 +51,8 @@ TEST(CurvesTestSuite, testSlerpSE2EvaluationVSExpression) {
   // fill retrieved coefficients in gtsam values container
   Values gtsamValues;
   curve.initializeGTSAMValues(&gtsamValues);
-  // read out SE3 object from values container
+
+  // read out SE2 object from values container
   ValueType result = expression.value(gtsamValues);
 
   SE2 directResult = curve.evaluate(evalTime);

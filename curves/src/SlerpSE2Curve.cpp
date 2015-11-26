@@ -1,7 +1,7 @@
 /*
  * @file SlerpSE2Curve.cpp
- * @date Oct 10, 2014
- * @author Renaud Dube, Abel Gawel
+ * @date Nov 24, 2015
+ * @author Renaud Dubé, Abel Gawel
  */
 
 #include <curves/SlerpSE2Curve.hpp>
