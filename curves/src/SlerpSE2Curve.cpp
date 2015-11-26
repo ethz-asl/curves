@@ -6,6 +6,7 @@
 
 #include <curves/SlerpSE2Curve.hpp>
 #include <curves/Pose2_Expressions.hpp>
+#include <../test/test_Helpers.hpp>
 
 #include <iostream>
 
@@ -289,9 +290,6 @@ void SlerpSE2Curve::clear() {
 }
 
 void SlerpSE2Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const {
-
-//  gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(gtsam::traits<Coefficient>::dimension, 1e5);
-
   Eigen::Matrix<double,3,1> noise;
   noise(0) = 0.0000001;
   noise(1) = 0.0000001;
@@ -311,7 +309,6 @@ void SlerpSE2Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time pri
                                           gtsam::Expression<Coefficient>(rVal1->second.key));
   graph->push_back(f0);
   graph->push_back(f1);
-
 }
 
 void SlerpSE2Curve::transformCurve(const ValueType T) {
@@ -328,22 +325,20 @@ Time SlerpSE2Curve::getTimeAtKey(gtsam::Key key) const {
 }
 
 void SlerpSE2Curve::saveCurveTimesAndValues(const std::string& filename) const {
-  CHECK(false) << "Not implemented";
-//  std::vector<Time> curveTimes;
-//  manager_.getTimes(&curveTimes);
-//
-//  Eigen::VectorXd v(7);
-//
-//  std::vector<Eigen::VectorXd> curveValues;
-//  ValueType val;
-//  for (size_t i = 0; i < curveTimes.size(); ++i) {
-//    val = evaluate(curveTimes[i]);
-//    v << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
-//        val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
-//    curveValues.push_back(v);
-//  }
-//
-//  CurvesTestHelpers::writeTimeVectorCSV(filename, curveTimes, curveValues);
+  std::vector<Time> curveTimes;
+  manager_.getTimes(&curveTimes);
+
+  Eigen::VectorXd v(3);
+
+  std::vector<Eigen::VectorXd> curveValues;
+  ValueType val;
+  for (size_t i = 0; i < curveTimes.size(); ++i) {
+    val = evaluate(curveTimes[i]);
+    v << val.x(), val.y(), val.theta();
+    curveValues.push_back(v);
+  }
+
+  CurvesTestHelpers::writeTimeVectorCSV(filename, curveTimes, curveValues);
 }
 
 } // namespace curves
