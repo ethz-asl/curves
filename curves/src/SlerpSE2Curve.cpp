@@ -165,6 +165,13 @@ SlerpSE2Curve::getValueExpression(const Time& time) const {
   } else if (alpha == 1) {
     return leaf2;
   } else {
+    std::cout << "Doing slerp" << std::endl;
+    std::cout << "alpha " << alpha << std::endl;
+    Pose2 P0 = evaluate(rval0->first);
+    std::cout << "Pose0 x " << P0.x() << " y " << P0.y() << " theta " << P0.theta() << std::endl;
+    Pose2 P1 = evaluate(rval1->first);
+    std::cout << "Pose1 x " << P1.x() << " y " << P1.y() << " theta " << P1.theta() << std::endl;
+    std::cout << "diff x " << P1.x() - P0.x() << " y " << P1.y() - P0.y() << " theta " << P1.theta() - P0.theta() << std::endl;
     return slerp(leaf1, leaf2, alpha);
   }
 }
