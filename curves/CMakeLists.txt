@@ -21,6 +21,7 @@ cs_add_library(${PROJECT_NAME}
   src/SE3Curve.cpp
   src/SE2Curve.cpp
   src/SlerpSE2Curve.cpp
+  src/DiscreteSE3Curve.cpp
 )
 
 find_package(Boost REQUIRED COMPONENTS system thread)
