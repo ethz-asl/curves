@@ -97,6 +97,11 @@ int SE3CompositionCurve<C1, C2>::size() const{
 }
 
 template <class C1, class C2>
+int SE3CompositionCurve<C1, C2>::baseSize() const{
+  return baseCurve_.size();
+}
+
+template <class C1, class C2>
 int SE3CompositionCurve<C1, C2>::correctionSize() const{
   return correctionCurve_.size();
 }

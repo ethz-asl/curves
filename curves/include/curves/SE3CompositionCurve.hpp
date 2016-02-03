@@ -45,8 +45,11 @@ class SE3CompositionCurve : public SE3Curve {
     /// \brief Checks if the curve is empty.
     bool isEmpty() const;
 
-    /// \brief Returns the number of coefficients in the base curve
+    /// \brief Returns the number of coefficients in the correction curve
     int size() const;
+
+    /// \brief Returns the number of coefficients in the base curve
+    int baseSize() const;
 
     /// \brief Returns the number of coefficients in the correction curve
     int correctionSize() const;

@@ -153,6 +153,46 @@ class DiscreteSE3Curve : public SE3Curve {
 
   void saveCurveTimesAndValues(const std::string& filename) const;
 
+  // Fake functions to comply with the current interfaces of trajectories_optimizer
+  // todo : tidy up
+
+  /// \brief Returns the number of coefficients in the correction curve
+  int correctionSize() const {return 0;};
+
+  /// \brief Fold in the correction curve into the base curve and reinitialize
+  ///        correction curve coefficients to identity transformations.
+  void foldInCorrections() {};
+
+  /// \brief Add coefficients to the correction curve at given times.
+  void setCorrectionTimes(const std::vector<Time>& times) {};
+
+  /// \brief Remove a correction coefficient at the specified time.
+  void removeCorrectionCoefficientAtTime(Time time) {};
+
+  /// \brief Set the correction coefficient value at the specified time.
+  void setCorrectionCoefficientAtTime(Time time, ValueType value) {};
+
+  /// \brief Reset the correction curve to identity values with knots at desired times
+  void resetCorrectionCurve(const std::vector<Time>& times) {};
+
+  /// \brief Set the base curve to given values with knots at desired times
+  /// Resets the curve beforehand.
+  void setBaseCurve(const std::vector<Time>& times, const std::vector<ValueType>& values) {};
+
+  /// \brief Add / replace the given coefficients without resetting the curve.
+  void setBaseCurvePart(const std::vector<Time>& times, const std::vector<ValueType>& values) {};
+
+  /// \brief Modifies values of the base coefficient in batch, starting at times[0] and assuming that
+  /// a coefficient exists at all the specified times.
+  void modifyBaseCoefficientsValuesInBatch(const std::vector<Time>& times, const std::vector<ValueType>& values) {};
+
+  void getBaseCurveTimes(std::vector<Time>* outTimes) const {};
+
+  void getBaseCurveTimesInWindow(std::vector<Time>* outTimes, Time begTime, Time endTime) const {};
+
+  // return number of coefficients curve is composed of
+  int baseSize() const {return size();};
+
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
   SamplingPolicy discretePolicy_;
@@ -166,9 +206,9 @@ typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
 // extend policy for slerp curves
 template<>
 inline void SamplingPolicy::extend<DiscreteSE3Curve, SE3>(const std::vector<Time>& times,
-                                                const std::vector<SE3>& values,
-                                                DiscreteSE3Curve* curve,
-                                                std::vector<Key>* outKeys) {
+                                                          const std::vector<SE3>& values,
+                                                          DiscreteSE3Curve* curve,
+                                                          std::vector<Key>* outKeys) {
 
   //todo: deal with minSamplingPeriod_ when extending with multiple times
   if (times.size() != 1) {
