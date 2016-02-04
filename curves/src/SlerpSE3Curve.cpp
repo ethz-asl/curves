@@ -345,4 +345,8 @@ void SlerpSE3Curve::saveCurveTimesAndValues(const std::string& filename) const {
   CurvesTestHelpers::writeTimeVectorCSV(filename, curveTimes, curveValues);
 }
 
+void SlerpSE3Curve::getCurveTimes(std::vector<Time>* outTimes) const {
+  manager_.getTimes(outTimes);
+}
+
 } // namespace curves

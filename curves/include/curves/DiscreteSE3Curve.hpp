@@ -153,6 +153,8 @@ class DiscreteSE3Curve : public SE3Curve {
 
   void saveCurveTimesAndValues(const std::string& filename) const;
 
+  void getCurveTimes(std::vector<Time>* outTimes) const;
+
   // Fake functions to comply with the current interfaces of trajectories_optimizer
   // todo : tidy up
 

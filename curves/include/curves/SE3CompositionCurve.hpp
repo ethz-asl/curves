@@ -193,6 +193,8 @@ class SE3CompositionCurve : public SE3Curve {
     void getBaseCurveTimes(std::vector<Time>* outTimes) const;
 
     void getBaseCurveTimesInWindow(std::vector<Time>* outTimes, Time begTime, Time endTime) const;
+
+    void getCurveTimes(std::vector<Time>* outTimes) const;
 };
 
 } // namespace curves

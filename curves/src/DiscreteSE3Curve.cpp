@@ -319,4 +319,8 @@ void DiscreteSE3Curve::saveCurveTimesAndValues(const std::string& filename) cons
   CurvesTestHelpers::writeTimeVectorCSV(filename, curveTimes, curveValues);
 }
 
+void DiscreteSE3Curve::getCurveTimes(std::vector<Time>* outTimes) const {
+  manager_.getTimes(outTimes);
+}
+
 } // namespace curves

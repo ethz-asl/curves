@@ -510,4 +510,9 @@ void SE3CompositionCurve<C1, C2>::getBaseCurveTimesInWindow(std::vector<Time>* o
   baseCurve_.manager_.getTimesInWindow(outTimes, begTime, endTime);
 }
 
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::getCurveTimes(std::vector<Time>* outTimes) const {
+  correctionCurve_.manager_.getTimes(outTimes);
+}
+
 } // namespace curves
