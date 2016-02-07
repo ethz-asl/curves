@@ -74,7 +74,7 @@ class Curve
   /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
                       const std::vector<ValueType>& values,
-                      std::vector<Key>* outKeys) = 0;
+                      std::vector<Key>* outKeys  = NULL) = 0;
 
   /// \brief Fit a new curve to these data points.
   ///
