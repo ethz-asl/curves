@@ -19,6 +19,7 @@ namespace curves {
 
 /// Implements a discrete SE3 curve class.
 class DiscreteSE3Curve : public SE3Curve {
+  friend class SE3CompositionCurve<DiscreteSE3Curve, DiscreteSE3Curve>;
   friend class SamplingPolicy;
  public:
   typedef ValueType Coefficient;
@@ -152,6 +153,10 @@ class DiscreteSE3Curve : public SE3Curve {
   virtual Time getTimeAtKey(gtsam::Key key) const;
 
   void saveCurveTimesAndValues(const std::string& filename) const;
+
+  void saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const;
+
+  void saveCorrectionCurveAtTimes(const std::string& filename, std::vector<Time> times) const {};
 
   void getCurveTimes(std::vector<Time>* outTimes) const;
 

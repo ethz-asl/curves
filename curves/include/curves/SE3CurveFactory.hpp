@@ -7,10 +7,10 @@
 #ifndef SE3_CURVE_FACTORY_HPP_
 #define SE3_CURVE_FACTORY_HPP_
 
-
 #include "SE3Curve.hpp"
 #include "SlerpSE3Curve.hpp"
 #include "DiscreteSE3Curve.hpp"
+#include "SemiDiscreteSE3Curve.hpp"
 #include "SE3CompositionCurve.hpp"
 
 #include <string>

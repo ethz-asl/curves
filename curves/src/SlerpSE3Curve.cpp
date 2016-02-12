@@ -331,18 +331,22 @@ void SlerpSE3Curve::saveCurveTimesAndValues(const std::string& filename) const {
   std::vector<Time> curveTimes;
   manager_.getTimes(&curveTimes);
 
+  saveCurveAtTimes(filename, curveTimes);
+}
+
+void SlerpSE3Curve::saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const {
   Eigen::VectorXd v(7);
 
   std::vector<Eigen::VectorXd> curveValues;
   ValueType val;
-  for (size_t i = 0; i < curveTimes.size(); ++i) {
-    val = evaluate(curveTimes[i]);
+  for (size_t i = 0; i < times.size(); ++i) {
+    val = evaluate(times[i]);
     v << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
         val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
     curveValues.push_back(v);
   }
 
-  CurvesTestHelpers::writeTimeVectorCSV(filename, curveTimes, curveValues);
+  CurvesTestHelpers::writeTimeVectorCSV(filename, times, curveValues);
 }
 
 void SlerpSE3Curve::getCurveTimes(std::vector<Time>* outTimes) const {

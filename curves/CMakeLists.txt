@@ -22,6 +22,7 @@ cs_add_library(${PROJECT_NAME}
   src/SE2Curve.cpp
   src/SlerpSE2Curve.cpp
   src/DiscreteSE3Curve.cpp
+  src/SemiDiscreteSE3Curve.cpp
   src/SE3CurveFactory.cpp
 )
 

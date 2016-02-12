@@ -485,18 +485,39 @@ void SE3CompositionCurve<C1, C2>::saveCurveTimesAndValues(const std::string& fil
   std::vector<Time> curveTimes;
   baseCurve_.manager_.getTimes(&curveTimes);
 
+  saveCurveAtTimes(filename, curveTimes);
+}
+
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const {
   Eigen::VectorXd v(7);
 
   std::vector<Eigen::VectorXd> curveValues;
   ValueType val;
-  for (size_t i = 0; i < curveTimes.size(); ++i) {
-    val = this->evaluate(curveTimes[i]);
+  for (size_t i = 0; i < times.size(); ++i) {
+    val = evaluate(times[i]);
     v << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
         val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
     curveValues.push_back(v);
   }
 
-  CurvesTestHelpers::writeTimeVectorCSV(filename, curveTimes, curveValues);
+  CurvesTestHelpers::writeTimeVectorCSV(filename, times, curveValues);
+}
+
+template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::saveCorrectionCurveAtTimes(const std::string& filename, std::vector<Time> times) const {
+  Eigen::VectorXd v(7);
+
+  std::vector<Eigen::VectorXd> curveValues;
+  ValueType val;
+  for (size_t i = 0; i < times.size(); ++i) {
+    val = correctionCurve_.evaluate(times[i]);
+    v << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
+        val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
+    curveValues.push_back(v);
+  }
+
+  CurvesTestHelpers::writeTimeVectorCSV(filename, times, curveValues);
 }
 
 template <class C1, class C2>

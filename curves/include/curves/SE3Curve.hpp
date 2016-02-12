@@ -94,6 +94,10 @@ class SE3Curve : public Curve<SE3Config> {
 
   virtual void saveCurveTimesAndValues(const std::string& filename) const = 0;
 
+  virtual void saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const = 0;
+
+  virtual void saveCorrectionCurveAtTimes(const std::string& filename, std::vector<Time> times) const = 0;
+
   virtual void getCurveTimes(std::vector<Time>* outTimes) const = 0;
 
   // Fake functions to comply with the current interfaces of trajectories_optimizer

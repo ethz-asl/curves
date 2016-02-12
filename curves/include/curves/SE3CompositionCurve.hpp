@@ -190,6 +190,10 @@ class SE3CompositionCurve : public SE3Curve {
     /// \brief Save the base curve times and composed curve values
     void saveCurveTimesAndValues(const std::string& filename) const;
 
+    void saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const;
+
+    void saveCorrectionCurveAtTimes(const std::string& filename, std::vector<Time> times) const;
+
     void getBaseCurveTimes(std::vector<Time>* outTimes) const;
 
     void getBaseCurveTimesInWindow(std::vector<Time>* outTimes, Time begTime, Time endTime) const;
