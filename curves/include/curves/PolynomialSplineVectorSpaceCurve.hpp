@@ -120,6 +120,27 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
     }
   }
 
+  virtual void fitCurve(const std::vector<Time>& times, const std::vector<ValueType>& values,
+                        const std::vector<DerivativeType>& firstDerivatives,
+                        const std::vector<DerivativeType>& secondDerivatives,
+                        std::vector<Key>* outKeys = NULL)
+  {
+    for (size_t i = 0; i < N; ++i) {
+      std::vector<double> scalarValues, scalarFirstDerivates, scalarSecondDerivates;
+      scalarValues.reserve(times.size());
+      for (size_t t = 0; t < times.size(); ++t) {
+        scalarValues.push_back(values.at(t)(i));
+        scalarFirstDerivates.push_back(firstDerivatives.at(t)(i));
+        scalarSecondDerivates.push_back(secondDerivatives.at(t)(i));
+      }
+      // TODO Copy all derivates, right now only first and last are supported.
+      containers_.at(i).setData(times, scalarValues,
+                                *(scalarFirstDerivates.begin()), *(scalarSecondDerivates.begin()),
+                                *(scalarFirstDerivates.end() - 1), *(scalarSecondDerivates.end() - 1));
+    }
+  }
+
+
   virtual void fitCurve(const std::vector<PolynomialSplineBase::SplineOpts>& values,
                         std::vector<Key>* outKeys = NULL)
   {
