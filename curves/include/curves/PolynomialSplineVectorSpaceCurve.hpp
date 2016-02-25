@@ -34,7 +34,8 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
   typedef typename Parent::DerivativeType DerivativeType;
 
   PolynomialSplineVectorSpaceCurve()
-      : VectorSpaceCurve<N>()
+      : VectorSpaceCurve<N>(),
+        minTime_(0)
   {
     containers_.resize(N);
   }
@@ -49,6 +50,7 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
 
   virtual Time getMinTime() const
   {
+    return minTime_;
   }
 
   virtual Time getMaxTime() const
@@ -82,12 +84,13 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
   virtual void extend(const std::vector<Time>& times, const std::vector<ValueType>& values,
                       std::vector<Key>* outKeys)
   {
-
+    throw std::runtime_error("PolynomialSplineVectorSpaceCurve::extend is not yet implemented!");
   }
 
   virtual void fitCurve(const std::vector<Time>& times, const std::vector<ValueType>& values,
                         std::vector<Key>* outKeys = NULL)
   {
+    minTime_ = times.front();
     for (size_t i = 0; i < N; ++i) {
       std::vector<double> scalarValues;
       scalarValues.reserve(times.size());
@@ -96,10 +99,32 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
     }
   }
 
+  virtual void fitCurve(const std::vector<Time>& times,
+                        const std::vector<ValueType>& values,
+                        const ValueType& initialVelocities,
+                        const ValueType& initialAccelerations,
+                        const ValueType& finalVelocities,
+                        const ValueType& finalAccelerations )
+  {
+    minTime_ = times.front();
+    for (size_t i = 0; i < N; ++i) {
+      std::vector<double> scalarValues;
+      scalarValues.reserve(times.size());
+      for (size_t t = 0; t < times.size(); ++t) scalarValues.push_back(values.at(t)(i));
+      containers_.at(i).setData(times,
+                                scalarValues,
+                                initialVelocities(i),
+                                initialAccelerations(i),
+                                finalVelocities(i),
+                                finalAccelerations(i));
+    }
+  }
+
   virtual void fitCurve(const std::vector<PolynomialSplineBase::SplineOpts>& values,
                         std::vector<Key>* outKeys = NULL)
   {
     // TODO
+    throw std::runtime_error("PolynomialSplineVectorSpaceCurve::fitCurve is not yet implemented!");
   }
 
   virtual void clearCurve() {
@@ -110,6 +135,7 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
 
  private:
   std::vector<PolynomialSplineContainer> containers_;
+  Time minTime_;
 };
 
 typedef PolynomialSplineVectorSpaceCurve<PolynomialSplineQuintic, 3> PolynomialSplineQuinticVector3Curve;
