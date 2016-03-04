@@ -19,6 +19,7 @@
 #include "robotUtils/function_approximators/polynomialSplines/PolynomialSplineBase.hpp"
 #include "robotUtils/function_approximators/polynomialSplines/PolynomialSplineQuintic.hpp"
 #include "robotUtils/function_approximators/polynomialSplines/PolynomialSplineCubic.hpp"
+#include "robotUtils/timers/ChronoTimer.hpp"
 
 using namespace robotUtils;
 
@@ -58,6 +59,11 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
   virtual ValueType evaluate(Time time) const
   {
     return container_.getPositionAtTime(time);
+  }
+
+  virtual ValueType evaluate(Time time, robotUtils::HighResolutionClockTimer& timer) const
+  {
+    return container_.getPositionAtTime(time, timer);
   }
 
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const
