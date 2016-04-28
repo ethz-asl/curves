@@ -194,6 +194,8 @@ class SE3CompositionCurve : public SE3Curve {
 
     void saveCorrectionCurveAtTimes(const std::string& filename, std::vector<Time> times) const;
 
+    void saveCorrectionCurveTimesAndValues(const std::string& filename) const;
+
     void getBaseCurveTimes(std::vector<Time>* outTimes) const;
 
     void getBaseCurveTimesInWindow(std::vector<Time>* outTimes, Time begTime, Time endTime) const;

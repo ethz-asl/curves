@@ -200,6 +200,8 @@ class SemiDiscreteSE3Curve : public SE3Curve {
   // return number of coefficients curve is composed of
   int baseSize() const {return size();};
 
+  void saveCorrectionCurveTimesAndValues(const std::string& filename) const {};
+
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
   SamplingPolicy discretePolicy_;

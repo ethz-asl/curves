@@ -143,6 +143,8 @@ class SE3Curve : public Curve<SE3Config> {
 
   virtual int baseSize() const = 0;
 
+  virtual void saveCorrectionCurveTimesAndValues(const std::string& filename) const = 0;
+
   /// \brief Get the dimension of this curve
   //virtual size_t dim() const;
   ///@}

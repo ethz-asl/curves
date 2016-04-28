@@ -505,6 +505,14 @@ void SE3CompositionCurve<C1, C2>::saveCurveAtTimes(const std::string& filename, 
 }
 
 template <class C1, class C2>
+void SE3CompositionCurve<C1, C2>::saveCorrectionCurveTimesAndValues(const std::string& filename) const {
+  std::vector<Time> curveTimes;
+  correctionCurve_.manager_.getTimes(&curveTimes);
+
+  saveCorrectionCurveAtTimes(filename, curveTimes);
+}
+
+template <class C1, class C2>
 void SE3CompositionCurve<C1, C2>::saveCorrectionCurveAtTimes(const std::string& filename, std::vector<Time> times) const {
   Eigen::VectorXd v(7);
 
