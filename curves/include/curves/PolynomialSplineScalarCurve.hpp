@@ -85,6 +85,14 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
     container_.setData(times, values, 0.0, 0.0, 0.0, 0.0);
   }
 
+  virtual void fitCurve(const std::vector<Time>& times, const std::vector<ValueType>& values,
+                        double initialVelocity, double initialAcceleration,
+                        double finalVelocity, double finalAcceleration,
+                        std::vector<Key>* outKeys = NULL)
+  {
+    container_.setData(times, values, initialVelocity, initialAcceleration, finalVelocity, finalAcceleration);
+  }
+
   virtual void fitCurve(const std::vector<PolynomialSplineBase::SplineOpts>& values,
                         std::vector<Key>* outKeys = NULL)
   {
