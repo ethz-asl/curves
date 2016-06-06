@@ -66,6 +66,7 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
 
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const
   {
+    time -= minTime_;
     switch (derivativeOrder) {
       case(1): {
         return container_.getVelocityAtTime(time);
