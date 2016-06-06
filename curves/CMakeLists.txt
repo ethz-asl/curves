@@ -46,6 +46,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
   test/test_main.cpp
   test/CubicHermiteSE3CurveTest.cpp
   test/PolynomialSplineVectorSpaceCurveTest.cpp
+  test/PolynomialSplineQuinticScalarCurveTest.cpp
 #  test/test_LocalSupport2CoefficientManager.cpp
 #  test/test_Expressions.cpp
 #  test/test_Expressions_Slerp_SE3.cpp

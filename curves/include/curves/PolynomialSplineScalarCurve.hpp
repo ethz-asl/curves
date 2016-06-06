@@ -33,7 +33,8 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
   typedef typename Parent::DerivativeType DerivativeType;
 
   PolynomialSplineScalarCurve()
-      : Curve<ScalarCurveConfig>()
+      : Curve<ScalarCurveConfig>(),
+        minTime_(0.0)
   {
 
   }
@@ -44,24 +45,28 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
 
   virtual void print(const std::string& str = "") const
   {
+    throw std::runtime_error("print is not yet implemented!");
   }
 
   virtual Time getMinTime() const
   {
+    return minTime_;
   }
 
   virtual Time getMaxTime() const
   {
-    return container_.getContainerDuration();
+    return container_.getContainerDuration() + minTime_;
   }
 
   virtual ValueType evaluate(Time time) const
   {
+    time -= minTime_;
     return container_.getPositionAtTime(time);
   }
 
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const
   {
+    time -= minTime_;
     switch (derivativeOrder) {
       case(1): {
         return container_.getVelocityAtTime(time);
@@ -70,19 +75,25 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
       case(2): {
         return container_.getAccelerationAtTime(time);
       } break;
+
+      default:
+        throw std::runtime_error("Derivative is not yet implemented!");
     }
+
+    return 0.0;
   }
 
   virtual void extend(const std::vector<Time>& times, const std::vector<ValueType>& values,
                       std::vector<Key>* outKeys)
   {
-
+    throw std::runtime_error("extend is not yet implemented!");
   }
 
   virtual void fitCurve(const std::vector<Time>& times, const std::vector<ValueType>& values,
                         std::vector<Key>* outKeys = NULL)
   {
     container_.setData(times, values, 0.0, 0.0, 0.0, 0.0);
+    minTime_ = times.front();
   }
 
   virtual void fitCurve(const std::vector<Time>& times, const std::vector<ValueType>& values,
@@ -91,6 +102,7 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
                         std::vector<Key>* outKeys = NULL)
   {
     container_.setData(times, values, initialVelocity, initialAcceleration, finalVelocity, finalAcceleration);
+    minTime_ = times.front();
   }
 
   virtual void fitCurve(const std::vector<PolynomialSplineBase::SplineOpts>& values,
@@ -101,10 +113,12 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
       spline.evalCoeffs(value);
       container_.addSpline(spline);
     }
+    minTime_ = 0.0;
   }
 
  private:
   PolynomialSplineContainer container_;
+  Time minTime_;
 };
 
 typedef PolynomialSplineScalarCurve<PolynomialSplineQuintic> PolynomialSplineQuinticScalarCurve;
