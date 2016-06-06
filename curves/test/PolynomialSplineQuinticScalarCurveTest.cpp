@@ -50,6 +50,6 @@ TEST(PolynomialSplineQuinticScalarCurveTest, minMax)
   EXPECT_NEAR(1.0, curve.getMinTime(), 1.0e-3) << "minTime";
   EXPECT_NEAR(4.0, curve.getMaxTime(), 1.0e-3) << "maxTime";
 
-  EXPECT_NEAR(1.0, curve.evaluate(3.0), 1.0e-3) << "minValue";
-  EXPECT_NEAR(4.0, curve.evaluate(5.0), 1.0e-3) << "maxValue";
+  EXPECT_NEAR(3.0, curve.evaluate(1.0), 1.0e-3) << "minValue";
+  EXPECT_NEAR(5.0, curve.evaluate(4.0), 1.0e-3) << "maxValue";
 }

@@ -55,11 +55,12 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
 
   virtual Time getMaxTime() const
   {
-    return container_.getContainerDuration();
+    return container_.getContainerDuration() + minTime_;
   }
 
   virtual ValueType evaluate(Time time) const
   {
+    time -= minTime_;
     return container_.getPositionAtTime(time);
   }
 
