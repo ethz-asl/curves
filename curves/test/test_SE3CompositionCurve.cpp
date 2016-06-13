@@ -62,8 +62,6 @@ class SinusCircleTestSuites : public ::testing::Test {
 };
 
 typedef ::testing::Types<
-//    CurveWrapper<SlerpSE3Curve,0>,
-    //    CurveWrapper<SE3CompositionCurve<SlerpSE3Curve, CubicHermiteSE3Curve>, 500000000>,
     CurveWrapper<SE3CompositionCurve<SlerpSE3Curve, SlerpSE3Curve>, 1000000000>,
     CurveWrapper<SE3CompositionCurve<SlerpSE3Curve, SlerpSE3Curve>, 500000000>
 > TestTypes;
@@ -77,7 +75,6 @@ typedef SE3::Rotation SO3;
 template <class Curve>
 ExpressionFactor<ValueType>
 getRelativeMeasurementFactor(const Curve& curve,
-                             //getRelativeMeasurementFactor(const SlerpSE3Curve& curve,
                              const Time timeA, const Time timeB,
                              const ValueType& measurement,
                              gtsam::noiseModel::Diagonal::shared_ptr noiseModel,
@@ -158,7 +155,6 @@ TYPED_TEST(SinusCircleTestSuites, testSE3CompositionCurve_SinusCircle) {
     ValueType TA(valuesCoef[i]);
     ValueType TB(valuesCoef[i+1]);
     ValueType T_A_B = TA.inverted() * TB;
-    //std::cout << "T_A_B norm" << T_A_B.getPosition().norm() << std::endl;
 
     ValueType noise;
     noise.setRandom(0.0003, 0.0003);
@@ -183,10 +179,6 @@ TYPED_TEST(SinusCircleTestSuites, testSE3CompositionCurve_SinusCircle) {
     valueToAdd.push_back(noisyInitials[i]);
     curve.extend(timeToAdd, valueToAdd);
   }
-
-  //  std::cout << "matches.size() " << matches.size() << std::endl;
-  //  std::cout << "trueCurve.size() " << trueCurve.size() << std::endl;
-  //  std::cout << "correction.size() " << curve.correctionSize() << std::endl;
 
   // noise models
   Vector6 measNoise;
@@ -278,10 +270,8 @@ TYPED_TEST(SinusCircleTestSuites, testSE3CompositionCurve_SinusCircle) {
 
     Eigen::VectorXd keysVector(keysInGraph.size());
     int counter = 0;
-    //std::cout << "keysVector " << std::endl;
     for(FastSet<Key>::const_iterator it = keysInGraph.begin(); it != keysInGraph.end(); ++it) {
       keysVector[counter] = *it;
-      //std::cout << "(" << counter << ") " << keysVector[counter] << std::endl;
       counter++;
     }
     factorsKeysToSave.push_back(keysVector);
@@ -289,23 +279,18 @@ TYPED_TEST(SinusCircleTestSuites, testSE3CompositionCurve_SinusCircle) {
     for(gtsam::NonlinearFactorGraph::const_iterator it = graph.begin(); it != graph.end(); ++it) {
       gtsam::FastVector<Key> keysInFactor = (*it)->keys();
       keysVector.setZero();
-      //std::cout << "Keys in factor ";
       for (gtsam::FastVector<Key>::const_iterator it2 = keysInFactor.begin(); it2 < keysInFactor.end(); ++it2) {
-        //std::cout << "(" << std::distance(keysInGraph.begin(), keysInGraph.find(*it2)) << ") " << *it2 << " ";
         keysVector[std::distance(keysInGraph.begin(), keysInGraph.find(*it2))] = 1;
 
       }
       factorIds.push_back(factorIds[factorIds.size() -1] + 1);
       factorsKeysToSave.push_back(keysVector);
 
-      //std::cout << std::endl;
     }
     CurvesTestHelpers::writeTimeVectorCSV("/tmp/factors.csv", factorIds, factorsKeysToSave);
 
     // Perform optimization
     gtsam::LevenbergMarquardtParams params;
-    //    params.setVerbosity("ERROR");
-    //    params.setVerbosityLM("TRYLAMBDA");
     gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, initials, params).optimize();
 
     curve.updateFromGTSAMValues(result);
@@ -352,20 +337,12 @@ TYPED_TEST(SinusCircleTestSuites, testSE3CompositionCurve_SinusCircle) {
       val = curve.evaluate(times[z]);
       v3 << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
           val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
-      //        std::cout << "v3 " << v3 << std::endl;
       optimized.push_back(v3);
     }
 
     CurvesTestHelpers::writeTimeVectorCSV("/tmp/circle_sinus/expected.csv", timesToSave, expected);
     CurvesTestHelpers::writeTimeVectorCSV("/tmp/circle_sinus/initial.csv", timesToSave, initial);
     CurvesTestHelpers::writeTimeVectorCSV("/tmp/circle_sinus/optimized.csv", timesToSave, optimized);
-
-// todo check that this still works
-//    for (size_t i = 0; i< nBaseCoefToConsider; ++i) {
-//      ASSERT_TRUE(EIGEN_MATRIX_NEAR(valuesCoef[i].getPosition(),curve.evaluate(times[i]).getPosition(),0.1));
-//      ASSERT_TRUE(EIGEN_MATRIX_NEAR(valuesCoef[i].getRotation().vector(),curve.evaluate(times[i]).getRotation().vector(),0.05));
-//    }
-
   }
 
 }

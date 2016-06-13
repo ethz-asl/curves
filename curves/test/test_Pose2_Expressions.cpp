@@ -32,7 +32,6 @@ TEST(Pose2ExpressionTestSuite, testExp) {
   for(int i = 0; i < N_TEST_ITERATIONS; ++i) {
     pval.setRandom();
     values.update(1, pval);
-    //    std::cout << "pval[2] " << pval[2] << std::endl;
     SCOPED_TRACE("Testing Expression Jacobians.");
     testExpressionJacobians(T, values, fd_step, tolerance);
   }
@@ -100,14 +99,11 @@ TEST(Pose2ExpressionTestSuite, testLog) {
   for (int i = 0; i < N_TEST_ITERATIONS; ++i) {
     Tval = makeRandomSE2();
     values.update(1, Tval);
-    //    std::cout << "Tval.theta() " << Tval.theta() << std::endl;
     SCOPED_TRACE("Testing Expression Jacobians.");
     testExpressionJacobians(logT, values, fd_step, tolerance);
-    //    std::cout << "Completed one testing" << std::endl;
 
     SE2 Tval_theta_0(Tval.x(), Tval.y(), 2e-16);
     values.update(1, Tval_theta_0);
-//    std::cout << "Tval_theta_0 x" << Tval_theta_0.x() << " y " << Tval_theta_0.y() << std::endl;
     testExpressionJacobians(logT, values, fd_step, tolerance);
   }
 }
@@ -188,17 +184,11 @@ TEST(Pose2ExpressionTestSuite, testSlerpStepByStep) {
       ETransformation exp_scaled_log_T0_inv_T1 = transformationExp(scaled_log_T0_inv_T1);
       ETransformation slerp = compose(T0, exp_scaled_log_T0_inv_T1);
 
-//      std::cout << "Testing T0_inv" << std::endl;
       testExpressionJacobians(T0_inv, values, fd_step, tolerance);
-//      std::cout << "Testing T0_inv_T1" << std::endl;
       testExpressionJacobians(T0_inv_T1, values, fd_step, tolerance);
-//      std::cout << "Testing log_T0_inv_T1" << std::endl;
       testExpressionJacobians(log_T0_inv_T1, values, fd_step, tolerance);
-//      std::cout << "Testing scaled_log_T0_inv_T1" << std::endl;
       testExpressionJacobians(scaled_log_T0_inv_T1, values, fd_step, tolerance);
-//      std::cout << "Testing exp_scaled_log_T0_inv_T1" << std::endl;
       testExpressionJacobians(exp_scaled_log_T0_inv_T1, values, fd_step, tolerance);
-//      std::cout << "Testing slerp" << std::endl;
       testExpressionJacobians(slerp, values, fd_step, tolerance);
 
     }
@@ -258,14 +248,6 @@ TEST(Pose2ExpressionTestSuite, testDistanceBetweenPoints) {
     SCOPED_TRACE("Testing Expression Jacobians.");
     testExpressionJacobians(dist, values, fd_step, tolerance);
   }
-
-  // todo the following test fails which motivated the use of pointsSubstraction
-  // instead of distance between points
-  //  {
-  //    values.update(1, Point2(0,0));
-  //    values.update(2, Point2(0,0));
-  //    testExpressionJacobians(dist, values, fd_step, tolerance);
-  //  }
 }
 
 TEST(Pose2ExpressionTestSuite, testPointsSubtraction) {
@@ -301,25 +283,6 @@ TEST(Pose2ExpressionTestSuite, testPointsSubtraction) {
     testExpressionJacobians(sub, values, fd_step, tolerance);
   }
 }
-
-//TEST(Pose2ExpressionTestSuite, testPose2AsPoint2) {
-//  SE2 Tval = makeRandomSE2();
-//
-//  // Create some values
-//  Values values;
-//  values.insert(1, Tval);
-//
-//  ETransformation T(1);
-//
-//  Expression<Point2> point = pose2AsPoint2(T);
-//
-//  for (int i = 0; i < N_TEST_ITERATIONS; ++i) {
-//    values.update(1, makeRandomSE2());
-//
-//    SCOPED_TRACE("Testing Expression Jacobians.");
-//    testExpressionJacobians(point, values, fd_step, tolerance);
-//  }
-//}
 
 TEST(Pose2ExpressionTestSuite, testPoseRange) {
   SE2 Tval1 = makeRandomSE2();
@@ -366,5 +329,3 @@ TEST(Pose2ExpressionTestSuite, testPointRange) {
     testExpressionJacobians(range, values, fd_step, tolerance);
   }
 }
-
-
