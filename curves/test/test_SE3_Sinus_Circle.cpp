@@ -28,7 +28,6 @@ using namespace std;
 using namespace gtsam;
 
 typedef SlerpSE3Curve::ValueType ValueType;
-typedef SlerpSE3Curve::CoefficientIter CoefficientIter;
 
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
@@ -127,7 +126,7 @@ TEST(CurvesTestSuite, testSE3AbsolutePoseFactor_3333_SOxR3_GPS) {
   }
 
   // Populate GTSAM values
-  CoefficientIter rval0, rval1;
+  SlerpSE3Curve::CoefficientIter rval0, rval1;
   Values initials, expected;
   curve.initializeGTSAMValues(&initials);
   for(size_t i=0; i< outKeys.size(); i++) {
