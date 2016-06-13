@@ -15,6 +15,7 @@
 #include "kindr/minimal/common-gtsam.h"
 #include "gtsam/nonlinear/NonlinearFactorGraph.h"
 #include "SamplingPolicy.hpp"
+#include "SE3CompositionCurve.hpp"
 
 // wrapper class for Hermite-style coefficients (made of QuatTransformation and Vector6)
 namespace kindr {
@@ -270,6 +271,10 @@ class CubicHermiteSE3Curve : public SE3Curve {
   // set the minimum sampling period
   void setMinSamplingPeriod(Time time);
 
+  /// \brief Set the sampling ratio.
+  ///   eg. 4 will add a coefficient every 4 extend
+  void setSamplingRatio(const int ratio);
+
   // clear the curve
   virtual void clear();
 
@@ -278,6 +283,52 @@ class CubicHermiteSE3Curve : public SE3Curve {
 
   virtual Time getTimeAtKey(gtsam::Key key) const;
 
+  void saveCurveTimesAndValues(const std::string& filename) const;
+
+  void saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const;
+
+  void saveCorrectionCurveAtTimes(const std::string& filename, std::vector<Time> times) const {};
+
+  void getCurveTimes(std::vector<Time>* outTimes) const;
+
+  /// \brief Returns the number of coefficients in the correction curve
+  int correctionSize() const {return 0;};
+
+  /// \brief Fold in the correction curve into the base curve and reinitialize
+  ///        correction curve coefficients to identity transformations.
+  void foldInCorrections() {};
+
+  /// \brief Add coefficients to the correction curve at given times.
+  void setCorrectionTimes(const std::vector<Time>& times) {};
+
+  /// \brief Remove a correction coefficient at the specified time.
+  void removeCorrectionCoefficientAtTime(Time time) {};
+
+  /// \brief Set the correction coefficient value at the specified time.
+  void setCorrectionCoefficientAtTime(Time time, ValueType value) {};
+
+  /// \brief Reset the correction curve to identity values with knots at desired times
+  void resetCorrectionCurve(const std::vector<Time>& times) {};
+
+  /// \brief Set the base curve to given values with knots at desired times
+  /// Resets the curve beforehand.
+  void setBaseCurve(const std::vector<Time>& times, const std::vector<ValueType>& values) {};
+
+  /// \brief Add / replace the given coefficients without resetting the curve.
+  void setBaseCurvePart(const std::vector<Time>& times, const std::vector<ValueType>& values) {};
+
+  /// \brief Modifies values of the base coefficient in batch, starting at times[0] and assuming that
+  /// a coefficient exists at all the specified times.
+  void modifyBaseCoefficientsValuesInBatch(const std::vector<Time>& times, const std::vector<ValueType>& values) {};
+
+  void getBaseCurveTimes(std::vector<Time>* outTimes) const {};
+
+  void getBaseCurveTimesInWindow(std::vector<Time>* outTimes, Time begTime, Time endTime) const {};
+
+  // return number of coefficients curve is composed of
+  int baseSize() const {return size();};
+
+  void saveCorrectionCurveTimesAndValues(const std::string& filename) const {};
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
   SamplingPolicy hermitePolicy_;

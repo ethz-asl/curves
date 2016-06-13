@@ -396,12 +396,43 @@ void CubicHermiteSE3Curve::setMinSamplingPeriod(Time time) {
   hermitePolicy_.setMinSamplingPeriod(time);
 }
 
+///   eg. 4 will add a coefficient every 4 extend
+void CubicHermiteSE3Curve::setSamplingRatio(const int ratio) {
+  hermitePolicy_.setMinimumMeasurements(ratio);
+}
+
 void CubicHermiteSE3Curve::clear() {
   manager_.clear();
 }
 
 void CubicHermiteSE3Curve::transformCurve(const ValueType T) {
   //todo
+}
+
+void CubicHermiteSE3Curve::saveCurveTimesAndValues(const std::string& filename) const {
+  std::vector<Time> curveTimes;
+  manager_.getTimes(&curveTimes);
+
+  saveCurveAtTimes(filename, curveTimes);
+}
+
+void CubicHermiteSE3Curve::saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const {
+  Eigen::VectorXd v(7);
+
+  std::vector<Eigen::VectorXd> curveValues;
+  ValueType val;
+  for (size_t i = 0; i < times.size(); ++i) {
+    val = evaluate(times[i]);
+    v << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
+        val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
+    curveValues.push_back(v);
+  }
+
+  CurvesTestHelpers::writeTimeVectorCSV(filename, times, curveValues);
+}
+
+void CubicHermiteSE3Curve::getCurveTimes(std::vector<Time>* outTimes) const {
+  manager_.getTimes(outTimes);
 }
 
 Time CubicHermiteSE3Curve::getTimeAtKey(gtsam::Key key) const {
