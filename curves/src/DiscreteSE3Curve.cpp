@@ -259,9 +259,6 @@ void DiscreteSE3Curve::clear() {
 }
 
 void DiscreteSE3Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const {
-
-//  gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(gtsam::traits<Coefficient>::dimension, 1e5);
-
   Eigen::Matrix<double,6,1> noise;
   noise(0) = 0.0000001;
   noise(1) = 0.0000001;

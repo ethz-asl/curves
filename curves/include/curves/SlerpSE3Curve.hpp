@@ -227,7 +227,6 @@ inline void SamplingPolicy::extend<SlerpSE3Curve, SE3>(const std::vector<Time>& 
                                                        const std::vector<SE3>& values,
                                                        SlerpSE3Curve* curve,
                                                        std::vector<Key>* outKeys) {
-
   //todo: deal with minSamplingPeriod_ when extending with multiple times
   if (times.size() != 1) {
     curve->manager_.insertCoefficients(times, values, outKeys);

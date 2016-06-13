@@ -63,7 +63,6 @@ typedef gtsam::Expression<Eigen::Vector3d> EVector3;
 typedef gtsam::Expression<kindr::minimal::QuatTransformation> ETransformation;
 typedef gtsam::Expression<kindr::minimal::HermiteTransformation<double>> EHermiteTransformation;
 
-
 void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
                                     const std::vector<ValueType>& values,
                                     std::vector<Key>* outKeys) {
@@ -77,13 +76,10 @@ void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
   // fill the coefficients with ValueType and DerivativeType
   // use Catmull-Rom interpolation for derivatives on knot points
   for (size_t i = 0; i < times.size(); ++i) {
-
     DerivativeType derivative;
     // catch the boundaries (i == 0 && i == max)
     if (i == 0) {
-
       if (times.size() > 1) {
-
         Time period = times[1] - times[0];
         SE3 T_A_B = kindr::minimal::invertAndComposeImplementation(values[0], values[1], boost::none, boost::none);
         SO3 q_A_B = T_A_B.getRotation();
@@ -93,15 +89,11 @@ void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
         Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period * 1e9;
         // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
         derivative << velocity, angularVelocity;
-
       } else {
-
         // set velocities == 0 for start point if only one coefficient
         derivative << 0,0,0,0,0,0;
       }
-
     } else if (i == times.size() - 1) {
-
       Time period = times[i] - times[i-1];
       SE3 T_A_B = kindr::minimal::invertAndComposeImplementation(values[i-1], values[i], boost::none, boost::none);
       SO3 q_A_B = T_A_B.getRotation();
@@ -111,9 +103,7 @@ void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
       Eigen::Vector3d velocity = T_A_B.getPosition() * 1/period * 1e9;
       // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
       derivative << velocity, angularVelocity;
-
     } else {
-
       Time period = times[i+1] - times[i-1];
       SE3 T_A_B = kindr::minimal::invertAndComposeImplementation(values[i-1], values[i+1], boost::none, boost::none);
       SO3 q_A_B = T_A_B.getRotation();
@@ -124,7 +114,6 @@ void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
       // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
       derivative << velocity, angularVelocity;
     }
-
     coefficients.push_back(Coefficient(values[i], derivative));
   }
 

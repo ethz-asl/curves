@@ -95,8 +95,6 @@ class SamplingPolicy {
   }
 };
 
-
 } // namespace curves
-
 
 #endif /* SAMPLING_POLICY_HPP */

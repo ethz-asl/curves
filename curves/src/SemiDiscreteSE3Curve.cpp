@@ -65,8 +65,8 @@ int SemiDiscreteSE3Curve::size() const {
 }
 
 void SemiDiscreteSE3Curve::fitCurve(const std::vector<Time>& times,
-                             const std::vector<ValueType>& values,
-                             std::vector<Key>* outKeys) {
+                                    const std::vector<ValueType>& values,
+                                    std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size());
   if(times.size() > 0) {
     clear();
@@ -75,25 +75,23 @@ void SemiDiscreteSE3Curve::fitCurve(const std::vector<Time>& times,
 }
 
 void SemiDiscreteSE3Curve::setCurve(const std::vector<Time>& times,
-              const std::vector<ValueType>& values) {
+                                    const std::vector<ValueType>& values) {
   CHECK_EQ(times.size(), values.size());
   if(times.size() > 0) {
     manager_.insertCoefficients(times,values);
   }
 }
 
-
 void SemiDiscreteSE3Curve::extend(const std::vector<Time>& times,
-                           const std::vector<ValueType>& values,
-                           std::vector<Key>* outKeys) {
-
+                                  const std::vector<ValueType>& values,
+                                  std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
   discretePolicy_.extend<SemiDiscreteSE3Curve, ValueType>(times, values, this, outKeys);
 }
 
 typename SemiDiscreteSE3Curve::DerivativeType
 SemiDiscreteSE3Curve::evaluateDerivative(Time time,
-                                  unsigned derivativeOrder) const {
+                                         unsigned derivativeOrder) const {
 
   // time is out of bound --> error
   CHECK_GE(time, this->getMinTime()) << "Time out of bounds";
@@ -169,21 +167,6 @@ SE3 SemiDiscreteSE3Curve::evaluate(Time time) const {
       gtsam::Vector6 log_T_A_I = vectorScalingImplementation<int(6)>(log_T_A_B, alpha, boost::none, boost::none);
       SE3 T_A_I = transformationExpImplementation(log_T_A_I, boost::none);
       return composeImplementation(T_W_A, T_A_I, boost::none, boost::none);
-
-
-// Pure discrete
-//      CoefficientIter a, b;
-//      bool success = manager_.getCoefficientsAt(time, &a, &b);
-//      CHECK(success) << "Unable to get the coefficients at time " << time;
-//      SE3 T_W_A = a->second.coefficient;
-//      SE3 T_W_B = b->second.coefficient;
-//
-//      // If the time is closer to a
-//      if (b->first - time >= time - a->first) {
-//        return T_W_A;
-//      } else {
-//        return T_W_B;
-//      }
     }
   }
 }
@@ -276,9 +259,6 @@ void SemiDiscreteSE3Curve::clear() {
 }
 
 void SemiDiscreteSE3Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const {
-
-//  gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(gtsam::traits<Coefficient>::dimension, 1e5);
-
   Eigen::Matrix<double,6,1> noise;
   noise(0) = 0.0000001;
   noise(1) = 0.0000001;
@@ -288,9 +268,7 @@ void SemiDiscreteSE3Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, T
   noise(5) = 0.0000001;
 
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise = gtsam::noiseModel::Diagonal::
-        Sigmas(noise);
-
-
+      Sigmas(noise);
 
   CoefficientIter rVal0, rVal1;
   manager_.getCoefficientsAt(priorTime, &rVal0, &rVal1);
