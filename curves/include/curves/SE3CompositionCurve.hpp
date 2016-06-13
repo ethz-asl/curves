@@ -205,7 +205,6 @@ class SE3CompositionCurve : public SE3Curve {
 
 } // namespace curves
 
-
 #include "SE3CompositionCurve-inl.hpp"
 
 #endif /* CURVES_COMPOSITION_CURVE_HPP */

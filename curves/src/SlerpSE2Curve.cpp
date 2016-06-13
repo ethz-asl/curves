@@ -86,7 +86,6 @@ void SlerpSE2Curve::setCurve(const std::vector<Time>& times,
   }
 }
 
-
 void SlerpSE2Curve::extend(const std::vector<Time>& times,
                            const std::vector<ValueType>& values,
                            std::vector<Key>* outKeys) {
@@ -99,40 +98,11 @@ typename SlerpSE2Curve::DerivativeType
 SlerpSE2Curve::evaluateDerivative(Time time,
                                   unsigned derivativeOrder) const {
   CHECK(false) << "Not implemented";
-//  // time is out of bound --> error
-//  CHECK_GE(time, this->getMinTime()) << "Time out of bounds";
-//  CHECK_LE(time, this->getMaxTime()) << "Time out of bounds";
-//
-//  Eigen::VectorXd dCoeff;
-//  Time dt;
-//  CoefficientIter rval0, rval1;
-//  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
-//  CHECK(success) << "Unable to get the coefficients at time " << time;
-//  // first derivative
-//  if (derivativeOrder == 1) {
-//    //todo Verify this
-//    dCoeff = gtsam::traits<Coefficient>::Local(rval1->second.coefficient,rval0->second.coefficient);
-//    dt = rval1->first - rval0->first;
-//    return dCoeff/dt;
-//    // order of derivative > 1 returns vector of zeros
-//  } else {
-//    const int dimension = gtsam::traits<Coefficient>::dimension;
-//    return Eigen::VectorXd::Zero(dimension,1);
-//  }
 }
 
 /// \brief \f[T^{\alpha}\f]
 SE2 transformationPower(SE2  T, double alpha) {
   CHECK(false) << "Not implemented";
-//  SO3 R(T.getRotation());
-//  SE2::Position t(T.getPosition());
-//
-//  AngleAxis angleAxis(R);
-//  angleAxis.setUnique();
-//  angleAxis.setAngle( angleAxis.angle()*alpha);
-//  angleAxis.setUnique();
-//
-//  return SE2(SO3(angleAxis),(t*alpha).eval());
 }
 
 /// \brief \f[A*B\f]
@@ -212,64 +182,6 @@ void SlerpSE2Curve::setTimeRange(Time minTime, Time maxTime) {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
-// todo Revisit these functions if needed
-
-///// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
-//Eigen::Vector3d SlerpSE2Curve::evaluateAngularVelocityA(Time time) {
-//  CHECK(false) << "Not implemented";
-//}
-///// \brief Evaluate the angular velocity of Frame a as seen from Frame b, expressed in Frame b.
-//Eigen::Vector3d SlerpSE2Curve::evaluateAngularVelocityB(Time time) {
-//  CHECK(false) << "Not implemented";
-//}
-///// \brief Evaluate the velocity of Frame b as seen from Frame a, expressed in Frame a.
-//Eigen::Vector3d SlerpSE2Curve::evaluateLinearVelocityA(Time time) {
-//  CHECK(false) << "Not implemented";
-//}
-///// \brief Evaluate the velocity of Frame a as seen from Frame b, expressed in Frame b.
-//Eigen::Vector3d SlerpSE2Curve::evaluateLinearVelocityB(Time time) {
-//  CHECK(false) << "Not implemented";
-//}
-///// \brief evaluate the velocity/angular velocity of Frame b as seen from Frame a,
-///// expressed in Frame a. The return value has the linear velocity (0,1,2),
-///// and the angular velocity (3,4,5).
-//Vector6d SlerpSE2Curve::evaluateTwistA(Time time) {
-//  CHECK(false) << "Not implemented";
-//}
-///// \brief evaluate the velocity/angular velocity of Frame a as seen from Frame b,
-///// expressed in Frame b. The return value has the linear velocity (0,1,2),
-///// and the angular velocity (3,4,5).
-//Vector6d SlerpSE2Curve::evaluateTwistB(Time time) {
-//  CHECK(false) << "Not implemented";
-//}
-///// \brief Evaluate the angular derivative of Frame b as seen from Frame a, expressed in Frame a.
-//Eigen::Vector3d SlerpSE2Curve::evaluateAngularDerivativeA(unsigned derivativeOrder, Time time) {
-//  CHECK(false) << "Not implemented";
-//}
-///// \brief Evaluate the angular derivative of Frame a as seen from Frame b, expressed in Frame b.
-//Eigen::Vector3d SlerpSE2Curve::evaluateAngularDerivativeB(unsigned derivativeOrder, Time time) {
-//  CHECK(false) << "Not implemented";
-//}
-///// \brief Evaluate the derivative of Frame b as seen from Frame a, expressed in Frame a.
-//Eigen::Vector3d SlerpSE2Curve::evaluateLinearDerivativeA(unsigned derivativeOrder, Time time) {
-//  CHECK(false) << "Not implemented";
-//}
-///// \brief Evaluate the derivative of Frame a as seen from Frame b, expressed in Frame b.
-//Eigen::Vector3d SlerpSE2Curve::evaluateLinearDerivativeB(unsigned derivativeOrder, Time time) {
-//  CHECK(false) << "Not implemented";
-//}
-///// \brief evaluate the velocity/angular derivative of Frame b as seen from Frame a,
-///// expressed in Frame a. The return value has the linear velocity (0,1,2),
-///// and the angular velocity (3,4,5).
-//Vector6d SlerpSE2Curve::evaluateDerivativeA(unsigned derivativeOrder, Time time) {
-//  CHECK(false) << "Not implemented";
-//}
-///// \brief evaluate the velocity/angular velocity of Frame a as seen from Frame b,
-///// expressed in Frame b. The return value has the linear velocity (0,1,2),
-///// and the angular velocity (3,4,5).
-//Vector6d SlerpSE2Curve::evaluateDerivativeB(unsigned derivativeOrder, Time time) {
-//  CHECK(false) << "Not implemented";
-//}
 
 void SlerpSE2Curve::initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const {
   manager_.initializeGTSAMValues(keys, values);

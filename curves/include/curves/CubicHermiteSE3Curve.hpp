@@ -121,8 +121,6 @@ template<> struct traits<kindr::minimal::HermiteTransformation<double> > {
 };  // traits
 } // namespace gtsam
 
-
-
 namespace curves {
 
 typedef SE3Curve::ValueType ValueType;
@@ -157,9 +155,10 @@ typedef LocalSupport2CoefficientManager<Coefficient>::CoefficientIter Coefficien
 // q(t) = p_1 * exp(w_1*b_1) * exp(w_2*b_2) * exp(w_3*b_3)
 
 class CubicHermiteSE3Curve : public SE3Curve {
-  friend class SamplingPolicy;
- public:
 
+  friend class SamplingPolicy;
+
+ public:
   typedef kindr::minimal::HermiteTransformation<double> Coefficient;
   CubicHermiteSE3Curve();
   virtual ~CubicHermiteSE3Curve();
@@ -293,7 +292,6 @@ SE3 composeTransformations(SE3 A, SE3 B);
 
 SE3 inverseTransformation(SE3 T);
 
-
 // implements the special (extend) policies for Cubic Hermite curves
 template <>
 inline Key SamplingPolicy::defaultExtend<CubicHermiteSE3Curve, ValueType>(const Time& time,
@@ -385,7 +383,6 @@ inline void SamplingPolicy::extend<CubicHermiteSE3Curve, ValueType>(const std::v
                                                              const std::vector<ValueType>& values,
                                                              CubicHermiteSE3Curve* curve,
                                                              std::vector<Key>* outKeys) {
-
   for (int i = 0; i < times.size(); ++i) {
     // ensure time strictly increases
     CHECK((times[i] > curve->manager_.getMaxTime()) || curve->manager_.size() == 0) << "curve can only be extended into the future. Requested = "
@@ -500,6 +497,5 @@ static EVector3 operator*(const EVector3& w, const double& alpha) {
 
 }
 }
-
 
 #endif /* CURVES_CUBIC_HERMITE_SE3_CURVE_HPP */

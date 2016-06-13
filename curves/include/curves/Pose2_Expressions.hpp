@@ -51,15 +51,11 @@ inline ETransformation compose(const ETransformation& T1, const ETransformation&
 inline double function1(double alpha) {
   double K = 0.0000330688 / 0.0833333;
   double threshold = pow((std::numeric_limits<double>::epsilon()/K),0.25)*10;
-  //double threshold = 1e-2;
   double rval;
   if (fabs(alpha) > threshold) {
-    //std::cout << "function1 alpha > threshold " << std::endl;
     rval = 1/alpha-0.5*sin(alpha)/(1-cos(alpha));
   } else {
-    //    std::cout << "function1 alpha < threshold (" << threshold << ")"<< std::endl;
     rval = 0.0833333 * alpha + 0.00138889 * pow(alpha,3);
-    //    std::cout << "rval " << rval << std::endl;
   }
   return rval;
 }
@@ -67,22 +63,17 @@ inline double function1(double alpha) {
 inline double function2(double alpha) {
   double K = 0.00138889;
   double threshold = pow((std::numeric_limits<double>::epsilon()/K),0.25)*10;
-  //  double threshold = 1e-2;
   double rval;
   if (fabs(alpha) > threshold) {
-    //std::cout << "function2 alpha > threshold " << std::endl;
     rval = alpha*0.5*sin(alpha)/(1-cos(alpha));
   } else {
-    //    std::cout << "function2 alpha < threshold (" << threshold << ")"<< std::endl;
     rval = 1 - 0.0833333 * pow(alpha,2);
   }
   return rval;
 }
 
 inline Vector3 transformationLogImplementation(const SE2& T, ChartJacobian HT) {
-
   Vector3 v = gtsam::Pose2::Logmap(T, HT);
-
   if (HT) {
     double alpha = v[2];
     gtsam::Matrix3 J;
@@ -90,15 +81,12 @@ inline Vector3 transformationLogImplementation(const SE2& T, ChartJacobian HT) {
     double alphaInv = 1/alpha;
     double halfCotHalfAlpha = 0.5*sin(alpha)/(1-cos(alpha));
     double v1 = v[0], v2 = v[1];
-    // std::cout << "alpha " << alpha << std::endl;
     J << function2(alpha), -0.5*alpha, v1*function1(alpha) + 0.5*v2,
         0.5*alpha, function2(alpha),  v2*function1(alpha) - 0.5*v1,
         0, 0, 1;
 
-
     *HT = J;
   }
-
   return v;
 }
 

@@ -14,7 +14,6 @@
 #include "SamplingPolicy.hpp"
 #include "CubicHermiteSE3Curve.hpp"
 
-
 namespace curves {
 
 /// Implements a discrete SE3 curve class.
@@ -218,7 +217,6 @@ inline void SamplingPolicy::extend<SemiDiscreteSE3Curve, SE3>(const std::vector<
                                                           const std::vector<SE3>& values,
                                                           SemiDiscreteSE3Curve* curve,
                                                           std::vector<Key>* outKeys) {
-
   //todo: deal with minSamplingPeriod_ when extending with multiple times
   if (times.size() != 1) {
     curve->manager_.insertCoefficients(times, values, outKeys);

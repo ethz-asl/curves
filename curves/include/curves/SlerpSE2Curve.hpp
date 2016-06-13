@@ -13,7 +13,6 @@
 #include "gtsam/nonlinear/NonlinearFactorGraph.h"
 #include "SamplingPolicy.hpp"
 
-
 namespace curves {
 
 /// Implements the Slerp (Spherical linear interpolation) curve class.
@@ -86,51 +85,6 @@ class SlerpSE2Curve : public SE2Curve {
 
   virtual void setTimeRange(Time minTime, Time maxTime);
 
-  // todo Revisit these functions if needed
-//  /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
-//  virtual Eigen::Vector3d evaluateAngularVelocityA(Time time);
-//
-//  /// \brief Evaluate the angular velocity of Frame a as seen from Frame b, expressed in Frame b.
-//  virtual Eigen::Vector3d evaluateAngularVelocityB(Time time);
-//
-//  /// \brief Evaluate the velocity of Frame b as seen from Frame a, expressed in Frame a.
-//  virtual Eigen::Vector3d evaluateLinearVelocityA(Time time);
-//
-//  /// \brief Evaluate the velocity of Frame a as seen from Frame b, expressed in Frame b.
-//  virtual Eigen::Vector3d evaluateLinearVelocityB(Time time);
-//
-//  /// \brief evaluate the velocity/angular velocity of Frame b as seen from Frame a,
-//  ///        expressed in Frame a. The return value has the linear velocity (0,1,2),
-//  ///        and the angular velocity (3,4,5).
-//  virtual Vector6d evaluateTwistA(Time time);
-//
-//  /// \brief evaluate the velocity/angular velocity of Frame a as seen from Frame b,
-//  ///        expressed in Frame b. The return value has the linear velocity (0,1,2),
-//  ///        and the angular velocity (3,4,5).
-//  virtual Vector6d evaluateTwistB(Time time);
-//
-//  /// \brief Evaluate the angular derivative of Frame b as seen from Frame a, expressed in Frame a.
-//  virtual Eigen::Vector3d evaluateAngularDerivativeA(unsigned derivativeOrder, Time time);
-//
-//  /// \brief Evaluate the angular derivative of Frame a as seen from Frame b, expressed in Frame b.
-//  virtual Eigen::Vector3d evaluateAngularDerivativeB(unsigned derivativeOrder, Time time);
-//
-//  /// \brief Evaluate the derivative of Frame b as seen from Frame a, expressed in Frame a.
-//  virtual Eigen::Vector3d evaluateLinearDerivativeA(unsigned derivativeOrder, Time time);
-//
-//  /// \brief Evaluate the derivative of Frame a as seen from Frame b, expressed in Frame b.
-//  virtual Eigen::Vector3d evaluateLinearDerivativeB(unsigned derivativeOrder, Time time);
-//
-//  /// \brief evaluate the velocity/angular derivative of Frame b as seen from Frame a,
-//  ///        expressed in Frame a. The return value has the linear velocity (0,1,2),
-//  ///        and the angular velocity (3,4,5).
-//  virtual Vector6d evaluateDerivativeA(unsigned derivativeOrder, Time time);
-//
-//  /// \brief evaluate the velocity/angular velocity of Frame a as seen from Frame b,
-//  ///        expressed in Frame b. The return value has the linear velocity (0,1,2),
-//  ///        and the angular velocity (3,4,5).
-//  virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
-
   /// Initialize a GTSAM values structure with the desired keys
   virtual void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const;
 
@@ -179,7 +133,6 @@ inline void SamplingPolicy::extend<SlerpSE2Curve, SE2>(const std::vector<Time>& 
                                                 const std::vector<SE2>& values,
                                                 SlerpSE2Curve* curve,
                                                 std::vector<Key>* outKeys) {
-
   //todo: deal with minSamplingPeriod_ when extending with multiple times
   if (times.size() != 1) {
     curve->manager_.insertCoefficients(times, values, outKeys);

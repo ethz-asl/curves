@@ -135,7 +135,6 @@ Eigen::Matrix<double,N,1> linearInterpolation(Eigen::Matrix<double,N,1>  v1,
                                               Eigen::Matrix<double,N,1>  v2, double alpha,
                                               gtsam::OptionalJacobian<N,N> H1,
                                               gtsam::OptionalJacobian<N,N> H2) {
-
   if (H1) { *H1 = Eigen::Matrix<double,N,N>::Identity()*(1-alpha); }
   if (H2) { *H2 = Eigen::Matrix<double,N,N>::Identity()*alpha; }
 
@@ -205,7 +204,6 @@ void LinearInterpolationVectorSpaceCurve<N>::addPriorFactors(gtsam::NonlinearFac
                                           gtsam::Expression<Coefficient>(rVal1->second.key));
   graph->push_back(factor0);
   graph->push_back(factor1);
-
 }
 
 template<int N>

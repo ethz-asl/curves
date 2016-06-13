@@ -21,5 +21,4 @@ struct SE2Config {
 
 }  // namespace curves
 
-
 #endif // SE2CONFIG_H_

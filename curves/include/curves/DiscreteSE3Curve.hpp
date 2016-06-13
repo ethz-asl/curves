@@ -14,7 +14,6 @@
 #include "SamplingPolicy.hpp"
 #include "CubicHermiteSE3Curve.hpp"
 
-
 namespace curves {
 
 /// Implements a discrete SE3 curve class.
@@ -211,14 +210,12 @@ typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
 typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
 
-
 // extend policy for slerp curves
 template<>
 inline void SamplingPolicy::extend<DiscreteSE3Curve, SE3>(const std::vector<Time>& times,
                                                           const std::vector<SE3>& values,
                                                           DiscreteSE3Curve* curve,
                                                           std::vector<Key>* outKeys) {
-
   //todo: deal with minSamplingPeriod_ when extending with multiple times
   if (times.size() != 1) {
     curve->manager_.insertCoefficients(times, values, outKeys);

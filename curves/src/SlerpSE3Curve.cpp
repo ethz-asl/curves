@@ -82,7 +82,6 @@ void SlerpSE3Curve::setCurve(const std::vector<Time>& times,
   }
 }
 
-
 void SlerpSE3Curve::extend(const std::vector<Time>& times,
                            const std::vector<ValueType>& values,
                            std::vector<Key>* outKeys) {
@@ -284,9 +283,6 @@ void SlerpSE3Curve::clear() {
 }
 
 void SlerpSE3Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const {
-
-//  gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(gtsam::traits<Coefficient>::dimension, 1e5);
-
   Eigen::Matrix<double,6,1> noise;
   noise(0) = 0.0000001;
   noise(1) = 0.0000001;
@@ -297,8 +293,6 @@ void SlerpSE3Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time pri
 
   gtsam::noiseModel::Diagonal::shared_ptr priorNoise = gtsam::noiseModel::Diagonal::
         Sigmas(noise);
-
-
 
   CoefficientIter rVal0, rVal1;
   manager_.getCoefficientsAt(priorTime, &rVal0, &rVal1);
