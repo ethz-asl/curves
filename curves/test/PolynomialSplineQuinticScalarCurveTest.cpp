@@ -109,7 +109,7 @@ TEST(PolynomialSplineQuinticScalarCurveTest, firstDerivative)
   double initialFirstDerivativeValue = 0.0;
   double initialSecondDerivativeValue = 0.0;
 
-  double finalTime = 5.0;
+  double finalTime = 10.0;
   double finalValue = 3.0;
   double finalFirstDerivativeValue = 0.0;
   double finalSecondDerivativeValue = 0.0;
