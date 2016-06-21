@@ -10,8 +10,8 @@
 
 #include "SE3Curve.hpp"
 #include "LocalSupport2CoefficientManager.hpp"
-#include "kindr/poses/PoseEigen.hpp"
-#include "kindr/rotations/RotationEigen.hpp"
+#include "kindr/Core"
+#include "kindr/Core"
 //#include "kindr/minimal/cubic-hermite-interpolation-gtsam.h"
 //#include "kindr/minimal/cubic-hermite-quaternion-gtsam.h"
 //#include "kindr/minimal/rotation-quaternion-gtsam.h"
@@ -29,7 +29,7 @@ namespace kindr {
 
 template <typename Scalar>
 struct HermiteTransformation {
-  typedef kindr::poses::eigen_impl::HomogeneousTransformationPosition3RotationQuaternionD QuatTransformation;
+  typedef kindr::HomogeneousTransformationPosition3RotationQuaternionD QuatTransformation;
   typedef Eigen::Matrix<Scalar, 6, 1> Vector6;
 
  public:
@@ -279,10 +279,10 @@ class CubicHermiteSE3Curve : public SE3Curve {
 //  SamplingPolicy hermitePolicy_;
 };
 
-typedef kindr::poses::eigen_impl::HomogeneousTransformationPosition3RotationQuaternionD SE3;
+typedef kindr::HomogeneousTransformationPosition3RotationQuaternionD SE3;
 typedef SE3::Rotation SO3;
-typedef kindr::rotations::eigen_impl::AngleAxisPD AngleAxis;
-typedef kindr::rotations::eigen_impl::RotationQuaternionPD RotationQuaternion;
+typedef kindr::AngleAxisPD AngleAxis;
+typedef kindr::RotationQuaternionPD RotationQuaternion;
 typedef Eigen::Matrix<double, 6, 1> Vector6;
 
 SE3 transformationPower(SE3  T, double alpha);

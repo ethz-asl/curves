@@ -12,8 +12,16 @@
 
 using namespace curves;
 
-typedef typename curves::PolynomialSplineQuinticScalarCurve::ValueType ValueType; // kindr::poses::eigen_impl::HomogeneousTransformationPosition3RotationQuaternionD ValueType
+typedef typename curves::PolynomialSplineQuinticScalarCurve::ValueType ValueType; // kindr::HomogeneousTransformationPosition3RotationQuaternionD ValueType
 typedef typename curves::Time Time;
+
+
+curves::PolynomialSplineQuinticScalarCurve::ValueType finiteDifference(curves::PolynomialSplineQuinticScalarCurve& curve, curves::Time time) {
+  curves::Time dt = 1.0e-6;
+  auto f_P = curve.evaluate(time+dt);
+  auto f_M = curve.evaluate(time-dt);
+  return (f_P - f_M)/(2.0*dt);
+}
 
 TEST(PolynomialSplineQuinticScalarCurveTest, Overflow)
 {
@@ -88,4 +96,48 @@ TEST(PolynomialSplineQuinticScalarCurveTest, initialAndFinalConstraints)
   EXPECT_NEAR(finalFirstDerivativeValue, curve.evaluateDerivative(finalTime, 1), 1.0e-3) << "finalFirstDerivativeValue";
   EXPECT_NEAR(initialSecondDerivativeValue, curve.evaluateDerivative(initialTime, 2), 1.0e-3) << "secondFirstDerivativeValue";
   EXPECT_NEAR(finalSecondDerivativeValue, curve.evaluateDerivative(finalTime, 2), 1.0e-3) << "secondFirstDerivativeValue";
+}
+
+TEST(PolynomialSplineQuinticScalarCurveTest, firstDerivative)
+{
+  PolynomialSplineQuinticScalarCurve curve;
+  std::vector<Time> times;
+  std::vector<ValueType> values;
+
+  double initialTime = 4.0;
+  double initialValue = 3.0;
+  double initialFirstDerivativeValue = 0.0;
+  double initialSecondDerivativeValue = 0.0;
+
+  double finalTime = 5.0;
+  double finalValue = 3.0;
+  double finalFirstDerivativeValue = 0.0;
+  double finalSecondDerivativeValue = 0.0;
+
+  double midTime = (finalTime-initialTime)/2.0 + initialTime;
+  double midValue = 10.0;
+
+  times.push_back(initialTime);
+  values.push_back(ValueType(initialValue));
+
+  times.push_back(midTime);
+  values.push_back(ValueType(midValue));
+
+  times.push_back(finalTime);
+  values.push_back(ValueType(finalValue));
+
+  curve.fitCurve(times,
+                 values,
+                 initialFirstDerivativeValue,
+                 initialSecondDerivativeValue,
+                 finalFirstDerivativeValue,
+                 finalSecondDerivativeValue);
+
+  curve.print();
+
+  EXPECT_NEAR(midValue, curve.evaluate(midTime), 1.0e-3);
+  EXPECT_NEAR(finiteDifference(curve, midTime), curve.evaluateDerivative(midTime, 1), 1.0e-3) << "maximum diff";
+  EXPECT_NEAR(0.0, curve.evaluateDerivative(midTime, 1), 1.0e-3) << "maximum";
+  EXPECT_NEAR(finiteDifference(curve, 1.4), curve.evaluateDerivative(1.4, 1), 1.0e-3) << "inbetween";
+
 }

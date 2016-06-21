@@ -43,7 +43,7 @@ bool RosMultiDOFJointTrajectoryInterface::fromMessage(
   for (const auto& point : message.points) {
     times.push_back(ros::Duration(point.time_from_start).toSec());
     CubicHermiteSE3Curve::ValueType pose;
-    kindr::poses::eigen_impl::convertFromRosGeometryMsg(point.transforms[j], pose);
+    kindr::convertFromRosGeometryMsg(point.transforms[j], pose);
     values.push_back(pose);
   }
 

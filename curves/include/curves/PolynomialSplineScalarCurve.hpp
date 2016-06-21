@@ -45,7 +45,20 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
 
   virtual void print(const std::string& str = "") const
   {
-    throw std::runtime_error("print is not yet implemented!");
+    const double minTime = getMinTime();
+    const double maxTime = getMaxTime();
+    double timeAtEval = minTime;
+    int nPoints = 15;
+    double timeDiff = (maxTime-minTime)/(nPoints-1);
+
+    for (int i=0;i<nPoints;i++) {
+      printf("t: %lf, x: %lf dx: %lf dxx: %lf\n",
+            timeAtEval,
+            evaluate(timeAtEval),
+            evaluateDerivative(timeAtEval, 1),
+            evaluateDerivative(timeAtEval, 2));
+      timeAtEval += timeDiff;
+    }
   }
 
   virtual Time getMinTime() const

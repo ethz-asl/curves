@@ -9,14 +9,14 @@
 #pragma once
 
 #include <Eigen/Core>
-#include "kindr/poses/PoseEigen.hpp"
+#include "kindr/Core"
 
 namespace curves {
 
 typedef Eigen::Matrix<double, 6, 1> Vector6d;
 
 struct SE3Config {
-  typedef kindr::poses::eigen_impl::HomogeneousTransformationPosition3RotationQuaternionD ValueType;
+  typedef kindr::HomogeneousTransformationPosition3RotationQuaternionD ValueType;
   typedef Vector6d DerivativeType;
 };
 

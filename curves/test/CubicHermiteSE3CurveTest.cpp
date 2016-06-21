@@ -12,7 +12,7 @@
 
 using namespace curves;
 
-typedef typename curves::CubicHermiteSE3Curve::ValueType ValueType; // kindr::poses::eigen_impl::HomogeneousTransformationPosition3RotationQuaternionD ValueType
+typedef typename curves::CubicHermiteSE3Curve::ValueType ValueType; // kindr::HomogeneousTransformationPosition3RotationQuaternionD ValueType
 typedef typename curves::Time Time;
 
 TEST(Evaluate, IdentityPoses)
