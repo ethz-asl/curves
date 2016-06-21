@@ -16,6 +16,7 @@ endif()
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   curves
+  kindr_ros
   trajectory_msgs
 )
 
@@ -39,9 +40,9 @@ catkin_package(
   CATKIN_DEPENDS
     roscpp
     curves
+    kindr_ros
     trajectory_msgs
   DEPENDS
-    system_lib
 )
 
 include_directories(

@@ -12,7 +12,7 @@
 #include <vector>
 
 // Kindr
-#include "kindr/thirdparty/ros/RosGeometryMsgPoseEigen.hpp"
+#include "kindr_ros/kindr_ros.hpp"
 
 namespace curves {
 
@@ -43,7 +43,7 @@ bool RosMultiDOFJointTrajectoryInterface::fromMessage(
   for (const auto& point : message.points) {
     times.push_back(ros::Duration(point.time_from_start).toSec());
     CubicHermiteSE3Curve::ValueType pose;
-    kindr::convertFromRosGeometryMsg(point.transforms[j], pose);
+    kindr_ros::convertFromRosGeometryMsg(point.transforms[j], pose);
     values.push_back(pose);
   }
 
