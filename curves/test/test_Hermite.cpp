@@ -172,7 +172,7 @@ TEST(CurvesTestSuite, testCubicHermiteVelocityScale) {
 TEST(CurvesTestSuite, testCubicHermiteEvaluation) {
 
   // setup three SE3 objects
-  const Time t[] = {0, 1e9, 2e9};
+  const Time t[] = {0, Time(1e9), Time(2e9)};
   std::vector<Time> times(t,t+3);
   std::vector<SE3> values;
   for (size_t i = 0; i<3; ++i) {
