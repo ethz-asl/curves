@@ -16,8 +16,14 @@ endif()
 
 cs_add_library(${PROJECT_NAME} 
   src/KeyGenerator.cpp
+  src/CubicHermiteSE3Curve.cpp
   src/SlerpSE3Curve.cpp
   src/SE3Curve.cpp
+  src/SE2Curve.cpp
+  src/SlerpSE2Curve.cpp
+  src/DiscreteSE3Curve.cpp
+  src/SemiDiscreteSE3Curve.cpp
+  src/SE3CurveFactory.cpp
 )
 
 find_package(Boost REQUIRED COMPONENTS system thread)
@@ -28,8 +34,13 @@ catkin_add_gtest(${PROJECT_NAME}_tests
   test/test_LocalSupport2CoefficientManager.cpp
   test/test_Expressions.cpp
   test/test_Expressions_Slerp_SE3.cpp
+  test/test_Hermite.cpp
   test/test_SE3_Sinus_Circle.cpp
+  test/test_SE3CompositionCurve.cpp
   test/test_MITb_dataset.cpp
+  test/test_Pose2_Expressions.cpp
+  test/test_MITb_dataset_SE2.cpp
+  test/test_Expressions_Slerp_SE2.cpp
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
 )
 

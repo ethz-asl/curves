@@ -70,6 +70,14 @@ class LocalSupport2CoefficientManager {
   /// Get a sorted list of coefficient times
   void getTimes(std::vector<Time>* outTimes) const;
 
+  /// Get a sorted list of coefficient times in a given time window
+  void getTimesInWindow(std::vector<Time>* outTimes, Time begTime, Time endTime) const;
+
+  /// Modify multiple coefficient values. Time is assumed to be ordered.
+  void modifyCoefficientsValuesInBatch(const std::vector<Time>& times,
+                                       const std::vector<Coefficient>& values);
+
+
   /// \brief insert a coefficient at a time and return
   ///        the key for the coefficient
   ///
@@ -83,6 +91,12 @@ class LocalSupport2CoefficientManager {
   void insertCoefficients(const std::vector<Time>& times,
                           const std::vector<Coefficient>& values,
                           std::vector<Key>* outKeys = NULL);
+
+  /// \brief Efficient function for adding a coefficient at the end of the map
+  void addCoefficientAtEnd(Time time, const Coefficient& coefficient, std::vector<Key>* outKeys = NULL);
+
+  /// \brief Modify a coefficient by specifying a new time and value
+  void modifyCoefficient(typename TimeToKeyCoefficientMap::iterator it, Time time, const Coefficient& coefficient);
 
   /// \brief Remove the coefficient with this key.
   ///
@@ -111,6 +125,9 @@ class LocalSupport2CoefficientManager {
   /// \brief get the coefficient associated with this key
   Coefficient getCoefficientByKey(Key key) const;
 
+  /// \brief get the coefficient time associated with this key
+  Time getCoefficientTimeByKey(Key key) const;
+
   /// \brief Get the coefficients that are active at a certain time.
   ///
   /// This method can fail if the time is out of bounds. If it
@@ -137,6 +154,9 @@ class LocalSupport2CoefficientManager {
   /// \brief return the number of coefficients
   size_t size() const;
 
+  /// \brief Check if the manager is empty.
+  bool empty() const;
+
   /// \brief clear the coefficients
   void clear();
 
@@ -154,13 +174,21 @@ class LocalSupport2CoefficientManager {
     return timeToCoefficient_.end();
   }
 
+  typename TimeToKeyCoefficientMap::iterator coefficientBegin() {
+    return timeToCoefficient_.begin();
+  }
+
+  typename TimeToKeyCoefficientMap::iterator coefficientEnd() {
+    return timeToCoefficient_.end();
+  }
+
   /// Check the internal consistency of the data structure
   /// If doExit is true, the function will call exit(0) at
   /// the end. This is useful for gtest death tests
   void checkInternalConsistency(bool doExit = false) const;
 
   /// Initialize a GTSAM values structure with the desired keys
-  void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
+  void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const;
 
   /// Initialize a GTSAM values structure for all keys
   void initializeGTSAMValues(gtsam::Values* values) const;

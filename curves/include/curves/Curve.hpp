@@ -74,7 +74,7 @@ class Curve
   /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
                       const std::vector<ValueType>& values,
-                      std::vector<Key>* outKeys) = 0;
+                      std::vector<Key>* outKeys  = NULL) = 0;
 
   /// \brief Fit a new curve to these data points.
   ///
@@ -87,13 +87,21 @@ class Curve
   ///@}
 
    /// Initialize a GTSAM values structure with the desired keys
-   virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const = 0;
+   virtual void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const = 0;
 
    /// Initialize a GTSAM values structure for all keys
    virtual void initializeGTSAMValues(gtsam::Values* values) const = 0;
 
    // updates the relevant curve coefficients from the GTSAM values structure
    virtual void updateFromGTSAMValues(const gtsam::Values& values) = 0;
+
+   /// \brief Clear all the curve coefficients
+   virtual void clear() = 0;
+
+   /// \brief Perform a rigid transformation on the left side of the curve
+   virtual void transformCurve(const ValueType T) = 0;
+
+   virtual Time getTimeAtKey(gtsam::Key key) const = 0;
 
 };
 

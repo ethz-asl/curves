@@ -1,11 +1,11 @@
 /*
- * @file SlerpSE3Curve.hpp
- * @date Oct 10, 2014
- * @author Renaud Dube, Abel Gawel
+ * @file SemiDiscreteSE3Curve.hpp
+ * @date Feb 3, 2016
+ * @author Renaud Dubé, Abel Gawel
  */
 
-#ifndef CURVES_SLERP_SE3_CURVE_HPP
-#define CURVES_SLERP_SE3_CURVE_HPP
+#ifndef CURVES_SEMI_DISCRETE_SE3_CURVE_HPP
+#define CURVES_SEMI_DISCRETE_SE3_CURVE_HPP
 
 #include "SE3Curve.hpp"
 #include "LocalSupport2CoefficientManager.hpp"
@@ -14,25 +14,19 @@
 #include "SamplingPolicy.hpp"
 #include "CubicHermiteSE3Curve.hpp"
 
-
 namespace curves {
 
-/// Implements the Slerp (Spherical linear interpolation) curve class.
-/// The Slerp interpolation function is defined as, with the respective Jacobians regarding  A and B:
-/// \f[ T = A(A^{-1}B)^{\alpha} \f]
-class SlerpSE3Curve : public SE3Curve {
-  friend class SE3CompositionCurve<SlerpSE3Curve, SlerpSE3Curve>;
-  friend class SE3CompositionCurve<SlerpSE3Curve, CubicHermiteSE3Curve>;
+/// Implements a discrete SE3 curve class.
+class SemiDiscreteSE3Curve : public SE3Curve {
+  friend class SE3CompositionCurve<SemiDiscreteSE3Curve, SemiDiscreteSE3Curve>;
   friend class SamplingPolicy;
  public:
-  typedef SE3Curve::ValueType ValueType;
-  typedef SE3Curve::DerivativeType DerivativeType;
   typedef ValueType Coefficient;
   typedef LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;
   typedef LocalSupport2CoefficientManager<Coefficient>::CoefficientIter CoefficientIter;
 
-  SlerpSE3Curve();
-  virtual ~SlerpSE3Curve();
+  SemiDiscreteSE3Curve();
+  virtual ~SemiDiscreteSE3Curve();
 
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
@@ -206,27 +200,23 @@ class SlerpSE3Curve : public SE3Curve {
   int baseSize() const {return size();};
 
   void saveCorrectionCurveTimesAndValues(const std::string& filename) const {};
+
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
-  SamplingPolicy slerpPolicy_;
+  SamplingPolicy discretePolicy_;
 };
 
 typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
 typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
 
-SE3 transformationPower(SE3  T, double alpha);
-
-SE3 composeTransformations(SE3 A, SE3 B);
-
-SE3 inverseTransformation(SE3 T);
 
 // extend policy for slerp curves
 template<>
-inline void SamplingPolicy::extend<SlerpSE3Curve, SE3>(const std::vector<Time>& times,
-                                                       const std::vector<SE3>& values,
-                                                       SlerpSE3Curve* curve,
-                                                       std::vector<Key>* outKeys) {
+inline void SamplingPolicy::extend<SemiDiscreteSE3Curve, SE3>(const std::vector<Time>& times,
+                                                          const std::vector<SE3>& values,
+                                                          SemiDiscreteSE3Curve* curve,
+                                                          std::vector<Key>* outKeys) {
   //todo: deal with minSamplingPeriod_ when extending with multiple times
   if (times.size() != 1) {
     curve->manager_.insertCoefficients(times, values, outKeys);
@@ -243,7 +233,7 @@ inline void SamplingPolicy::extend<SlerpSE3Curve, SE3>(const std::vector<Time>& 
         if (measurementsSinceLastExtend_ == 1) {
           curve->manager_.addCoefficientAtEnd(times[0], values[0], outKeys);
         } else {
-          SlerpSE3Curve::TimeToKeyCoefficientMap::iterator itPrev = (--curve->manager_.coefficientEnd());
+          SemiDiscreteSE3Curve::TimeToKeyCoefficientMap::iterator itPrev = (--curve->manager_.coefficientEnd());
           curve->manager_.modifyCoefficient(itPrev, times[0], values[0]);
         }
         if (measurementsSinceLastExtend_ == minimumMeasurements_) {
@@ -256,4 +246,4 @@ inline void SamplingPolicy::extend<SlerpSE3Curve, SE3>(const std::vector<Time>& 
 
 } // namespace curves
 
-#endif /* CURVES_SLERP_SE3_CURVE_HPP */
+#endif /* CURVES_DISCRETE_SE3_CURVE_HPP */

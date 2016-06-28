@@ -84,6 +84,26 @@ void LocalSupport2CoefficientManager<Coefficient>::getTimes(std::vector<Time>* o
 }
 
 template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::getTimesInWindow(std::vector<Time>* outTimes,
+                                                                    Time begTime, Time endTime) const {
+  CHECK_EQ(endTime, getMaxTime()) << "Not implemented for window not at the end.";
+  CHECK(begTime >= getMinTime()) << "Asked for times outside the curve.";
+  CHECK_NOTNULL(outTimes);
+
+  outTimes->clear();
+  CoefficientIter it = --(timeToCoefficient_.end());
+
+  do {
+    if (it->first >= begTime) {
+      outTimes->push_back(it->first);
+    }
+    --it;
+  } while (it->first >= begTime && it != timeToCoefficient_.begin());
+
+  std::reverse(outTimes->begin(),outTimes->end());
+}
+
+template <class Coefficient>
 void LocalSupport2CoefficientManager<Coefficient>::print(const std::string& str) const {
   // \todo (Abel or Renaud)
 }
@@ -121,6 +141,74 @@ void LocalSupport2CoefficientManager<Coefficient>::insertCoefficients(const std:
   }
 }
 
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::modifyCoefficientsValuesInBatch(const std::vector<Time>& times,
+                                                                                   const std::vector<Coefficient>& values) {
+  CHECK_EQ(times.size(), values.size());
+  // Get an iterator to the first coefficient
+  typename TimeToKeyCoefficientMap::iterator it = timeToCoefficient_.end();
+
+  do {
+    --it;
+  } while (it->first != times[0]);
+
+  for (size_t i = 0; i < times.size(); ++i) {
+    CHECK_EQ(it->first,times[i]);
+    it->second.coefficient = values[i];
+    ++it;
+  }
+}
+
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::addCoefficientAtEnd(Time time, const Coefficient& coefficient, std::vector<Key>* outKeys) {
+  CHECK(time > getMaxTime()) << "Time to add is not greater than curve max time";
+
+  Key key = KeyGenerator::getNextKey();
+
+  // Insert the coefficient with a hint that it goes at the end
+  CoefficientIter it = timeToCoefficient_.insert(--(timeToCoefficient_.end()),
+                                                 std::pair<Time, KeyCoefficient>(time, KeyCoefficient(key, coefficient)));
+
+  keyToCoefficient_.insert(keyToCoefficient_.end(), std::pair<Key, CoefficientIter>(key,it));
+  if (outKeys != NULL) {
+    outKeys->push_back(key);
+  }
+}
+
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::modifyCoefficient(typename TimeToKeyCoefficientMap::iterator it,
+                                                                     Time time, const Coefficient& coefficient) {
+  // This is used by slerp sampling policy.
+  // In this case a new coefficient should be placed slightly later than the initial one.
+  CoefficientIter newIt = timeToCoefficient_.insert(it,std::pair<Time, KeyCoefficient>(time, KeyCoefficient(it->second.key, coefficient)));
+  // Update keyToCoefficient_
+  keyToCoefficient_[it->second.key] = newIt;
+  // Remove the old coefficient
+  timeToCoefficient_.erase(it);
+}
+
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::removeCoefficientWithKey(Key key) {
+  CHECK(hasCoefficientWithKey(key)) << "No coefficient with that key.";
+  typename TimeToKeyCoefficientMap::iterator it1;
+  typename boost::unordered_map<Key, CoefficientIter>::iterator it2;
+  it2 = keyToCoefficient_.find(key);
+  it1 = timeToCoefficient_.find(it1->second->first);
+  timeToCoefficient_.erase(it1);
+  keyToCoefficient_.erase(it2);
+}
+
+template <class Coefficient>
+void LocalSupport2CoefficientManager<Coefficient>::removeCoefficientAtTime(Time time) {
+  CHECK(this->hasCoefficientAtTime(time)) << "No coefficient at that time.";
+  typename TimeToKeyCoefficientMap::iterator it1;
+  typename boost::unordered_map<Key, CoefficientIter>::iterator it2;
+  it1 = timeToCoefficient_.find(time);
+  it2 = keyToCoefficient_.find(it1->second.key);
+  timeToCoefficient_.erase(it1);
+  keyToCoefficient_.erase(it2);
+}
+
 /// \brief return true if there is a coefficient at this time
 template <class Coefficient>
 bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientAtTime(Time time) const {
@@ -153,6 +241,13 @@ Coefficient LocalSupport2CoefficientManager<Coefficient>::getCoefficientByKey(Ke
   CHECK( it != keyToCoefficient_.end() ) << "Key " << key << " is not in the container.";
   return it->second->second.coefficient;
 }
+template <class Coefficient>
+Time LocalSupport2CoefficientManager<Coefficient>::getCoefficientTimeByKey(Key key) const {
+  typename  boost::unordered_map<Key, CoefficientIter>::const_iterator it = keyToCoefficient_.find(key);
+  CHECK( it != keyToCoefficient_.end() ) << "Key " << key << " is not in the container.";
+  return it->second->first;
+}
+
 
 /// \brief Get the coefficients that are active at a certain time.
 template <class Coefficient>
@@ -244,7 +339,12 @@ void LocalSupport2CoefficientManager<Coefficient>::updateCoefficients(
 /// \brief return the number of coefficients
 template <class Coefficient>
 Key LocalSupport2CoefficientManager<Coefficient>::size() const {
-  return keyToCoefficient_.size();
+  return timeToCoefficient_.size();
+}
+
+template <class Coefficient>
+bool LocalSupport2CoefficientManager<Coefficient>::empty() const {
+  return timeToCoefficient_.empty();
 }
 
 /// \brief clear the coefficients
@@ -296,9 +396,13 @@ void LocalSupport2CoefficientManager<Coefficient>::checkInternalConsistency(bool
 }
 
 template <class Coefficient>
-void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
-  for (unsigned int i = 0; i < keys.size(); ++i) {
-    values->insert(keys[i],keyToCoefficient_.find(keys[i])->second->second.coefficient);
+void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const {
+  for (gtsam::KeySet::const_iterator it1 = keys.begin(); it1 != keys.end(); ++it1 ) {
+    typename boost::unordered_map<Key, CoefficientIter>::const_iterator it2 = keyToCoefficient_.find(*it1);
+    // Only add the values for the keys which are requested and belong to this curve
+    if (it2 != keyToCoefficient_.end()) {
+      values->insert(*it1,it2->second->second.coefficient);
+    }
   }
 }
 
@@ -306,14 +410,24 @@ template <class Coefficient>
 void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::Values* values) const {
   std::vector<Key> allKeys;
   getKeys(&allKeys);
-  initializeGTSAMValues(allKeys, values);
+  gtsam::KeySet keySet;
+
+  //todo way to make this more efficient?
+  for (size_t i = 0; i < allKeys.size(); ++i) {
+    keySet.insert(allKeys[i]);
+  }
+
+  initializeGTSAMValues(keySet, values);
 }
 
 template <class Coefficient>
 void LocalSupport2CoefficientManager<Coefficient>::updateFromGTSAMValues(const gtsam::Values& values) {
   gtsam::Values::const_iterator iter;
   for (iter = values.begin(); iter != values.end(); ++iter) {
-    updateCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
+    // Only update the curve coefficients
+    if (keyToCoefficient_.find(iter->key) != keyToCoefficient_.end()) {
+      updateCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
+    }
   }
 }
 
