@@ -10,8 +10,8 @@
 
 #include "SE3Curve.hpp"
 #include "LocalSupport2CoefficientManager.hpp"
-#include "kindr/poses/PoseEigen.hpp"
-#include "kindr/rotations/RotationEigen.hpp"
+#include "kindr/Core"
+#include "kindr/Core"
 
 namespace curves {
 
@@ -121,9 +121,9 @@ class SlerpSE3Curve : public SE3Curve {
   LocalSupport2CoefficientManager<Coefficient> manager_;
 };
 
-typedef kindr::poses::eigen_impl::HomogeneousTransformationPosition3RotationQuaternionD SE3;
+typedef kindr::HomogeneousTransformationPosition3RotationQuaternionD SE3;
 typedef SE3::Rotation SO3;
-typedef kindr::rotations::eigen_impl::AngleAxisPD AngleAxis;
+typedef kindr::AngleAxisPD AngleAxis;
 
 SE3 transformationPower(SE3  T, double alpha);
 
