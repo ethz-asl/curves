@@ -9,6 +9,7 @@
 #include <gtest/gtest.h>
 
 #include "curves/CubicHermiteSE3Curve.hpp"
+#include <kindr/Core>
 
 using namespace curves;
 
@@ -55,7 +56,7 @@ TEST(Evaluate, TranslationOnly)
   EXPECT_EQ(ValueType::Rotation(), curve.evaluate(1.0).getRotation());
 }
 
-TEST(InvarianceUnderCoordiateTransformation, Translation)
+TEST(InvarianceUnderCoordinateTransformation, Translation)
 {
   CubicHermiteSE3Curve curve1;
   std::vector<Time> times;
@@ -88,6 +89,87 @@ TEST(InvarianceUnderCoordiateTransformation, Translation)
     EXPECT_NEAR(rotation1.z(), rotation2.z(), 1e-6);
     EXPECT_NEAR(rotation1.w(), rotation2.w(), 1e-6);
   }
+}
+
+TEST(InvarianceUnderCoordinateTransformation, Rotation)
+{
+  CubicHermiteSE3Curve curve1;
+  std::vector<Time> times;
+  std::vector<ValueType> values1;
+  times.push_back(0.0);
+  values1.push_back(ValueType(ValueType::Position(), ValueType::Rotation(kindr::EulerAnglesYprPD(0.0, 0.0, 0.0))));
+  times.push_back(2.0);
+  values1.push_back(ValueType(ValueType::Position(), ValueType::Rotation(kindr::EulerAnglesYprPD(20.0 / 180.0 * M_PI, 0.0, 0.0))));
+  times.push_back(4.0);
+  values1.push_back(ValueType(ValueType::Position(), ValueType::Rotation(kindr::EulerAnglesYprPD(-20.0 / 180.0 * M_PI, 0.0, 0.0))));
+  times.push_back(5.2);
+  values1.push_back(ValueType(ValueType::Position(), ValueType::Rotation(kindr::EulerAnglesYprPD(0.0, 0.0, 0.0))));
+  curve1.fitCurve(times, values1);
+
+  CubicHermiteSE3Curve curve2;
+  ValueType::Rotation transform(kindr::EulerAnglesYprPD(3.0, 0.0, 0.0));
+  std::vector<ValueType> values2;
+  for (const auto& value : values1) {
+    values2.push_back(value);
+    values2.back().getRotation() = transform * values2.back().getRotation();
+    values2.back().getRotation().setUnique(); // This results in a flip in w.
+  }
+  curve2.fitCurve(times, values2);
+
+  for (double time = times[0]; time <= times[3]; time += 0.1) {
+    const ValueType::Position position1 = curve1.evaluate(time).getPosition();
+    const ValueType::Rotation rotation1 = curve1.evaluate(time).getRotation();
+    const ValueType::Position position2 = curve2.evaluate(time).getPosition();
+    const ValueType::Rotation rotation2 = transform.inverted() * curve2.evaluate(time).getRotation();
+
+//    std::cout << 180.0 / M_PI * kindr::EulerAnglesYprPD(curve2.evaluate(time).getRotation()).getUnique().yaw() << ", ";
+//    std::cout << "[" << curve2.evaluate(time).getRotation() << "]" << std::endl;
+    EXPECT_NEAR(position1.x(), position2.x(), 1e-6);
+    EXPECT_NEAR(position1.y(), position2.y(), 1e-6);
+    EXPECT_NEAR(position1.z(), position2.z(), 1e-6);
+    EXPECT_LT(rotation1.getDisparityAngle(rotation2), 1e-6);
+  }
+//  std::cout << std::endl;
+}
+
+TEST(InvarianceUnderCoordinateTransformation, Rotation2)
+{
+  CubicHermiteSE3Curve curve1;
+  std::vector<Time> times;
+  std::vector<ValueType> values1;
+  times.push_back(0.0);
+  values1.push_back(ValueType(ValueType::Position(), ValueType::Rotation(0.0652549, 0.0, 0.0, 0.997869)));
+  times.push_back(2.0);
+  values1.push_back(ValueType(ValueType::Position(), ValueType::Rotation(0.109015, 0.0, 0.0, -0.99404))); // w positive.
+  times.push_back(4.0);
+  values1.push_back(ValueType(ValueType::Position(), ValueType::Rotation(0.237542, 0.0, 0.0, 0.971377)));
+  times.push_back(5.2);
+  values1.push_back(ValueType(ValueType::Position(), ValueType::Rotation(0.0652549, 0.0, 0.0, 0.997869)));
+  curve1.fitCurve(times, values1);
+
+  CubicHermiteSE3Curve curve2;
+  ValueType::Rotation transform = values1.front().getRotation();
+  std::vector<ValueType> values2;
+  for (const auto& value : values1) {
+    values2.push_back(value);
+    values2.back().getRotation() = transform * values2.back().getRotation();
+    values2.back().getRotation().setUnique(); // Enforces w positive.
+  }
+  curve2.fitCurve(times, values2);
+
+  for (double time = times[0]; time <= times[3]; time += 0.1) {
+    const ValueType::Position position1 = curve1.evaluate(time).getPosition();
+    const ValueType::Rotation rotation1 = curve1.evaluate(time).getRotation();
+    const ValueType::Position position2 = curve2.evaluate(time).getPosition();
+    const ValueType::Rotation rotation2 = transform.inverted() * curve2.evaluate(time).getRotation();
+//    std::cout << 180.0 / M_PI * kindr::EulerAnglesYprPD(curve1.evaluate(time).getRotation()).getUnique().yaw() << ", ";
+//    std::cout << "[" <<curve1.evaluate(time).getRotation() << "]" << std::endl;
+    EXPECT_NEAR(position1.x(), position2.x(), 1e-6);
+    EXPECT_NEAR(position1.y(), position2.y(), 1e-6);
+    EXPECT_NEAR(position1.z(), position2.z(), 1e-6);
+    EXPECT_LT(rotation1.getDisparityAngle(rotation2), 1e-6);
+  }
+//  std::cout << std::endl;
 }
 
 TEST(Debugging, FreeGaitTorsoControl)
