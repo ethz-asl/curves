@@ -105,11 +105,9 @@ CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::calculateSlope(const 
                                                                           const Time& timeB_ns,
                                                                           const ValueType& T_W_A,
                                                                           const ValueType& T_W_B) const {
-  double inverse_dt_sec = 1e9/double(timeB_ns - timeA_ns);
-  SO3 R_W_A_B = T_W_B.getRotation() * T_W_A.getRotation().inverted();
-  AngleAxis aa_W_A_B(R_W_A_B);
-  double angle = aa_W_A_B.angle();
-  Eigen::Vector3d angularVelocity_rad_s = aa_W_A_B.axis() * angle * inverse_dt_sec;
+  double inverse_dt_sec = 1/double(timeB_ns - timeA_ns);
+  // Original curves implementation was buggy for 180 deg flips.
+  Eigen::Vector3d angularVelocity_rad_s = T_W_B.getRotation().boxMinus(T_W_A.getRotation()) * inverse_dt_sec;
   Eigen::Vector3d velocity_m_s = (T_W_B.getPosition().vector() - T_W_A.getPosition().vector()) * inverse_dt_sec;
   // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
   DerivativeType rVal;
@@ -215,7 +213,7 @@ SE3 CubicHermiteSE3Curve::evaluate(Time time) const {
     Vector6 d_W_B = b->second.coefficient.getTransformationDerivative();
 
     // make alpha
-    double dt_sec = (b->first - a->first) * 1e-9;
+    double dt_sec = (b->first - a->first);// * 1e-9;
     double alpha = double(time - a->first)/(b->first - a->first);
 
     // Implemantation of Hermite Interpolation not easy and not fun (without expressions)!

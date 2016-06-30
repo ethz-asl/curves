@@ -133,8 +133,6 @@ TEST(PolynomialSplineQuinticScalarCurveTest, firstDerivative)
                  finalFirstDerivativeValue,
                  finalSecondDerivativeValue);
 
-  curve.print();
-
   EXPECT_NEAR(midValue, curve.evaluate(midTime), 1.0e-3);
   EXPECT_NEAR(finiteDifference(curve, midTime), curve.evaluateDerivative(midTime, 1), 1.0e-3) << "maximum diff";
   EXPECT_NEAR(0.0, curve.evaluateDerivative(midTime, 1), 1.0e-3) << "maximum";
