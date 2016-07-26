@@ -10,6 +10,7 @@
 
 #include "curves/CubicHermiteSE3Curve.hpp"
 #include <kindr/Core>
+#include <kindr/common/gtest_eigen.hpp>
 
 using namespace curves;
 
@@ -172,7 +173,70 @@ TEST(InvarianceUnderCoordinateTransformation, Rotation2)
 //  std::cout << std::endl;
 }
 
-TEST(Debugging, FreeGaitTorsoControl)
+
+TEST(CubicHermiteSE3CurveTest, firstDerivative)
+{
+  CubicHermiteSE3Curve curve;
+  std::vector<Time> times;
+  std::vector<ValueType> values;
+
+  double time0 = -2.0;
+  times.push_back(time0);
+  ValueType::Rotation rotation0(kindr::EulerAnglesZyxD(0.0, 0.0, 0.0));
+  ValueType::Position position0(1.0, 2.0, 4.0);
+  values.push_back(ValueType(position0, rotation0));
+
+  times.push_back(5.0);
+  ValueType::Rotation rotationMid(kindr::EulerAnglesZyxD(0.8, -0.03, 0.4));
+  ValueType::Position positionMid(2.0, 4.0, 8.0);
+  values.push_back(ValueType(positionMid, rotationMid));
+
+  double time1 = 10.0;
+  times.push_back(time1);
+  ValueType::Rotation rotation1(kindr::EulerAnglesZyxD(0.5, -1.3, 1.3));
+  ValueType::Position position1(4.0, 8.0, 16.0);
+  values.push_back(ValueType(position1, rotation1));
+  curve.fitCurve(times, values);
+
+  // Derivative at first knot
+  CubicHermiteSE3Curve::DerivativeType derivative = curve.evaluateDerivative(time0, 1);
+  CubicHermiteSE3Curve::DerivativeType expDerivative;
+  expDerivative << Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero();
+  KINDR_ASSERT_DOUBLE_MX_EQ(expDerivative, derivative, 1e-1, "first");
+
+  // Derivative at last knot
+  derivative = curve.evaluateDerivative(time1, 1);
+  expDerivative << Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero();
+  KINDR_ASSERT_DOUBLE_MX_EQ(expDerivative, derivative, 1e-1, "last");
+
+
+  // Finite difference
+  double time = 1.0;
+  double h = 1.0e-8;
+  double timeA = time-h;
+  double timeB = time+h;
+  ValueType T_A = curve.evaluate(timeA);
+  ValueType T_B = curve.evaluate(timeB);
+  Eigen::Vector3d angularVel = T_B.getRotation().boxMinus(T_A.getRotation())/(2.0*h);
+  Eigen::Vector3d linearVel = (T_B.getPosition().vector() - T_A.getPosition().vector())/(2.0*h);
+  std::cout << "======> test\n";
+  std::cout << "T_A: " << T_A << std::endl;
+  std::cout << "T_B: " << T_B << std::endl;
+  std::cout << "linearVel: " << linearVel << std::endl;
+  expDerivative << linearVel, angularVel;
+  derivative = curve.evaluateDerivative(time, 1);
+  KINDR_ASSERT_DOUBLE_MX_EQ_ZT(expDerivative, derivative, 1.0, "fd", 1.0e-8);
+//  EXPECT_NEAR(expDerivative(0), derivative(0), 1e-2);
+//  EXPECT_NEAR(expDerivative(1), derivative(1), 1e-2);
+//  EXPECT_NEAR(expDerivative(2), derivative(2), 1e-2);
+//  EXPECT_NEAR(expDerivative(3), derivative(3), 1e-2);
+//  EXPECT_NEAR(expDerivative(4), derivative(4), 1e-2);
+//  EXPECT_NEAR(expDerivative(5), derivative(5), 1e-2);
+  std::cout << "derivative: " << derivative << std::endl;
+  std::cout << "expexpDerivative: " << expDerivative << std::endl;
+}
+
+TEST(Debugging, DISABLED_FreeGaitTorsoControl)
 {
   CubicHermiteSE3Curve curve;
   std::vector<Time> times;
