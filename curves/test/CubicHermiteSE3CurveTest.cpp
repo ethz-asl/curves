@@ -11,6 +11,9 @@
 #include "curves/CubicHermiteSE3Curve.hpp"
 #include <kindr/Core>
 #include <kindr/common/gtest_eigen.hpp>
+#include <limits>
+
+typedef std::numeric_limits< double > dbl;
 
 using namespace curves;
 
@@ -113,7 +116,7 @@ TEST(InvarianceUnderCoordinateTransformation, Rotation)
   for (const auto& value : values1) {
     values2.push_back(value);
     values2.back().getRotation() = transform * values2.back().getRotation();
-    values2.back().getRotation().setUnique(); // This results in a flip in w.
+//    values2.back().getRotation().setUnique(); // This results in a flip in w.
   }
   curve2.fitCurve(times, values2);
 
@@ -128,7 +131,7 @@ TEST(InvarianceUnderCoordinateTransformation, Rotation)
     EXPECT_NEAR(position1.x(), position2.x(), 1e-6);
     EXPECT_NEAR(position1.y(), position2.y(), 1e-6);
     EXPECT_NEAR(position1.z(), position2.z(), 1e-6);
-    EXPECT_LT(rotation1.getDisparityAngle(rotation2), 1e-6);
+    EXPECT_LT(std::abs(rotation1.getDisparityAngle(rotation2)), 1e-6);
   }
 //  std::cout << std::endl;
 }
@@ -154,7 +157,7 @@ TEST(InvarianceUnderCoordinateTransformation, Rotation2)
   for (const auto& value : values1) {
     values2.push_back(value);
     values2.back().getRotation() = transform * values2.back().getRotation();
-    values2.back().getRotation().setUnique(); // Enforces w positive.
+//    values2.back().getRotation().setUnique(); // Enforces w positive.
   }
   curve2.fitCurve(times, values2);
 
@@ -180,24 +183,38 @@ TEST(CubicHermiteSE3CurveTest, firstDerivative)
   std::vector<Time> times;
   std::vector<ValueType> values;
 
-  double time0 = 0.0;
+  double time0 = -1.56;
   times.push_back(time0);
-  ValueType::Rotation rotation0(kindr::EulerAnglesZyxD(M_PI_2, 0.0, 0.0));
+  ValueType::Rotation rotation0(kindr::EulerAnglesZyxD(M_PI_2, 0.2, -0.9));
   ValueType::Position position0(1.0, 2.0, 4.0);
   ValueType transform0(position0, rotation0);
   values.push_back(transform0);
 
-  double timeMid = 1.0;
-  times.push_back(timeMid);
-  ValueType::Rotation rotationMid(kindr::EulerAnglesZyxD(0.0, 0.0, 0.0));
-  ValueType::Position positionMid(2.0, 4.0, 8.0);
-  values.push_back(ValueType(positionMid, rotationMid));
+  double timeMid1 = 1.0;
+  times.push_back(timeMid1);
+  ValueType::Rotation rotationMid1(kindr::EulerAnglesZyxD(2.0, 3.0, -1.1));
+  ValueType::Position positionMid1(2.0, 4.0, 8.0);
+  values.push_back(ValueType(positionMid1, rotationMid1));
 
-  double time1 = 2.0;
+  double timeMid2 = 2.5;
+  times.push_back(timeMid2);
+  ValueType::Rotation rotationMid2(kindr::EulerAnglesZyxD(0.2, 0.5, 0.2));
+  ValueType::Position positionMid2(2.0, 4.0, 8.0);
+  values.push_back(ValueType(positionMid2, rotationMid2));
+
+
+  double timeMid3 = 3.0;
+  times.push_back(timeMid3);
+  ValueType::Rotation rotationMid3(kindr::EulerAnglesZyxD(1.5, 0.4, -0.3));
+  ValueType::Position positionMid3(2.0, 4.0, 8.0);
+  values.push_back(ValueType(positionMid3, rotationMid3));
+
+
+  double time1 = 4.0;
   times.push_back(time1);
   ValueType::Rotation rotation1(kindr::EulerAnglesZyxD(0.0, 0.0, 0.0));
   ValueType::Position position1(4.0, 8.0, 16.0);
-  values.push_back(ValueType(position1, rotation1));
+  values.push_back(ValueType(position1, rotation1.getUnique()));
   curve.fitCurve(times, values);
 
   // Check first knot
@@ -221,30 +238,45 @@ TEST(CubicHermiteSE3CurveTest, firstDerivative)
 
 
   // Finite difference
-  double time = 1.3;
-  // double time = timeMid+1.0e-8; does not work 0.0 1e0 2e0  ;
   double h = 1.0e-8;
-  double timeA = time-h;
-  double timeB = time+h;
-  ValueType T_A = curve.evaluate(timeA);
-  ValueType T_B = curve.evaluate(timeB);
-  Eigen::Vector3d angularVel = T_B.getRotation().boxMinus(T_A.getRotation())/(2.0*h);
-  Eigen::Vector3d linearVel = (T_B.getPosition().vector() - T_A.getPosition().vector())/(2.0*h);
-  std::cout << "======> test\n";
-  std::cout << "T_A: " << T_A << std::endl;
-  std::cout << "T_B: " << T_B << std::endl;
-  std::cout << "linearVel: " << linearVel << std::endl;
-  expDerivative << linearVel, angularVel;
-  derivative = curve.evaluateDerivative(time, 1);
-  KINDR_ASSERT_DOUBLE_MX_EQ_ZT(expDerivative, derivative, 1.0, "fd", 1.0e-8);
-//  EXPECT_NEAR(expDerivative(0), derivative(0), 1e-2);
-//  EXPECT_NEAR(expDerivative(1), derivative(1), 1e-2);
-//  EXPECT_NEAR(expDerivative(2), derivative(2), 1e-2);
-//  EXPECT_NEAR(expDerivative(3), derivative(3), 1e-2);
-//  EXPECT_NEAR(expDerivative(4), derivative(4), 1e-2);
-//  EXPECT_NEAR(expDerivative(5), derivative(5), 1e-2);
-  std::cout << "derivative: " << derivative << std::endl;
-  std::cout << "expexpDerivative: " << expDerivative << std::endl;
+
+  for (double time = times[0]+h; time <= times[3]; time += 0.1) {
+//    double time = 2.8;//0.7;
+    // double time = timeMid+1.0e-8; does not work 0.0 1e0 2e0  ;
+    double timeA = time-h;
+    double timeB = time+h;
+    ValueType T_A = curve.evaluate(timeA);
+    ValueType T_B = curve.evaluate(timeB);
+    Eigen::Vector3d angularVel = T_B.getRotation().getUnique().boxMinus(T_A.getRotation().getUnique())/(2.0*h);
+    Eigen::Vector3d angularVel2 = T_B.getRotation().boxMinus(T_A.getRotation())/(2.0*h);
+
+  //  std::cout << "+===================================================" << angularVel.transpose() << std::endl;
+  //  std::cout << "angularVel: " << angularVel.transpose() << std::endl;
+  //  std::cout << "angularVel2: " << angularVel2.transpose() << std::endl;
+  //  std::cout.precision(dbl::max_digits10);
+  //  std::cout << "rotA " << T_A.getRotation() << std::endl;
+  //  std::cout << "rotA u " << T_A.getRotation().getUnique() << std::endl;
+  //  std::cout << "rotB " << T_B.getRotation() << std::endl;
+  //  std::cout << "rotB u " << T_B.getRotation().getUnique() << std::endl;
+  //  std::cout << "norm: " << angularVel.norm() << " pi./2 " << M_PI_2 << std::endl;
+    Eigen::Vector3d linearVel = (T_B.getPosition().vector() - T_A.getPosition().vector())/(2.0*h);
+  //  std::cout << "======> test\n";
+  //  std::cout << "T_A: " << T_A << std::endl;
+  //  std::cout << "T_B: " << T_B << std::endl;
+  //  std::cout << "linearVel: " << linearVel << std::endl;
+
+    expDerivative << linearVel, angularVel;
+    derivative = curve.evaluateDerivative(time, 1);
+    KINDR_ASSERT_DOUBLE_MX_EQ_ZT(expDerivative, derivative, 1.0, "fd", 1.0e-7);
+  //  EXPECT_NEAR(expDerivative(0), derivative(0), 1e-2);
+  //  EXPECT_NEAR(expDerivative(1), derivative(1), 1e-2);
+  //  EXPECT_NEAR(expDerivative(2), derivative(2), 1e-2);
+  //  EXPECT_NEAR(expDerivative(3), derivative(3), 1e-2);
+  //  EXPECT_NEAR(expDerivative(4), derivative(4), 1e-2);
+  //  EXPECT_NEAR(expDerivative(5), derivative(5), 1e-2);
+  //  std::cout << "derivative: " << derivative << std::endl;
+  //  std::cout << "expexpDerivative: " << expDerivative << std::endl;
+  }
 }
 
 TEST(Debugging, DISABLED_FreeGaitTorsoControl)

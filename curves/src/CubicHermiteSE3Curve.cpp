@@ -74,7 +74,6 @@ void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
   // fill the coefficients with ValueType and DerivativeType
   // use Catmull-Rom interpolation for derivatives on knot points
   for (size_t i = 0; i < times.size(); ++i) {
-
     DerivativeType derivative;
     // catch the boundaries (i == 0 && i == max)
     if (i == 0) {
@@ -309,8 +308,8 @@ typename CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::evaluateDeri
       const double dbeta3 = 3.0*alpha2;
 
       const double one_third = 1.0 / 3.0;
-      const Eigen::Vector3d scaled_d_W_A = (one_third ) * d_W_A.tail<3>();
-      const Eigen::Vector3d scaled_d_W_B = (one_third ) * d_W_B.tail<3>();
+      const Eigen::Vector3d scaled_d_W_A = (one_third*dt_sec ) * d_W_A.tail<3>();
+      const Eigen::Vector3d scaled_d_W_B = (one_third*dt_sec ) * d_W_B.tail<3>();
 
 //      const Eigen::Vector3d scaled_d_W_A = one_third * d_W_A.tail<3>();
 //      const Eigen::Vector3d scaled_d_W_B = one_third * d_W_B.tail<3>();
@@ -346,7 +345,7 @@ typename CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::evaluateDeri
 
       Eigen::Vector4d diff =    ((T_W_A.getRotation() * w1_beta1_exp * w1_dbeta1    * w2_beta2_exp * w3_beta3_exp).vector()
                               + (T_W_A.getRotation() * w1_beta1_exp * w2_beta2_exp * w2_dbeta2    * w3_beta3_exp).vector()
-                              + (T_W_A.getRotation() * w1_beta1_exp * w2_beta2_exp * w3_beta3_exp * w3_dbeta3   ).vector());
+                              + (T_W_A.getRotation() * w1_beta1_exp * w2_beta2_exp * w3_beta3_exp * w3_dbeta3   ).vector())*one_over_dt_sec;
 //      const kindr::RotationQuaternionDiffD dq(diff);
 //      kindr::GlobalAngularVelocityD angularVelocity_rad_s(T_W_A.getRotation(), dq);
 //      angularVelocity_rad_s *= 0.5;
@@ -354,7 +353,7 @@ typename CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::evaluateDeri
 
       RotationQuaternion qDiff(diff);
       ValueType q = evaluate(time);
-
+      std::cout << "q\n"  << q << std::endl;
       Eigen::Vector3d angularVelocity_rad_s = q.getRotation().rotate((q.getRotation().inverted()*qDiff).imaginary());
       std::cout << "diff: " << diff.transpose() << std::endl;
       std::cout << "ang. vel: " << angularVelocity_rad_s << std::endl;
