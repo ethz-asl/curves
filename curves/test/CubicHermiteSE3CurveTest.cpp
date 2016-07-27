@@ -180,23 +180,33 @@ TEST(CubicHermiteSE3CurveTest, firstDerivative)
   std::vector<Time> times;
   std::vector<ValueType> values;
 
-  double time0 = -2.0;
+  double time0 = 0.0;
   times.push_back(time0);
-  ValueType::Rotation rotation0(kindr::EulerAnglesZyxD(0.0, 0.0, 0.0));
+  ValueType::Rotation rotation0(kindr::EulerAnglesZyxD(M_PI_2, 0.0, 0.0));
   ValueType::Position position0(1.0, 2.0, 4.0);
-  values.push_back(ValueType(position0, rotation0));
+  ValueType transform0(position0, rotation0);
+  values.push_back(transform0);
 
-  times.push_back(5.0);
-  ValueType::Rotation rotationMid(kindr::EulerAnglesZyxD(0.8, -0.03, 0.4));
+  double timeMid = 1.0;
+  times.push_back(timeMid);
+  ValueType::Rotation rotationMid(kindr::EulerAnglesZyxD(0.0, 0.0, 0.0));
   ValueType::Position positionMid(2.0, 4.0, 8.0);
   values.push_back(ValueType(positionMid, rotationMid));
 
-  double time1 = 10.0;
+  double time1 = 2.0;
   times.push_back(time1);
-  ValueType::Rotation rotation1(kindr::EulerAnglesZyxD(0.5, -1.3, 1.3));
+  ValueType::Rotation rotation1(kindr::EulerAnglesZyxD(0.0, 0.0, 0.0));
   ValueType::Position position1(4.0, 8.0, 16.0);
   values.push_back(ValueType(position1, rotation1));
   curve.fitCurve(times, values);
+
+  // Check first knot
+  ValueType transform = curve.evaluate(time0);
+  ValueType expTransform = transform0;
+  EXPECT_NEAR(expTransform.getPosition().x(), transform.getPosition().x(), 1e-6);
+  EXPECT_NEAR(expTransform.getPosition().y(), transform.getPosition().y(), 1e-6);
+  EXPECT_NEAR(expTransform.getPosition().z(), transform.getPosition().z(), 1e-6);
+  EXPECT_NEAR(0.0, expTransform.getRotation().getDisparityAngle(transform.getRotation()), 1e-3);
 
   // Derivative at first knot
   CubicHermiteSE3Curve::DerivativeType derivative = curve.evaluateDerivative(time0, 1);
@@ -211,7 +221,8 @@ TEST(CubicHermiteSE3CurveTest, firstDerivative)
 
 
   // Finite difference
-  double time = 1.0;
+  double time = 1.3;
+  // double time = timeMid+1.0e-8; does not work 0.0 1e0 2e0  ;
   double h = 1.0e-8;
   double timeA = time-h;
   double timeB = time+h;

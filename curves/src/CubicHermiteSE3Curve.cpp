@@ -101,11 +101,11 @@ void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
   manager_.insertCoefficients(times, coefficients, outKeys);
 }
 
-CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::calculateSlope(const Time& timeA_ns,
-                                                                          const Time& timeB_ns,
+CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::calculateSlope(const Time& timeA,
+                                                                          const Time& timeB,
                                                                           const ValueType& T_W_A,
                                                                           const ValueType& T_W_B) const {
-  double inverse_dt_sec = 1/double(timeB_ns - timeA_ns);
+  double inverse_dt_sec = 1.0/double(timeB - timeA);
   // Original curves implementation was buggy for 180 deg flips.
   Eigen::Vector3d angularVelocity_rad_s = T_W_B.getRotation().boxMinus(T_W_A.getRotation()) * inverse_dt_sec;
   Eigen::Vector3d velocity_m_s = (T_W_B.getPosition().vector() - T_W_A.getPosition().vector()) * inverse_dt_sec;
@@ -156,6 +156,18 @@ SE3 CubicHermiteSE3Curve::evaluate(Time time) const {
     double dt_sec = (b->first - a->first);// * 1e-9;
     double alpha = double(time - a->first)/(b->first - a->first);
 
+//    double dt_sec = 1.0;// * 1e-9;
+//    double alpha = 0.5;
+//    // hack
+//    SE3 T_W_A;
+//    T_W_A.getRotation() = kindr::RotationQuaternionD(kindr::EulerAnglesZyxD(0.4, 0.1, -0.7));
+//    SE3 T_W_B;
+//    Vector6 d_W_A;
+//    d_W_A << 0.0, 0.0, 0.0, 1.0, 2.0, 3.0;
+//     Vector6 d_W_B;
+//     d_W_B << 0.0, 0.0, 0.0, 5.0, 8.0, 9.0;
+
+
     // Implemantation of Hermite Interpolation not easy and not fun (without expressions)!
 
     // translational part (easy):
@@ -167,26 +179,27 @@ SE3 CubicHermiteSE3Curve::evaluate(Time time) const {
     double beta2 = alpha3 - 2.0 * alpha2 + alpha;
     double beta3 = alpha3 - alpha2;
 
-
+    /**************************************************************************************
+     *  Translational part:
+     **************************************************************************************/
     SE3::Position translation(T_W_A.getPosition().vector() * beta0
                               + T_W_B.getPosition().vector() * beta1
                               + d_W_A.head<3>() * (beta2 * dt_sec)
                               + d_W_B.head<3>() * (beta3 * dt_sec));
 
-    // rotational part (hard):
-    const double one_third = 1.0 / 3.0;
-    Eigen::Vector3d scaled_d_W_A = one_third * dt_sec * d_W_A.tail<3>();
-    Eigen::Vector3d scaled_d_W_B = one_third * dt_sec * d_W_B.tail<3>();
+    /**************************************************************************************
+     *  Rotational part:
+     **************************************************************************************/
+    const double dt_sec_third = dt_sec / 3.0;
+    Eigen::Vector3d scaled_d_W_A = dt_sec_third * d_W_A.tail<3>();
+    Eigen::Vector3d scaled_d_W_B = dt_sec_third * d_W_B.tail<3>();
 
+    // d_W_A contains the global angular velocity, but we need the local angular velocity.
     Eigen::Vector3d w1 = T_W_A.getRotation().inverseRotate(scaled_d_W_A);
     Eigen::Vector3d w3 = T_W_B.getRotation().inverseRotate(scaled_d_W_B);
-    RotationQuaternion inverse = T_W_A.getRotation().inverted();
-    RotationQuaternion expW1 = RotationQuaternion().exponentialMap(-w1);
-    RotationQuaternion expW3 = RotationQuaternion().exponentialMap(-w3);
-
-    RotationQuaternion expW1_Inv = expW1 * inverse;
-    RotationQuaternion expW1_Inv_qWB = expW1_Inv * T_W_B.getRotation();
-    RotationQuaternion expW1_Inv_qWB_expW3 = expW1_Inv_qWB * expW3;
+    RotationQuaternion expW1_inv = RotationQuaternion().exponentialMap(-w1);
+    RotationQuaternion expW3_inv = RotationQuaternion().exponentialMap(-w3);
+    RotationQuaternion expW1_Inv_qWB_expW3 = expW1_inv * T_W_A.getRotation().inverted() * T_W_B.getRotation() * expW3_inv;
 
     Eigen::Vector3d w2 = expW1_Inv_qWB_expW3.logarithmicMap();
 
@@ -233,7 +246,7 @@ typename CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::evaluateDeri
       const Vector6 d_W_A = a->second.coefficient.getTransformationDerivative();
       const Vector6 d_W_B = b->second.coefficient.getTransformationDerivative();
 
-//      // hack
+      // hack
 //      SE3 T_W_A;
 //      T_W_A.getRotation() = kindr::RotationQuaternionD(kindr::EulerAnglesZyxD(0.4, 0.1, -0.7));
 //      SE3 T_W_B;
@@ -247,17 +260,20 @@ typename CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::evaluateDeri
 //      const double dt_sec = 1.0; // hack
       const double one_over_dt_sec = 1.0/dt_sec;
       double alpha = double(time - a->first)/dt_sec;
-//      const double alpha = 1.0; //hack
+//      const double alpha = 0.5; //hack
 
       const double alpha2 = alpha * alpha;
       const double alpha3 = alpha2 * alpha;
 
-
+      /**************************************************************************************
+       *  Translational part:
+       **************************************************************************************/
       // Implementation of translation
       const double gamma0 = 6.0*(alpha2 - alpha);
       const double gamma1 = 3.0*alpha2 - 4.0*alpha + 1.0;
       const double gamma2 = 6.0*(alpha - alpha2);
       const double gamma3 = 3.0*alpha2 - 2.0*alpha;
+
       Eigen::Vector3d velocity_m_s = T_W_A.getPosition().vector()*(gamma0*one_over_dt_sec)
                                      + d_W_A.head<3>()*(gamma1)
                                      + T_W_B.getPosition().vector()*(gamma2*one_over_dt_sec)
@@ -278,8 +294,9 @@ typename CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::evaluateDeri
       std::cout << "d_W_B\n"  << d_W_B.transpose() << std::endl;
 
 
-      // Implemantation of Hermite Interpolation not easy and not fun (without expressions)!
-
+      /**************************************************************************************
+       *  Rotational part:
+       **************************************************************************************/
       const double one_minus_alpha = (1.0 - alpha);
       const double one_minus_alpha_2 = one_minus_alpha * one_minus_alpha;
       const double one_minus_alpha_3 = one_minus_alpha * one_minus_alpha_2;
@@ -292,45 +309,60 @@ typename CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::evaluateDeri
       const double dbeta3 = 3.0*alpha2;
 
       const double one_third = 1.0 / 3.0;
-      const Eigen::Vector3d scaled_d_W_A = (one_third * dt_sec) * d_W_A.tail<3>();
-      const Eigen::Vector3d scaled_d_W_B = (one_third * dt_sec) * d_W_B.tail<3>();
+      const Eigen::Vector3d scaled_d_W_A = (one_third ) * d_W_A.tail<3>();
+      const Eigen::Vector3d scaled_d_W_B = (one_third ) * d_W_B.tail<3>();
 
 //      const Eigen::Vector3d scaled_d_W_A = one_third * d_W_A.tail<3>();
 //      const Eigen::Vector3d scaled_d_W_B = one_third * d_W_B.tail<3>();
 
       const Eigen::Vector3d w1 = T_W_A.getRotation().inverseRotate(scaled_d_W_A);
       const Eigen::Vector3d w3 = T_W_B.getRotation().inverseRotate(scaled_d_W_B);
-      const RotationQuaternion expW1 = RotationQuaternion().exponentialMap(-w1);
-      const RotationQuaternion expW3 = RotationQuaternion().exponentialMap(-w3);
+      const RotationQuaternion expW1_inv = RotationQuaternion().exponentialMap(-w1);
+      const RotationQuaternion expW3_inv = RotationQuaternion().exponentialMap(-w3);
 
-      const RotationQuaternion expW1_Inv_qWB_expW3 = expW1 * T_W_A.getRotation().inverted() * T_W_B.getRotation() * expW3;
+      const RotationQuaternion expW1_Inv_qWB_expW3 = expW1_inv * T_W_A.getRotation().inverted() * T_W_B.getRotation() * expW3_inv;
 
       const Eigen::Vector3d w2 = expW1_Inv_qWB_expW3.logarithmicMap();
 
-      const SO3 w1_beta1_exp = RotationQuaternion().exponentialMap(beta1 * w1);
-      const SO3 w2_beta2_exp = RotationQuaternion().exponentialMap(beta2 * w2);
-      const SO3 w3_beta3_exp = RotationQuaternion().exponentialMap(beta3 * w3);
+      const SO3 w1_beta1_exp = RotationQuaternion().exponentialMap((beta1) * w1);
+       const SO3 w2_beta2_exp = RotationQuaternion().exponentialMap((beta2) * w2);
+       const SO3 w3_beta3_exp = RotationQuaternion().exponentialMap((beta3) * w3);
+
+//      const SO3 w1_beta1_exp = RotationQuaternion().exponentialMap((beta1*one_over_dt_sec) * w1);
+//      const SO3 w2_beta2_exp = RotationQuaternion().exponentialMap((beta2*one_over_dt_sec) * w2);
+//      const SO3 w3_beta3_exp = RotationQuaternion().exponentialMap((beta3*one_over_dt_sec) * w3);
 
       const RotationQuaternion w1_dbeta1(0.0, dbeta1 * w1);
       const RotationQuaternion w2_dbeta2(0.0, dbeta2 * w2);
       const RotationQuaternion w3_dbeta3(0.0, dbeta3 * w3);
 
+//      const RotationQuaternion w1_dbeta1(0.0, dbeta1*one_over_dt_sec * w1);
+//      const RotationQuaternion w2_dbeta2(0.0, dbeta2*one_over_dt_sec * w2);
+//      const RotationQuaternion w3_dbeta3(0.0, dbeta3*one_over_dt_sec * w3);
+
 //      const RotationQuaternion w1_dbeta1 = RotationQuaternion().exponentialMap(dbeta1 * w1);
 //      const RotationQuaternion w2_dbeta2 = RotationQuaternion().exponentialMap(dbeta2 * w2);
 //      const RotationQuaternion w3_dbeta3 = RotationQuaternion().exponentialMap(dbeta3 * w3);
 
-      Eigen::Vector4d diff =    (T_W_A.getRotation() * w1_beta1_exp * w1_dbeta1    * w2_beta2_exp * w3_beta3_exp).vector()
+      Eigen::Vector4d diff =    ((T_W_A.getRotation() * w1_beta1_exp * w1_dbeta1    * w2_beta2_exp * w3_beta3_exp).vector()
                               + (T_W_A.getRotation() * w1_beta1_exp * w2_beta2_exp * w2_dbeta2    * w3_beta3_exp).vector()
-                              + (T_W_A.getRotation() * w1_beta1_exp * w2_beta2_exp * w3_beta3_exp * w3_dbeta3   ).vector();
-      const kindr::RotationQuaternionDiffD dq(diff);
-      kindr::GlobalAngularVelocityD angularVelocity_rad_s(T_W_A.getRotation(), dq);
-      angularVelocity_rad_s *= 0.5;
+                              + (T_W_A.getRotation() * w1_beta1_exp * w2_beta2_exp * w3_beta3_exp * w3_dbeta3   ).vector());
+//      const kindr::RotationQuaternionDiffD dq(diff);
+//      kindr::GlobalAngularVelocityD angularVelocity_rad_s(T_W_A.getRotation(), dq);
+//      angularVelocity_rad_s *= 0.5;
 
+
+      RotationQuaternion qDiff(diff);
+      ValueType q = evaluate(time);
+
+      Eigen::Vector3d angularVelocity_rad_s = q.getRotation().rotate((q.getRotation().inverted()*qDiff).imaginary());
+      std::cout << "diff: " << diff.transpose() << std::endl;
       std::cout << "ang. vel: " << angularVelocity_rad_s << std::endl;
 
       // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
       DerivativeType rVal;
-      rVal << velocity_m_s, angularVelocity_rad_s.vector();
+//      rVal << velocity_m_s, angularVelocity_rad_s.vector();
+      rVal << velocity_m_s, angularVelocity_rad_s;
       return rVal;
     }
   }
