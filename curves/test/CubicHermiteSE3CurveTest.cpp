@@ -131,7 +131,7 @@ TEST(InvarianceUnderCoordinateTransformation, Rotation)
     EXPECT_NEAR(position1.x(), position2.x(), 1e-6);
     EXPECT_NEAR(position1.y(), position2.y(), 1e-6);
     EXPECT_NEAR(position1.z(), position2.z(), 1e-6);
-    EXPECT_LT(std::abs(rotation1.getDisparityAngle(rotation2)), 1e-6);
+    EXPECT_LT(rotation1.getDisparityAngle(rotation2), 1e-6) << "rot1: " <<  rotation1 << "  rot2: " << rotation2 << std::endl;
   }
 //  std::cout << std::endl;
 }

@@ -278,19 +278,19 @@ typename CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::evaluateDeri
                                      + T_W_B.getPosition().vector()*(gamma2*one_over_dt_sec)
                                      + d_W_B.head<3>()*(gamma3);
 
-      std::cout << "=======> evaluateDerivative time: " << time << std::endl;
-      std::cout << "alpha: "  << alpha << std::endl;
-      std::cout << "time a: " << a->first << std::endl;
-      std::cout << "time b: " << b->first << std::endl;
-      std::cout << "gamma0: "  << gamma0 << std::endl;
-      std::cout << "gamma1: "  << gamma1 << std::endl;
-      std::cout << "gamma2: "  << gamma2 << std::endl;
-      std::cout << "gamma3: "  << gamma3 << std::endl;
-
-      std::cout << "T_W_A\n"  << T_W_A << std::endl;
-      std::cout << "T_W_B\n"  << T_W_B << std::endl;
-      std::cout << "d_W_A\n"  << d_W_A.transpose() << std::endl;
-      std::cout << "d_W_B\n"  << d_W_B.transpose() << std::endl;
+//      std::cout << "=======> evaluateDerivative time: " << time << std::endl;
+//      std::cout << "alpha: "  << alpha << std::endl;
+//      std::cout << "time a: " << a->first << std::endl;
+//      std::cout << "time b: " << b->first << std::endl;
+//      std::cout << "gamma0: "  << gamma0 << std::endl;
+//      std::cout << "gamma1: "  << gamma1 << std::endl;
+//      std::cout << "gamma2: "  << gamma2 << std::endl;
+//      std::cout << "gamma3: "  << gamma3 << std::endl;
+//
+//      std::cout << "T_W_A\n"  << T_W_A << std::endl;
+//      std::cout << "T_W_B\n"  << T_W_B << std::endl;
+//      std::cout << "d_W_A\n"  << d_W_A.transpose() << std::endl;
+//      std::cout << "d_W_B\n"  << d_W_B.transpose() << std::endl;
 
 
       /**************************************************************************************
@@ -353,10 +353,10 @@ typename CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::evaluateDeri
 
       RotationQuaternion qDiff(diff);
       ValueType q = evaluate(time);
-      std::cout << "q\n"  << q << std::endl;
+//      std::cout << "q\n"  << q << std::endl;
       Eigen::Vector3d angularVelocity_rad_s = q.getRotation().rotate((q.getRotation().inverted()*qDiff).imaginary());
-      std::cout << "diff: " << diff.transpose() << std::endl;
-      std::cout << "ang. vel: " << angularVelocity_rad_s << std::endl;
+//      std::cout << "diff: " << diff.transpose() << std::endl;
+//      std::cout << "ang. vel: " << angularVelocity_rad_s << std::endl;
 
       // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
       DerivativeType rVal;
