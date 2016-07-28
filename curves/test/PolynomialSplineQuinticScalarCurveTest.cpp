@@ -12,14 +12,16 @@
 
 using namespace curves;
 
-typedef typename curves::PolynomialSplineQuinticScalarCurve::ValueType ValueType; // kindr::HomogeneousTransformationPosition3RotationQuaternionD ValueType
+typedef typename curves::PolynomialSplineQuinticScalarCurve::ValueType ValueType;
+typedef typename curves::PolynomialSplineQuinticScalarCurve::DerivativeType DerivativeType;
 typedef typename curves::Time Time;
-
 
 curves::PolynomialSplineQuinticScalarCurve::ValueType finiteDifference(curves::PolynomialSplineQuinticScalarCurve& curve, curves::Time time) {
   curves::Time dt = 1.0e-6;
-  auto f_P = curve.evaluate(time+dt);
-  auto f_M = curve.evaluate(time-dt);
+  curves::PolynomialSplineQuinticScalarCurve::ValueType f_P;
+  curve.evaluate(f_P, time+dt);
+  curves::PolynomialSplineQuinticScalarCurve::ValueType f_M;
+  curve.evaluate(f_M, time-dt);
   return (f_P - f_M)/(2.0*dt);
 }
 
@@ -35,11 +37,18 @@ TEST(PolynomialSplineQuinticScalarCurveTest, Overflow)
   values.push_back(ValueType(1.0));
 
   curve.fitCurve(times, values);
+  ValueType value;
+  ASSERT_TRUE(curve.evaluate(value, -0.1));
+  EXPECT_NEAR(0.0, value, 1e-10);
+  ASSERT_TRUE(curve.evaluate(value, 0.0));
+  EXPECT_NEAR(0.0, value, 1e-10);
 
-  EXPECT_NEAR(0.0, curve.evaluate(-0.1), 1e-10);
-  EXPECT_NEAR(0.0, curve.evaluate(0.0), 1e-10);
-  EXPECT_NEAR(1.0, curve.evaluate(4.0), 1e-10);
-  EXPECT_NEAR(1.0, curve.evaluate(4.1), 1e-10);
+  ASSERT_TRUE(curve.evaluate(value, 4.0));
+  EXPECT_NEAR(1.0, value, 1e-10);
+
+  ASSERT_TRUE(curve.evaluate(value, 4.1));
+  EXPECT_NEAR(1.0, value, 1e-10);
+
 }
 
 TEST(PolynomialSplineQuinticScalarCurveTest, minMax)
@@ -55,11 +64,14 @@ TEST(PolynomialSplineQuinticScalarCurveTest, minMax)
 
   curve.fitCurve(times, values);
 
+  ValueType value;
+
   EXPECT_NEAR(1.0, curve.getMinTime(), 1.0e-3) << "minTime";
   EXPECT_NEAR(4.0, curve.getMaxTime(), 1.0e-3) << "maxTime";
-
-  EXPECT_NEAR(3.0, curve.evaluate(1.0), 1.0e-3) << "minValue";
-  EXPECT_NEAR(5.0, curve.evaluate(4.0), 1.0e-3) << "maxValue";
+  ASSERT_TRUE(curve.evaluate(value, 1.0));
+  EXPECT_NEAR(3.0, value, 1.0e-3) << "minValue";
+  ASSERT_TRUE(curve.evaluate(value, 4.0));
+  EXPECT_NEAR(5.0, value, 1.0e-3) << "maxValue";
 }
 
 TEST(PolynomialSplineQuinticScalarCurveTest, initialAndFinalConstraints)
@@ -90,12 +102,20 @@ TEST(PolynomialSplineQuinticScalarCurveTest, initialAndFinalConstraints)
                  finalFirstDerivativeValue,
                  finalSecondDerivativeValue);
 
-  EXPECT_NEAR(initialValue, curve.evaluate(initialTime), 1.0e-3) << "initialValue";
-  EXPECT_NEAR(finalValue, curve.evaluate(finalTime), 1.0e-3) << "finalValue";
-  EXPECT_NEAR(initialFirstDerivativeValue, curve.evaluateDerivative(initialTime, 1), 1.0e-3) << "initialFirstDerivativeValue";
-  EXPECT_NEAR(finalFirstDerivativeValue, curve.evaluateDerivative(finalTime, 1), 1.0e-3) << "finalFirstDerivativeValue";
-  EXPECT_NEAR(initialSecondDerivativeValue, curve.evaluateDerivative(initialTime, 2), 1.0e-3) << "secondFirstDerivativeValue";
-  EXPECT_NEAR(finalSecondDerivativeValue, curve.evaluateDerivative(finalTime, 2), 1.0e-3) << "secondFirstDerivativeValue";
+  ValueType value;
+  ASSERT_TRUE(curve.evaluate(value, initialTime));
+  EXPECT_NEAR(initialValue, value, 1.0e-3) << "initialValue";
+  ASSERT_TRUE(curve.evaluate(value, finalTime));
+  EXPECT_NEAR(finalValue, value, 1.0e-3) << "finalValue";
+  DerivativeType derivative;
+  curve.evaluateDerivative(derivative, initialTime, 1);
+  EXPECT_NEAR(initialFirstDerivativeValue, derivative, 1.0e-3) << "initialFirstDerivativeValue";
+  curve.evaluateDerivative(derivative, finalTime, 1);
+  EXPECT_NEAR(finalFirstDerivativeValue, derivative, 1.0e-3) << "finalFirstDerivativeValue";
+  curve.evaluateDerivative(derivative, initialTime, 2);
+  EXPECT_NEAR(initialSecondDerivativeValue, derivative, 1.0e-3) << "secondFirstDerivativeValue";
+  curve.evaluateDerivative(derivative, finalTime, 2);
+  EXPECT_NEAR(finalSecondDerivativeValue, derivative, 1.0e-3) << "secondFirstDerivativeValue";
 }
 
 TEST(PolynomialSplineQuinticScalarCurveTest, firstDerivative)
@@ -133,9 +153,15 @@ TEST(PolynomialSplineQuinticScalarCurveTest, firstDerivative)
                  finalFirstDerivativeValue,
                  finalSecondDerivativeValue);
 
-  EXPECT_NEAR(midValue, curve.evaluate(midTime), 1.0e-3);
-  EXPECT_NEAR(finiteDifference(curve, midTime), curve.evaluateDerivative(midTime, 1), 1.0e-3) << "maximum diff";
-  EXPECT_NEAR(0.0, curve.evaluateDerivative(midTime, 1), 1.0e-3) << "maximum";
-  EXPECT_NEAR(finiteDifference(curve, 1.4), curve.evaluateDerivative(1.4, 1), 1.0e-3) << "inbetween";
+  ValueType value;
+  ASSERT_TRUE(curve.evaluate(value, midTime));
+  EXPECT_NEAR(midValue, value, 1.0e-3);
+  DerivativeType derivative;
+  curve.evaluateDerivative(derivative, midTime, 1);
+  EXPECT_NEAR(finiteDifference(curve, midTime), derivative, 1.0e-3) << "maximum diff";
+  curve.evaluateDerivative(derivative, midTime, 1);
+  EXPECT_NEAR(0.0, derivative, 1.0e-3) << "maximum";
+  curve.evaluateDerivative(derivative, 1.4, 1);
+  EXPECT_NEAR(finiteDifference(curve, 1.4), derivative, 1.0e-3) << "inbetween";
 
 }

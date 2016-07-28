@@ -35,7 +35,7 @@ struct HermiteTransformation {
  public:
   HermiteTransformation();
   HermiteTransformation(const QuatTransformation& transform, const Vector6& derivatives);
-  ~HermiteTransformation();
+  virtual ~HermiteTransformation();
 
   QuatTransformation getTransformation() const {
     return transformation_;
@@ -194,17 +194,25 @@ class CubicHermiteSE3Curve : public SE3Curve {
 
   /// \brief Fit a new curve to these data points.
   ///
-  /// The existing curve will be cleared.
+  /// The existing curve will be cleared.fitCurveWithDerivatives
   /// Underneath the curve should have some default policy for fitting.
   virtual void fitCurve(const std::vector<Time>& times,
                         const std::vector<ValueType>& values,
                         std::vector<Key>* outKeys = NULL);
 
+  virtual void fitCurveWithDerivatives(const std::vector<Time>& times,
+                        const std::vector<ValueType>& values,
+                        const DerivativeType& initialDerivative = DerivativeType::Zero(),
+                        const DerivativeType& finalDerivative = DerivativeType::Zero(),
+                        std::vector<Key>* outKeys = NULL);
+
+
+
   /// Evaluate the ambient space of the curve.
-  virtual ValueType evaluate(Time time) const;
+  virtual bool evaluate(ValueType& value, Time time) const;
 
   /// Evaluate the curve derivatives.
-  virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
+  virtual bool evaluateDerivative(DerivativeType& derivative, Time time, unsigned int derivativeOrder) const;
 
 //  /// \brief Get an evaluator at this time
 //  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const;

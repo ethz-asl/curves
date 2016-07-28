@@ -48,10 +48,10 @@ class Curve
   ///@{
 
   /// Evaluate the ambient space of the curve.
-  virtual ValueType evaluate(Time time) const = 0;
+  virtual bool evaluate(ValueType& value, Time time) const = 0;
 
 //  /// Evaluate the curve derivatives.
-  virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const = 0;
+  virtual bool evaluateDerivative(DerivativeType& derivative, Time time, unsigned derivativeOrder) const = 0;
 
   ///@}
 
