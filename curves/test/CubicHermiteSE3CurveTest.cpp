@@ -139,30 +139,16 @@ TEST(InvarianceUnderCoordinateTransformation, Rotation)
   curve2.fitCurve(times, values2);
 
   for (double time = times[0]; time <= times[3]; time += 0.1) {
-//    const ValueType::Position position1 = curve1.evaluate(time).getPosition();
-//    const ValueType::Rotation rotation1 = curve1.evaluate(time).getRotation();
-//    const ValueType::Position position2 = curve2.evaluate(time).getPosition();
-//
-//
-////    std::cout << 180.0 / M_PI * kindr::EulerAnglesYprPD(curve2.evaluate(time).getRotation()).getUnique().yaw() << ", ";
-////    std::cout << "[" << curve2.evaluate(time).getRotation() << "]" << std::endl;
-//    EXPECT_NEAR(position1.x(), position2.x(), 1e-6);
-//    EXPECT_NEAR(position1.y(), position2.y(), 1e-6);
-//    EXPECT_NEAR(position1.z(), position2.z(), 1e-6);
-//    EXPECT_LT(rotation1.getDisparityAngle(rotation2), 1e-6) << "rot1: " <<  rotation1 << "  rot2: " << rotation2 << std::endl;
-
     ValueType value1, value2;
     ASSERT_TRUE(curve1.evaluate(value1, time));
     ASSERT_TRUE(curve2.evaluate(value2, time));
     const ValueType::Rotation rotation2 = transform.inverted() * value2.getRotation();
 
-
     std::string msg = std::string{"knot at time: "} + std::to_string(time);
     KINDR_ASSERT_DOUBLE_MX_EQ(value1.getPosition().toImplementation(), value2.getPosition().toImplementation(), 1e-3, msg);
     EXPECT_LT(value1.getRotation().getDisparityAngle(rotation2), 1e-3) << "rot1: " <<  value1.getRotation() << "  rot2: " << value2.getRotation() << std::endl;
-
   }
-//  std::cout << std::endl;
+
 }
 
 TEST(InvarianceUnderCoordinateTransformation, Rotation2)
@@ -191,23 +177,10 @@ TEST(InvarianceUnderCoordinateTransformation, Rotation2)
   curve2.fitCurve(times, values2);
 
   for (double time = times[0]; time <= times[3]; time += 0.1) {
-//    const ValueType::Position position1 = curve1.evaluate(time).getPosition();
-//    const ValueType::Rotation rotation1 = curve1.evaluate(time).getRotation();
-//    const ValueType::Position position2 = curve2.evaluate(time).getPosition();
-//    const ValueType::Rotation rotation2 = transform.inverted() * curve2.evaluate(time).getRotation();
-////    std::cout << 180.0 / M_PI * kindr::EulerAnglesYprPD(curve1.evaluate(time).getRotation()).getUnique().yaw() << ", ";
-////    std::cout << "[" <<curve1.evaluate(time).getRotation() << "]" << std::endl;
-//    EXPECT_NEAR(position1.x(), position2.x(), 1e-6);
-//    EXPECT_NEAR(position1.y(), position2.y(), 1e-6);
-//    EXPECT_NEAR(position1.z(), position2.z(), 1e-6);
-//    EXPECT_LT(rotation1.getDisparityAngle(rotation2), 1e-6);
-
-
     ValueType value1, value2;
     ASSERT_TRUE(curve1.evaluate(value1, time));
     ASSERT_TRUE(curve2.evaluate(value2, time));
     const ValueType::Rotation rotation2 = transform.inverted() * value2.getRotation();
-
 
     std::string msg = std::string{"knot at time: "} + std::to_string(time);
     KINDR_ASSERT_DOUBLE_MX_EQ(value1.getPosition().toImplementation(), value2.getPosition().toImplementation(), 1e-3, msg);
@@ -280,19 +253,12 @@ TEST(CubicHermiteSE3CurveTest, firstDerivative)
 
   // Finite difference
   double h = 1.0e-8;
-
   for (double time = times[0]+h; time <= times[3]; time += 0.1) {
-//    double time = 2.8;//0.7;
-    // double time = timeMid+1.0e-8; does not work 0.0 1e0 2e0  ;
     double timeA = time-h;
     double timeB = time+h;
-//    std::cout << "eval a"<<std::endl;
-    ValueType T_A;
+    ValueType T_A, T_B;
     ASSERT_TRUE(curve.evaluate(T_A, timeA));
-//    std::cout << "eval b"<<std::endl;
-    ValueType T_B;
     ASSERT_TRUE(curve.evaluate(T_B, timeB));
-//    std::cout << "eval deri"<<std::endl;
     Eigen::Vector3d angularVel = T_B.getRotation().boxMinus(T_A.getRotation())/(2.0*h);
     Eigen::Vector3d linearVel = (T_B.getPosition().vector() - T_A.getPosition().vector())/(2.0*h);
     expDerivative << linearVel, angularVel;
