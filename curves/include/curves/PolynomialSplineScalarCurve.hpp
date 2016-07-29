@@ -52,11 +52,17 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
     double timeDiff = (maxTime-minTime)/(nPoints-1);
 
     for (int i=0;i<nPoints;i++) {
+      double firstDerivative;
+      double secondDerivative;
+      double value;
+      evaluate(value, timeAtEval);
+      evaluateDerivative(firstDerivative, timeAtEval, 1);
+      evaluateDerivative(secondDerivative, timeAtEval, 2);
       printf("t: %lf, x: %lf dx: %lf dxx: %lf\n",
             timeAtEval,
-            evaluate(timeAtEval),
-            evaluateDerivative(timeAtEval, 1),
-            evaluateDerivative(timeAtEval, 2));
+            value,
+            firstDerivative,
+            secondDerivative);
       timeAtEval += timeDiff;
     }
   }
@@ -71,29 +77,30 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
     return container_.getContainerDuration() + minTime_;
   }
 
-  virtual ValueType evaluate(Time time) const
+  virtual bool evaluate(ValueType& value, Time time) const
   {
     time -= minTime_;
-    return container_.getPositionAtTime(time);
+    value = container_.getPositionAtTime(time);
+    return true;
   }
 
-  virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const
+  virtual bool evaluateDerivative(DerivativeType& value, Time time, unsigned derivativeOrder) const
   {
     time -= minTime_;
     switch (derivativeOrder) {
       case(1): {
-        return container_.getVelocityAtTime(time);
+        value = container_.getVelocityAtTime(time);
       } break;
 
       case(2): {
-        return container_.getAccelerationAtTime(time);
+        value = container_.getAccelerationAtTime(time);
       } break;
 
       default:
-        throw std::runtime_error("Derivative is not yet implemented!");
+        return false;
     }
 
-    return 0.0;
+    return true;
   }
 
   virtual void extend(const std::vector<Time>& times, const std::vector<ValueType>& values,

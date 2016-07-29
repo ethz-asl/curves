@@ -58,27 +58,29 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
     return containers_.at(0).getContainerDuration();
   }
 
-  virtual ValueType evaluate(Time time) const
+  virtual bool evaluate(ValueType& value, Time time) const
   {
-    ValueType value;
     for (size_t i = 0; i < N; ++i) {
       value(i) = containers_.at(i).getPositionAtTime(time);
     }
-    return value;
+    return true;
   }
 
-  virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const
+  virtual bool evaluateDerivative(DerivativeType& value, Time time, unsigned derivativeOrder) const
   {
-    ValueType value;
+
     for (size_t i = 0; i < N; ++i) {
       if (derivativeOrder == 1) {
         value(i) = containers_.at(i).getVelocityAtTime(time);
-      } else if (derivativeOrder == 2) {
+      }
+      else if (derivativeOrder == 2) {
         value(i) = containers_.at(i).getAccelerationAtTime(time);
       }
-
+      else {
+        return false;
+      }
     }
-    return value;
+    return true;
   }
 
   virtual void extend(const std::vector<Time>& times, const std::vector<ValueType>& values,

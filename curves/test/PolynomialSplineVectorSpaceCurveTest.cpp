@@ -28,18 +28,26 @@ TEST(PolynomialSplineQuinticVector3Curve, Overflow)
 
   curve.fitCurve(times, values);
 
-  EXPECT_NEAR(0.0, curve.evaluate(-0.1)[0], 1e-10);
-  EXPECT_NEAR(0.0, curve.evaluate(0.0)[0], 1e-10);
-  EXPECT_NEAR(1.0, curve.evaluate(4.0)[0], 1e-10);
-  EXPECT_NEAR(1.0, curve.evaluate(4.1)[0], 1e-10);
-  EXPECT_NEAR(0.0, curve.evaluate(-0.1)[1], 1e-10);
-  EXPECT_NEAR(0.0, curve.evaluate(0.0)[1], 1e-10);
-  EXPECT_NEAR(1.0, curve.evaluate(4.0)[1], 1e-10);
-  EXPECT_NEAR(1.0, curve.evaluate(4.1)[1], 1e-10);
-  EXPECT_NEAR(0.0, curve.evaluate(-0.1)[2], 1e-10);
-  EXPECT_NEAR(0.0, curve.evaluate(0.0)[2], 1e-10);
-  EXPECT_NEAR(1.0, curve.evaluate(4.0)[2], 1e-10);
-  EXPECT_NEAR(1.0, curve.evaluate(4.1)[2], 1e-10);
+  ValueType value;
+  ASSERT_TRUE(curve.evaluate(value, -0.1));
+  EXPECT_NEAR(0.0, value[0], 1e-10);
+  EXPECT_NEAR(0.0, value[1], 1e-10);
+  EXPECT_NEAR(0.0, value[2], 1e-10);
+
+  ASSERT_TRUE(curve.evaluate(value, 0.0));
+  EXPECT_NEAR(0.0, value[0], 1e-10);
+  EXPECT_NEAR(0.0, value[1], 1e-10);
+  EXPECT_NEAR(0.0, value[2], 1e-10);
+
+  ASSERT_TRUE(curve.evaluate(value, 4.0));
+  EXPECT_NEAR(1.0, value[0], 1e-10);
+  EXPECT_NEAR(1.0, value[1], 1e-10);
+  EXPECT_NEAR(1.0, value[2], 1e-10);
+
+  ASSERT_TRUE(curve.evaluate(value, 4.1));
+  EXPECT_NEAR(1.0, value[0], 1e-10);
+  EXPECT_NEAR(1.0, value[1], 1e-10);
+  EXPECT_NEAR(1.0, value[2], 1e-10);
 }
 
 
