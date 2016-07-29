@@ -67,7 +67,7 @@ int CubicHermiteSE3Curve::size() const {
 void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
                                     const std::vector<ValueType>& values,
                                     std::vector<Key>* outKeys) {
-  fitCurveWithDerivatives(times, values, DerivativeType::Zero(), DerivativeType::Zero(), outKeys);
+  fitCurveWithDerivatives(times, values, DerivativeType(), DerivativeType(), outKeys);
 }
 
 void CubicHermiteSE3Curve::fitCurveWithDerivatives(const std::vector<Time>& times,
@@ -120,9 +120,7 @@ CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::calculateSlope(const 
   const Eigen::Vector3d angularVelocity_rad_s = T_W_B.getRotation().boxMinus(T_W_A.getRotation()) * inverse_dt_sec;
   const Eigen::Vector3d velocity_m_s = (T_W_B.getPosition().vector() - T_W_A.getPosition().vector()) * inverse_dt_sec;
   // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
-  DerivativeType rVal;
-  rVal << velocity_m_s, angularVelocity_rad_s;
-  return rVal;
+  return DerivativeType(velocity_m_s, angularVelocity_rad_s);
 }
 
 void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
@@ -165,8 +163,8 @@ bool CubicHermiteSE3Curve::evaluate(ValueType& value, Time time) const {
     const SE3 T_W_B = b->second.coefficient.getTransformation();
 
     // read out derivative from coefficient
-    const Vector6 d_W_A = a->second.coefficient.getTransformationDerivative();
-    const Vector6 d_W_B = b->second.coefficient.getTransformationDerivative();
+    const Twist d_W_A = a->second.coefficient.getTransformationDerivative();
+    const Twist d_W_B = b->second.coefficient.getTransformationDerivative();
 
     // make alpha
     const double dt_sec = (b->first - a->first);// * 1e-9;
@@ -188,15 +186,15 @@ bool CubicHermiteSE3Curve::evaluate(ValueType& value, Time time) const {
      **************************************************************************************/
     const SE3::Position translation(T_W_A.getPosition().vector() * beta0
                                   + T_W_B.getPosition().vector() * beta1
-                                  + d_W_A.head<3>() * (beta2 * dt_sec)
-                                  + d_W_B.head<3>() * (beta3 * dt_sec));
+                                  + d_W_A.getTranslationalVelocity().vector() * (beta2 * dt_sec)
+                                  + d_W_B.getTranslationalVelocity().vector() * (beta3 * dt_sec));
 
     /**************************************************************************************
      *  Rotational part:
      **************************************************************************************/
     const double dt_sec_third = dt_sec / 3.0;
-    const Eigen::Vector3d scaled_d_W_A = dt_sec_third * d_W_A.tail<3>();
-    const Eigen::Vector3d scaled_d_W_B = dt_sec_third * d_W_B.tail<3>();
+    const Eigen::Vector3d scaled_d_W_A = dt_sec_third * d_W_A.getRotationalVelocity().vector();
+    const Eigen::Vector3d scaled_d_W_B = dt_sec_third * d_W_B.getRotationalVelocity().vector();
 
     // d_W_A contains the global angular velocity, but we need the local angular velocity.
     const Eigen::Vector3d w1 = T_W_A.getRotation().inverseRotate(scaled_d_W_A);
@@ -252,8 +250,8 @@ bool CubicHermiteSE3Curve::evaluateDerivative(DerivativeType& derivative,
       const SE3 T_W_B = b->second.coefficient.getTransformation();
 
       // read out derivative from coefficient
-      const Vector6 d_W_A = a->second.coefficient.getTransformationDerivative();
-      const Vector6 d_W_B = b->second.coefficient.getTransformationDerivative();
+      const Twist d_W_A = a->second.coefficient.getTransformationDerivative();
+      const Twist d_W_B = b->second.coefficient.getTransformationDerivative();
 
       // make alpha
       double dt_sec = (b->first - a->first);
@@ -273,9 +271,9 @@ bool CubicHermiteSE3Curve::evaluateDerivative(DerivativeType& derivative,
       const double gamma3 = 3.0*alpha2 - 2.0*alpha;
 
       const Eigen::Vector3d velocity_m_s = T_W_A.getPosition().vector()*(gamma0*one_over_dt_sec)
-                                         + d_W_A.head<3>()*(gamma1)
+                                         + d_W_A.getTranslationalVelocity().vector()*(gamma1)
                                          + T_W_B.getPosition().vector()*(gamma2*one_over_dt_sec)
-                                         + d_W_B.head<3>()*(gamma3);
+                                         + d_W_B.getTranslationalVelocity().vector()*(gamma3);
 
 
       /**************************************************************************************
@@ -293,8 +291,8 @@ bool CubicHermiteSE3Curve::evaluateDerivative(DerivativeType& derivative,
       const double dbeta3 = 3.0*alpha2;
 
       const double one_third = 1.0 / 3.0;
-      const Eigen::Vector3d scaled_d_W_A = (one_third*dt_sec ) * d_W_A.tail<3>();
-      const Eigen::Vector3d scaled_d_W_B = (one_third*dt_sec ) * d_W_B.tail<3>();
+      const Eigen::Vector3d scaled_d_W_A = (one_third*dt_sec ) * d_W_A.getRotationalVelocity().vector();
+      const Eigen::Vector3d scaled_d_W_B = (one_third*dt_sec ) * d_W_B.getRotationalVelocity().vector();
 
       const Eigen::Vector3d w1 = T_W_A.getRotation().inverseRotate(scaled_d_W_A);
       const Eigen::Vector3d w3 = T_W_B.getRotation().inverseRotate(scaled_d_W_B);
@@ -327,7 +325,7 @@ bool CubicHermiteSE3Curve::evaluateDerivative(DerivativeType& derivative,
 
       // note: unit of derivative is m/s for first 3 and rad/s for last 3 entries
 
-      derivative << velocity_m_s, angularVelocity_rad_s;
+      derivative = DerivativeType(velocity_m_s, angularVelocity_rad_s);
       return true;
     }
   }

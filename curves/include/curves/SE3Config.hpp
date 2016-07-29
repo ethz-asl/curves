@@ -9,15 +9,15 @@
 #pragma once
 
 #include <Eigen/Core>
-#include "kindr/Core"
+#include <kindr/Core>
 
 namespace curves {
 
 typedef Eigen::Matrix<double, 6, 1> Vector6d;
 
 struct SE3Config {
-  typedef kindr::HomogeneousTransformationPosition3RotationQuaternionD ValueType;
-  typedef Vector6d DerivativeType;
+  typedef kindr::HomTransformQuatD ValueType;
+  typedef kindr::TwistGlobalD DerivativeType;
 };
 
 } // namespace

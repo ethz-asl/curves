@@ -10,8 +10,8 @@
 
 #include "SE3Curve.hpp"
 #include "LocalSupport2CoefficientManager.hpp"
-#include "kindr/Core"
-#include "kindr/Core"
+#include <kindr/Core>
+
 //#include "kindr/minimal/cubic-hermite-interpolation-gtsam.h"
 //#include "kindr/minimal/cubic-hermite-quaternion-gtsam.h"
 //#include "kindr/minimal/rotation-quaternion-gtsam.h"
@@ -29,41 +29,41 @@ namespace kindr {
 
 template <typename Scalar>
 struct HermiteTransformation {
-  typedef kindr::HomogeneousTransformationPosition3RotationQuaternionD QuatTransformation;
-  typedef Eigen::Matrix<Scalar, 6, 1> Vector6;
+  typedef kindr::HomTransformQuatD Transform;
+  typedef kindr::TwistGlobalD Twist;
 
  public:
   HermiteTransformation();
-  HermiteTransformation(const QuatTransformation& transform, const Vector6& derivatives);
+  HermiteTransformation(const Transform& transform, const Twist& derivatives);
   virtual ~HermiteTransformation();
 
-  QuatTransformation getTransformation() const {
+  Transform getTransformation() const {
     return transformation_;
   }
 
-  Vector6 getTransformationDerivative() const {
+  Twist getTransformationDerivative() const {
     return transformationDerivative_;
   }
 
-  void setTransformation(const QuatTransformation& transformation) {
+  void setTransformation(const Transform& transformation) {
     transformation_ = transformation;
   }
 
-  void setTransformationDerivative(const Vector6& transformationDerivative) {
+  void setTransformationDerivative(const Twist& transformationDerivative) {
     transformationDerivative_ = transformationDerivative;
   }
 
  private:
-  QuatTransformation transformation_;
-  Vector6 transformationDerivative_;
+  Transform transformation_;
+  Twist transformationDerivative_;
 };
 
 template <typename Scalar>
 HermiteTransformation<Scalar>::HermiteTransformation() {};
 
 template <typename Scalar>
-HermiteTransformation<Scalar>::HermiteTransformation(const QuatTransformation& transform,
-                                                     const Vector6& derivatives) :
+HermiteTransformation<Scalar>::HermiteTransformation(const Transform& transform,
+                                                     const Twist& derivatives) :
                                                      transformation_(transform),
                                                      transformationDerivative_(derivatives) {};
 
@@ -202,8 +202,8 @@ class CubicHermiteSE3Curve : public SE3Curve {
 
   virtual void fitCurveWithDerivatives(const std::vector<Time>& times,
                         const std::vector<ValueType>& values,
-                        const DerivativeType& initialDerivative = DerivativeType::Zero(),
-                        const DerivativeType& finalDerivative = DerivativeType::Zero(),
+                        const DerivativeType& initialDerivative = DerivativeType(),
+                        const DerivativeType& finalDerivative = DerivativeType(),
                         std::vector<Key>* outKeys = NULL);
 
 
@@ -292,6 +292,7 @@ typedef SE3::Rotation SO3;
 typedef kindr::AngleAxisPD AngleAxis;
 typedef kindr::RotationQuaternionPD RotationQuaternion;
 typedef Eigen::Matrix<double, 6, 1> Vector6;
+typedef kindr::TwistGlobalD Twist;
 
 SE3 transformationPower(SE3  T, double alpha);
 

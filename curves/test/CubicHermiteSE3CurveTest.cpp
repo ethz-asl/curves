@@ -242,13 +242,12 @@ TEST(CubicHermiteSE3CurveTest, firstDerivative)
   CubicHermiteSE3Curve::DerivativeType derivative;
   ASSERT_TRUE(curve.evaluateDerivative(derivative, time0, 1));
   CubicHermiteSE3Curve::DerivativeType expDerivative;
-  expDerivative << Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero();
-  KINDR_ASSERT_DOUBLE_MX_EQ(expDerivative, derivative, 1e-1, "first");
+  KINDR_ASSERT_DOUBLE_MX_EQ(expDerivative.getVector(), derivative.getVector(), 1e-1, "first");
 
   // Derivative at last knot
   ASSERT_TRUE(curve.evaluateDerivative(derivative, time1, 1));
-  expDerivative << Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero();
-  KINDR_ASSERT_DOUBLE_MX_EQ(expDerivative, derivative, 1e-1, "last");
+  expDerivative.setZero();
+  KINDR_ASSERT_DOUBLE_MX_EQ(expDerivative.getVector(), derivative.getVector(), 1e-1, "last");
 
 
   // Finite difference
@@ -261,9 +260,9 @@ TEST(CubicHermiteSE3CurveTest, firstDerivative)
     ASSERT_TRUE(curve.evaluate(T_B, timeB));
     Eigen::Vector3d angularVel = T_B.getRotation().boxMinus(T_A.getRotation())/(2.0*h);
     Eigen::Vector3d linearVel = (T_B.getPosition().vector() - T_A.getPosition().vector())/(2.0*h);
-    expDerivative << linearVel, angularVel;
+    expDerivative = CubicHermiteSE3Curve::DerivativeType(linearVel, angularVel);
     ASSERT_TRUE(curve.evaluateDerivative(derivative, time, 1));
-    KINDR_ASSERT_DOUBLE_MX_EQ_ZT(expDerivative, derivative, 1.0, "fd", 1.0e-7);
+    KINDR_ASSERT_DOUBLE_MX_EQ_ZT(expDerivative.getVector(), derivative.getVector(), 1.0, "fd", 1.0e-7);
   }
 }
 
