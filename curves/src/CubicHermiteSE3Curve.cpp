@@ -2,7 +2,7 @@
  * CubicHermiteSE3Curve.cpp
  *
  *  Created on: Feb 10, 2015
- *      Author: Abel Gawel, Renaud Dube, Péter Fankhauser
+ *      Author: Abel Gawel, Renaud Dube, Péter Fankhauser, Christian Gehring
  *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
@@ -13,7 +13,7 @@
 namespace curves {
 
 CubicHermiteSE3Curve::CubicHermiteSE3Curve() : SE3Curve() {
-//  hermitePolicy_.setMinimumMeasurements(4);
+
 }
 
 CubicHermiteSE3Curve::~CubicHermiteSE3Curve() {}
@@ -213,14 +213,6 @@ bool CubicHermiteSE3Curve::evaluate(ValueType& value, Time time) const {
     const SO3 w3_dBeta3_exp = RotationQuaternion().exponentialMap(dBeta3 * w3);
 
     const RotationQuaternion rotation = T_W_A.getRotation() * w1_dBeta1_exp * w2_dBeta2_exp * w3_dBeta3_exp;
-
-    // debug
-//    printf("=====> eval time: %lf\n", time);
-//    std::cout << "alpha: "  << alpha << std::endl;
-//    std::cout << "T_W_A\n"  << T_W_A << std::endl;
-//    std::cout << "T_W_B\n"  << T_W_B << std::endl;
-//    std::cout << "d_W_A\n"  << d_W_A.transpose() << std::endl;
-//    std::cout << "d_W_B\n"  << d_W_B.transpose() << std::endl;
 
     value = SE3(translation, rotation);
     return true;
