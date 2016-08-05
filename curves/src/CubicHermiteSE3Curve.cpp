@@ -41,6 +41,45 @@ void CubicHermiteSE3Curve::print(const std::string& str) const {
   std::cout <<"=========================================" <<std::endl;
 }
 
+bool CubicHermiteSE3Curve::writeEvalToFile(const std::string& filename, int nSamples) const {
+  FILE* fp = fopen(filename.c_str(), "w");
+  if (fp==NULL) {
+    std::cout << "Could not open file to write" << std::endl;
+    return false;
+  }
+  fprintf(fp, "t ");
+  fprintf(fp, "px py pz ");
+  fprintf(fp, "rw rx ry rz ");
+  fprintf(fp, "vx vy vz ");
+  fprintf(fp, "wx wy wz ");
+  fprintf(fp, "\n");
+
+  Time dt = (getMaxTime()-getMinTime())/(nSamples-1);
+  ValueType pose;
+  DerivativeType twist;
+  for (Time t = getMinTime(); t < getMaxTime(); t+=dt) {
+    if(!evaluate(pose, t)) {
+      std::cout << "Could not evaluate at time " << t << std::endl;
+      fclose(fp);
+      return false;
+    }
+    if(!evaluateDerivative(twist, t, 1)) {
+      std::cout << "Could not evaluate derivative at time " << t << std::endl;
+      fclose(fp);
+      return false;
+    }
+    fprintf(fp, "%lf ", t);
+    fprintf(fp, "%lf %lf %lf ", pose.getPosition().x(), pose.getPosition().y(), pose.getPosition().z());
+    fprintf(fp, "%lf %lf %lf %lf ", pose.getRotation().w(), pose.getRotation().x(), pose.getRotation().y(), pose.getRotation().z());
+    fprintf(fp, "%lf %lf %lf ", twist.getTranslationalVelocity().x(), twist.getTranslationalVelocity().y(), twist.getTranslationalVelocity().z());
+    fprintf(fp, "%lf %lf %lf ", twist.getRotationalVelocity().x(), twist.getRotationalVelocity().y(), twist.getRotationalVelocity().z());
+    fprintf(fp, "\n");
+  }
+  fclose(fp);
+
+  return true;
+}
+
 Time CubicHermiteSE3Curve::getMaxTime() const {
   return manager_.getMaxTime();
 }
