@@ -168,6 +168,8 @@ class CubicHermiteSE3Curve : public SE3Curve {
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
 
+  virtual bool writeEvalToFile(const std::string& filename, int nSamples) const;
+
   /// The first valid time for the curve.
   virtual Time getMinTime() const;
 
