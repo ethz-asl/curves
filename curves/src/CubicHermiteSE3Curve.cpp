@@ -366,6 +366,45 @@ bool CubicHermiteSE3Curve::evaluateDerivative(DerivativeType& derivative,
   }
 }
 
+bool CubicHermiteSE3Curve::evaluateLinearAcceleration(Eigen::Vector3d& linearAcceleration, Time time) {
+
+  CoefficientIter a, b;
+  bool success = manager_.getCoefficientsAt(time, &a, &b);
+  if(!success) {
+    std::cerr << "Unable to get the coefficients at time " << time << std::endl;
+    return false;
+  }
+
+  // read out transformation from coefficient
+  const SE3 T_W_A = a->second.coefficient.getTransformation();
+  const SE3 T_W_B = b->second.coefficient.getTransformation();
+
+  // read out derivative from coefficient
+  const Twist d_W_A = a->second.coefficient.getTransformationDerivative();
+  const Twist d_W_B = b->second.coefficient.getTransformationDerivative();
+
+  // make alpha
+  double dt_sec = (b->first - a->first);
+  const double one_over_dt_sec = 1.0/dt_sec;
+  double alpha = double(time - a->first)/dt_sec;
+  const double d_alpha = one_over_dt_sec;
+
+  /**************************************************************************************
+   *  Translational part:
+   **************************************************************************************/
+  // Implementation of translation
+  const double d_gamma0 = 6.0*(2*alpha - 1.0)*d_alpha;
+  const double d_gamma1 = (6.0*alpha - 4.0)*d_alpha;
+  const double d_gamma2 = 6.0*(1.0 - 2.0*alpha)*d_alpha;
+  const double d_gamma3 = (6.0*alpha - 2.0)*d_alpha;
+
+  linearAcceleration = T_W_A.getPosition().vector()*d_gamma0*one_over_dt_sec + d_W_A.getTranslationalVelocity().vector()*d_gamma1 +
+                       T_W_B.getPosition().vector()*d_gamma2*one_over_dt_sec + d_W_B.getTranslationalVelocity().vector()*d_gamma3;
+
+
+  return true;
+}
+
 /// \brief forms cubic Hermite interpolation into a binary expression with 2 leafs and binds alpha into it,
 ///        uses break down of expression into its operations
 //gtsam::Expression<typename CubicHermiteSE3Curve::ValueType>

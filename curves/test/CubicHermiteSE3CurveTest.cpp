@@ -2,7 +2,7 @@
  * CubicHermiteSE3CurveTest.cpp
  *
  *  Created on: May 27, 2015
- *      Author: Péter Fankhauser
+ *      Author: Péter Fankhauser, Christian Gehring
  *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
@@ -252,7 +252,7 @@ TEST(CubicHermiteSE3CurveTest, firstDerivative)
 
   // Finite difference
   double h = 1.0e-8;
-  for (double time = times[0]+h; time <= times[3]; time += 0.1) {
+  for (double time = times[0]+h; time <= times.back(); time += 0.1) {
     double timeA = time-h;
     double timeB = time+h;
     ValueType T_A, T_B;
@@ -264,6 +264,65 @@ TEST(CubicHermiteSE3CurveTest, firstDerivative)
     ASSERT_TRUE(curve.evaluateDerivative(derivative, time, 1));
     KINDR_ASSERT_DOUBLE_MX_EQ_ZT(expDerivative.getVector(), derivative.getVector(), 1.0, "fd", 1.0e-7);
   }
+}
+
+TEST(CubicHermiteSE3CurveTest, linearAcceleration)
+{
+  CubicHermiteSE3Curve curve;
+   std::vector<Time> times;
+   std::vector<ValueType> values;
+
+   double time0 = -1.56;
+   times.push_back(time0);
+   ValueType::Rotation rotation0(kindr::EulerAnglesZyxD(M_PI_2, 0.2, -0.9));
+   ValueType::Position position0(1.0, 2.0, 4.0);
+   ValueType transform0(position0, rotation0);
+   values.push_back(transform0);
+
+   double timeMid1 = 1.0;
+   times.push_back(timeMid1);
+   ValueType::Rotation rotationMid1(kindr::EulerAnglesZyxD(2.0, 3.0, -1.1));
+   ValueType::Position positionMid1(2.0, 4.0, 8.0);
+   values.push_back(ValueType(positionMid1, rotationMid1));
+
+   double timeMid2 = 2.5;
+   times.push_back(timeMid2);
+   ValueType::Rotation rotationMid2(kindr::EulerAnglesZyxD(0.2, 0.5, 0.2));
+   ValueType::Position positionMid2(2.0, 4.0, 8.0);
+   values.push_back(ValueType(positionMid2, rotationMid2));
+
+   double timeMid3 = 3.0;
+   times.push_back(timeMid3);
+   ValueType::Rotation rotationMid3(kindr::EulerAnglesZyxD(1.5, 0.4, -0.3));
+   ValueType::Position positionMid3(2.0, 4.0, 8.0);
+   values.push_back(ValueType(positionMid3, rotationMid3));
+
+   double time1 = 4.0;
+   times.push_back(time1);
+   ValueType::Rotation rotation1(kindr::EulerAnglesZyxD(0.0, 0.0, 0.0));
+   ValueType::Position position1(4.0, 8.0, 16.0);
+   values.push_back(ValueType(position1, rotation1.getUnique()));
+
+   curve.fitCurve(times, values);
+
+
+
+
+   // Finite difference
+   double h = 1.0e-8;
+   for (double time = times[0]+h; time <= times.back(); time += 0.1) {
+     double timeA = time-h;
+     double timeB = time+h;
+     CubicHermiteSE3Curve::DerivativeType d_W_A, d_W_B;
+     ASSERT_TRUE(curve.evaluateDerivative(d_W_A, timeA, 1));
+     ASSERT_TRUE(curve.evaluateDerivative(d_W_B, timeB, 1));
+     Eigen::Vector3d expLinAcc = (d_W_B.getTranslationalVelocity().vector() - d_W_A.getTranslationalVelocity().vector())/(2.0*h);
+
+     Eigen::Vector3d linAcc;
+     ASSERT_TRUE(curve.evaluateLinearAcceleration(linAcc, time));
+     KINDR_ASSERT_DOUBLE_MX_EQ_ZT(expLinAcc, linAcc, 1.0, "fd", 1.0e-7);
+   }
+
 }
 
 TEST(Debugging, FreeGaitTorsoControl)

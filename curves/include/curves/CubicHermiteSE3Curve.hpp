@@ -2,7 +2,7 @@
  * CubicHermiteSE3Curve.hpp
  *
  *  Created on: Feb 10, 2015
- *      Author: Abel Gawel, Renaud Dube, Péter Fankhauser
+ *      Author: Abel Gawel, Renaud Dube, Péter Fankhauser, Christian Gehring
  *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
@@ -224,6 +224,8 @@ class CubicHermiteSE3Curve : public SE3Curve {
 //  void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
 
   virtual void setTimeRange(Time minTime, Time maxTime);
+
+  bool evaluateLinearAcceleration(Eigen::Vector3d& linearAcceleration, Time time);
 
   /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
   virtual Eigen::Vector3d evaluateAngularVelocityA(Time time);
