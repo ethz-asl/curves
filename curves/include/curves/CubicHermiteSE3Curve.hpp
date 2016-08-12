@@ -225,7 +225,7 @@ class CubicHermiteSE3Curve : public SE3Curve {
 
   virtual void setTimeRange(Time minTime, Time maxTime);
 
-  bool evaluateLinearAcceleration(Eigen::Vector3d& linearAcceleration, Time time);
+  bool evaluateLinearAcceleration(kindr::Acceleration3D& linearAcceleration, Time time);
 
   /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
   virtual Eigen::Vector3d evaluateAngularVelocityA(Time time);

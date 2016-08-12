@@ -318,9 +318,9 @@ TEST(CubicHermiteSE3CurveTest, linearAcceleration)
      ASSERT_TRUE(curve.evaluateDerivative(d_W_B, timeB, 1));
      Eigen::Vector3d expLinAcc = (d_W_B.getTranslationalVelocity().vector() - d_W_A.getTranslationalVelocity().vector())/(2.0*h);
 
-     Eigen::Vector3d linAcc;
+     kindr::Acceleration3D linAcc;
      ASSERT_TRUE(curve.evaluateLinearAcceleration(linAcc, time));
-     KINDR_ASSERT_DOUBLE_MX_EQ_ZT(expLinAcc, linAcc, 1.0, "fd", 1.0e-7);
+     KINDR_ASSERT_DOUBLE_MX_EQ_ZT(expLinAcc, linAcc.vector(), 1.0, "fd", 1.0e-7);
    }
 
 }

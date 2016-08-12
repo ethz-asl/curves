@@ -366,7 +366,7 @@ bool CubicHermiteSE3Curve::evaluateDerivative(DerivativeType& derivative,
   }
 }
 
-bool CubicHermiteSE3Curve::evaluateLinearAcceleration(Eigen::Vector3d& linearAcceleration, Time time) {
+bool CubicHermiteSE3Curve::evaluateLinearAcceleration(kindr::Acceleration3D& linearAcceleration, Time time) {
 
   CoefficientIter a, b;
   bool success = manager_.getCoefficientsAt(time, &a, &b);
@@ -398,8 +398,8 @@ bool CubicHermiteSE3Curve::evaluateLinearAcceleration(Eigen::Vector3d& linearAcc
   const double d_gamma2 = 6.0*(1.0 - 2.0*alpha)*d_alpha;
   const double d_gamma3 = (6.0*alpha - 2.0)*d_alpha;
 
-  linearAcceleration = T_W_A.getPosition().vector()*d_gamma0*one_over_dt_sec + d_W_A.getTranslationalVelocity().vector()*d_gamma1 +
-                       T_W_B.getPosition().vector()*d_gamma2*one_over_dt_sec + d_W_B.getTranslationalVelocity().vector()*d_gamma3;
+  linearAcceleration = kindr::Acceleration3D(T_W_A.getPosition().vector()*d_gamma0*one_over_dt_sec + d_W_A.getTranslationalVelocity().vector()*d_gamma1 +
+                                             T_W_B.getPosition().vector()*d_gamma2*one_over_dt_sec + d_W_B.getTranslationalVelocity().vector()*d_gamma3);
 
 
   return true;
