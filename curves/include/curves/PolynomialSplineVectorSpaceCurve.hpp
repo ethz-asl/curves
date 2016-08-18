@@ -16,12 +16,12 @@
 #include "curves/VectorSpaceCurve.hpp"
 
 // Robot Utils
-#include "robotUtils/function_approximators/polynomialSplines/PolynomialSplineContainer.hpp"
-#include "robotUtils/function_approximators/polynomialSplines/PolynomialSplineBase.hpp"
-#include "robotUtils/function_approximators/polynomialSplines/PolynomialSplineQuintic.hpp"
-#include "robotUtils/function_approximators/polynomialSplines/PolynomialSplineCubic.hpp"
+#include "robot_utils/function_approximators/polynomialSplines/PolynomialSplineContainer.hpp"
+#include "robot_utils/function_approximators/polynomialSplines/PolynomialSplineBase.hpp"
+#include "robot_utils/function_approximators/polynomialSplines/PolynomialSplineQuintic.hpp"
+#include "robot_utils/function_approximators/polynomialSplines/PolynomialSplineCubic.hpp"
 
-using namespace robotUtils;
+using namespace robot_utils;
 
 namespace curves {
 
