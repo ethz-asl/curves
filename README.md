@@ -16,3 +16,7 @@ Differences to the original [Curves](https://github.com/ethz-asl/curves) library
 * No dependencies on GSTAM,
 * Use of [kindr](https://github.com/ethz-asl/kindr) instead of [minkindr](https://github.com/ethz-asl/minkindr),
 * Tools (curves_ros) for conversion from and to ROS trajectory messages.
+
+## Build status
+
+[![Build Status](http://rsl-ci.ethz.ch/buildStatus/icon?job=curves)](http://rsl-ci.ethz.ch/job/curves/)
