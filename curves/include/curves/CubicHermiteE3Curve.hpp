@@ -124,7 +124,7 @@ class CubicHermiteE3Curve  {
   virtual bool evaluateDerivative(DerivativeType& derivative, Time time, unsigned int derivativeOrder) const;
 
 
-  bool evaluateLinearAcceleration(Acceleration& linearAcceleration, Time time);
+  bool evaluateLinearAcceleration(Acceleration& linearAcceleration, Time time) const;
 
   // clear the curve
   virtual void clear();

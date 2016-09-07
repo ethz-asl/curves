@@ -266,6 +266,9 @@ bool CubicHermiteE3Curve::evaluateDerivative(DerivativeType& derivative, Time ti
         return true;
       }
     }
+    else if (derivativeOrder == 2) {
+      return evaluateLinearAcceleration(derivative, time);
+    }
     else {
       std::cerr << "CubicHermiteSE3Curve::evaluateDerivative: higher order derivatives are not implemented!";
       return false;
@@ -274,7 +277,7 @@ bool CubicHermiteE3Curve::evaluateDerivative(DerivativeType& derivative, Time ti
 
 
 
-bool CubicHermiteE3Curve::evaluateLinearAcceleration(Acceleration& linearAcceleration, Time time) {
+bool CubicHermiteE3Curve::evaluateLinearAcceleration(Acceleration& linearAcceleration, Time time) const {
   CoefficientIter a, b;
    bool success = manager_.getCoefficientsAt(time, &a, &b);
    if(!success) {
