@@ -116,6 +116,9 @@ class CubicHermiteE3Curve  {
                         std::vector<Key>* outKeys = NULL);
 
 
+  virtual void fitPeriodicCurve(const std::vector<Time>& times,
+                                const std::vector<ValueType>& values,
+                                std::vector<Key>* outKeys = NULL);
 
   /// Evaluate the ambient space of the curve.
   virtual bool evaluate(ValueType& value, Time time) const;

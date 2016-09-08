@@ -126,6 +126,18 @@ void CubicHermiteE3Curve::fitCurve(const std::vector<Time>& times,
   fitCurveWithDerivatives(times, values, DerivativeType(), DerivativeType(), outKeys);
 }
 
+void CubicHermiteE3Curve::fitPeriodicCurve(const std::vector<Time>& times,
+                                           const std::vector<ValueType>& values,
+                                           std::vector<Key>* outKeys)
+{
+  /* We assume that the first and last points coincide.
+   *
+   */
+  const size_t nPoints = times.size();
+  DerivativeType derivative = calculateSlope(times[nPoints-2], times[1], values[nPoints-2], values[1]);
+  fitCurveWithDerivatives(times, values, derivative, derivative, outKeys);
+}
+
 void CubicHermiteE3Curve::fitCurveWithDerivatives(const std::vector<Time>& times,
                       const std::vector<ValueType>& values,
                       const DerivativeType& initialDerivative,
