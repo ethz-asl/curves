@@ -264,21 +264,24 @@ bool LocalSupport2CoefficientManager<Coefficient>::getCoefficientsAt(Time time,
   CoefficientIter it;
 
   if(time == getMaxTime()) {
+    //todo fix this hack. If time is getMaxTime() then there is only one active coefficient (for slerp).
     it = timeToCoefficient_.end();
     --it;
+    *outCoefficient0 = it;
+    *outCoefficient1 = it;
   } else {
     it = timeToCoefficient_.upper_bound(time);
-  }
-  if(it == timeToCoefficient_.begin() || it == timeToCoefficient_.end()) {
-    LOG(INFO) << "time, " << time << ", is out of bounds: [" << getMinTime() << ", " << getMaxTime() << "]";
-    return false;
-  }
-  --it;
 
-  // Okay. Now we know that the time is bracketed by
-  // it and it + 1.
-  *outCoefficient0 = it;
-  *outCoefficient1 = (++it);
+    if(it == timeToCoefficient_.begin() || it == timeToCoefficient_.end()) {
+      LOG(INFO) << "time, " << time << ", is out of bounds: [" << getMinTime() << ", " << getMaxTime() << "]";
+      return false;
+    }
+    --it;
+    // Okay. Now we know that the time is bracketed by
+    // it and it + 1.
+    *outCoefficient0 = it;
+    *outCoefficient1 = (++it);
+  }
 
   return true;
 }
