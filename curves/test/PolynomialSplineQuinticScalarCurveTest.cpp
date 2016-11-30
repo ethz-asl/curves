@@ -2,7 +2,7 @@
  * PolynomialSplineVectorSpaceCurve.cpp
  *
  *  Created on: Jun 6, 2016
- *      Author: Christian Gehring
+ *      Author: Christian Gehring, Peter Fankhauser
  *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
@@ -163,5 +163,35 @@ TEST(PolynomialSplineQuinticScalarCurveTest, firstDerivative)
   EXPECT_NEAR(0.0, derivative, 1.0e-3) << "maximum";
   curve.evaluateDerivative(derivative, 1.4, 1);
   EXPECT_NEAR(finiteDifference(curve, 1.4), derivative, 1.0e-3) << "inbetween";
+}
 
+TEST(PolynomialSplineQuinticScalarCurveTest, invarianceUnderOffset)
+{
+  // First curve.
+  PolynomialSplineQuinticScalarCurve curve1;
+  std::vector<Time> times;
+  std::vector<ValueType> values1;
+  times.push_back(0.0);
+  values1.push_back(ValueType(0.0));
+  times.push_back(0.41545);
+  values1.push_back(ValueType(0.1));
+  times.push_back(0.58075);
+  values1.push_back(ValueType(0.0));
+  curve1.fitCurve(times, values1);
+
+  // Second curve (offset).
+  PolynomialSplineQuinticScalarCurve curve2;
+  std::vector<ValueType> values2;
+  ValueType offset = -0.05;
+  for (const auto& value : values1) values2.push_back(value + offset);
+  curve2.fitCurve(times, values2);
+
+  // Check.
+  for (double time = times[0]; time <= times[3]; time += 0.01) {
+    ValueType value1;
+    curve1.evaluate(value1, time);
+    ValueType value2;
+    curve2.evaluate(value2, time);
+    EXPECT_NEAR(value1, value2 - offset, 1.0e-7);
+  }
 }

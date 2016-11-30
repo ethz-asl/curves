@@ -52,7 +52,6 @@ TEST(Evaluate, IdentityPoses)
   ASSERT_TRUE(curve.evaluate(value, 1.0));
   EXPECT_EQ(ValueType::Position(), value.getPosition());
   EXPECT_EQ(ValueType::Rotation(), value.getRotation());
-
 }
 
 TEST(Evaluate, TranslationOnly)
@@ -80,7 +79,6 @@ TEST(Evaluate, TranslationOnly)
   ASSERT_TRUE(curve.evaluate(value, 1.0));
   EXPECT_EQ(values[1].getPosition(), value.getPosition());
   EXPECT_EQ(ValueType::Rotation(), value.getRotation());
-
 }
 
 TEST(InvarianceUnderCoordinateTransformation, Translation)
@@ -190,7 +188,6 @@ TEST(InvarianceUnderCoordinateTransformation, Rotation2)
 
 }
 
-
 TEST(CubicHermiteSE3CurveTest, firstDerivative)
 {
   CubicHermiteSE3Curve curve;
@@ -249,7 +246,6 @@ TEST(CubicHermiteSE3CurveTest, firstDerivative)
   expDerivative.setZero();
   KINDR_ASSERT_DOUBLE_MX_EQ(expDerivative.getVector(), derivative.getVector(), 1e-1, "last");
 
-
   // Finite difference
   double h = 1.0e-8;
   for (double time = times[0]+h; time <= times.back(); time += 0.1) {
@@ -305,9 +301,6 @@ TEST(CubicHermiteSE3CurveTest, linearAcceleration)
 
    curve.fitCurve(times, values);
 
-
-
-
    // Finite difference
    double h = 1.0e-8;
    for (double time = times[0]+h; time <= times.back(); time += 0.1) {
@@ -322,7 +315,6 @@ TEST(CubicHermiteSE3CurveTest, linearAcceleration)
      ASSERT_TRUE(curve.evaluateLinearAcceleration(linAcc, time));
      KINDR_ASSERT_DOUBLE_MX_EQ_ZT(expLinAcc, linAcc.vector(), 1.0, "fd", 1.0e-7);
    }
-
 }
 
 TEST(Debugging, FreeGaitTorsoControl)
