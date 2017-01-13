@@ -10,16 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
 
-# Skip ALL_DEPS_REQUIRED so that we can run without gtsam.
-
-option(USE_GTSAM "Should the curves library enable GTSAM-specific functionality?" 
-  ${gtsam_catkin_FOUND})
-
-if(USE_GTSAM)
-  message(STATUS "+++ Enabling GTSAM-specific functionality.")
-  add_definitions(-DCURVES_USE_GTSAM)
-endif()
-
 # Attempt to find catkinized kindr
 find_package(kindr QUIET)
 if(NOT kindr_FOUND)
@@ -41,8 +31,6 @@ catkin_package(
   DEPENDS
     eigen
     boost
-  CFG_EXTRAS
-    curves-extras.cmake.in
 )
 
 include_directories(
