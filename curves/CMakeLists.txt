@@ -49,6 +49,7 @@ add_library(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
 )
 
@@ -74,6 +75,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
 message(glog_catkin_LIBRARIES: ${glog_catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_tests
   ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
 )
 
 install(TARGETS ${PROJECT_NAME}
