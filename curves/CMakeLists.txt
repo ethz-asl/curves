@@ -3,25 +3,22 @@ project(curves)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
-find_package(catkin_simple 0.1.0 REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+  robot_utils
+)
+
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system thread)
 
 # Skip ALL_DEPS_REQUIRED so that we can run without gtsam.
-catkin_simple()
 
 option(USE_GTSAM "Should the curves library enable GTSAM-specific functionality?" 
-	${gtsam_catkin_FOUND})
+  ${gtsam_catkin_FOUND})
 
 if(USE_GTSAM)
   message(STATUS "+++ Enabling GTSAM-specific functionality.")
   add_definitions(-DCURVES_USE_GTSAM)
 endif()
-
-include_directories(
-  include
-  ${EIGEN3_INCLUDE_DIR}
-  ${Kindr_INCLUDE_DIRS}
-)
 
 # Attempt to find catkinized kindr
 find_package(kindr QUIET)
@@ -31,7 +28,27 @@ if(NOT kindr_FOUND)
   pkg_check_modules(kindr kindr REQUIRED)
 endif()
 
-cs_add_library(${PROJECT_NAME} 
+catkin_package(
+  INCLUDE_DIRS
+    include
+  LIBRARIES
+    ${PROJECT_NAME}
+  CATKIN_DEPENDS
+    robot_utils
+  DEPENDS
+    eigen
+    boost
+  CFG_EXTRAS
+    curves-extras.cmake.in
+)
+
+include_directories(
+  include
+  ${EIGEN3_INCLUDE_DIR}
+  ${Kindr_INCLUDE_DIRS}
+)
+
+add_library(${PROJECT_NAME}
   src/KeyGenerator.cpp
   src/CubicHermiteSE3Curve.cpp
   src/CubicHermiteE3Curve.cpp
@@ -39,9 +56,9 @@ cs_add_library(${PROJECT_NAME}
   src/SE3Curve.cpp
 )
 
-find_package(Boost REQUIRED COMPONENTS system thread)
-find_package(Eigen3 REQUIRED)
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}
+  ${Boost_LIBRARIES}
+)
 
 catkin_add_gtest(${PROJECT_NAME}_tests 
   test/test_main.cpp
@@ -59,10 +76,12 @@ catkin_add_gtest(${PROJECT_NAME}_tests
 )
 
 message(glog_catkin_LIBRARIES: ${glog_catkin_LIBRARIES})
-target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}_tests
+  ${PROJECT_NAME}
+)
 
-#add_doxygen(NOT_AUTOMATIC)
-
-cs_install()
-cs_export(CFG_EXTRAS curves-extras.cmake)
-
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

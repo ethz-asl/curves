@@ -8,9 +8,9 @@
   <license>BSD</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <buildtool_depend>catkin_simple</buildtool_depend>
-  
-  <depend>doxygen_catkin</depend>
+
   <depend>robot_utils</depend>
+  <depend>eigen</depend>
+  <depend>boost</depend>
 </package>
 
