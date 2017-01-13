@@ -28,6 +28,9 @@ if(NOT kindr_FOUND)
   pkg_check_modules(kindr kindr REQUIRED)
 endif()
 
+# Add Doxygen documentation
+add_subdirectory(doc/doxygen)
+
 catkin_package(
   INCLUDE_DIRS
     include
