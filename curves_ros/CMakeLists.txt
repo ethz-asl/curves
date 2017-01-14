@@ -43,6 +43,7 @@ catkin_package(
     kindr_ros
     trajectory_msgs
   DEPENDS
+    eigen
 )
 
 include_directories(
