@@ -10,7 +10,7 @@
 
 namespace curves {
 
-typedef double Time; // Time type for curves. Does not work with doubles.
+typedef double Time; // Time type for curves.
 typedef size_t Key;
 
 template<typename CurveConfig>
