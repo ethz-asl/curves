@@ -68,15 +68,11 @@ catkin_add_gtest(${PROJECT_NAME}_tests
   test/PolynomialSplineVectorSpaceCurveTest.cpp
   test/PolynomialSplineQuinticScalarCurveTest.cpp
 #  test/test_LocalSupport2CoefficientManager.cpp
-#  test/test_Expressions.cpp
-#  test/test_Expressions_Slerp_SE3.cpp
 #  test/test_Hermite.cpp
-#  test/test_SE3_Sinus_Circle.cpp
-#  test/test_SE3CompositionCurve.cpp
+  test/test_SE3CompositionCurve.cpp
 #  test/test_MITb_dataset.cpp
 #  test/test_Pose2_Expressions.cpp
 #  test/test_MITb_dataset_SE2.cpp
-#  test/test_Expressions_Slerp_SE2.cpp
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
 )
 

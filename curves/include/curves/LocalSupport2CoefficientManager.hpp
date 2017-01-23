@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "curves/Curve.hpp"
 #include <Eigen/Core>
 #include <boost/unordered_map.hpp>
 #include <vector>
