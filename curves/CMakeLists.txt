@@ -4,8 +4,6 @@ project(curves)
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 find_package(catkin REQUIRED COMPONENTS
-  robot_utils
-  glog_catkin
 )
 
 find_package(Eigen3 REQUIRED)
@@ -28,10 +26,10 @@ catkin_package(
   LIBRARIES
     ${PROJECT_NAME}
   CATKIN_DEPENDS
-    robot_utils
   DEPENDS
     eigen
     boost
+    libgoogle-glog-dev
 )
 
 include_directories(
@@ -47,6 +45,10 @@ add_library(${PROJECT_NAME}
   src/CubicHermiteE3Curve.cpp
   src/SlerpSE3Curve.cpp
   src/SE3Curve.cpp
+  src/PolynomialSplineBase.cpp
+  src/PolynomialSplineQuintic.cpp
+  src/PolynomialSplineCubic.cpp
+  src/PolynomialSplineContainer.cpp
 #  src/SE2Curve.cpp
 #  src/SlerpSE2Curve.cpp
 #  src/DiscreteSE3Curve.cpp
@@ -57,6 +59,7 @@ add_library(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
+  glog
 )
 
 add_dependencies(${PROJECT_NAME}
@@ -66,6 +69,7 @@ add_dependencies(${PROJECT_NAME}
 catkin_add_gtest(${PROJECT_NAME}_tests 
   test/test_main.cpp
   test/CubicHermiteSE3CurveTest.cpp
+  test/PolynomialSplineContainerTest.cpp
   test/PolynomialSplineVectorSpaceCurveTest.cpp
   test/PolynomialSplineQuinticScalarCurveTest.cpp
 #  test/test_LocalSupport2CoefficientManager.cpp
@@ -81,10 +85,10 @@ catkin_add_gtest(${PROJECT_NAME}_tests
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
 )
 
-message(glog_catkin_LIBRARIES: ${glog_catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_tests
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  glog
 )
 
 install(TARGETS ${PROJECT_NAME}

@@ -11,19 +11,14 @@
 #include <string>
 #include <vector>
 #include <Eigen/Core>
+#include <glog/logging.h>
 
 #include "curves/Curve.hpp"
 #include "curves/VectorSpaceCurve.hpp"
-
-#include <glog/logging.h>
-
-// Robot Utils
-#include "robot_utils/function_approximators/polynomialSplines/PolynomialSplineContainer.hpp"
-#include "robot_utils/function_approximators/polynomialSplines/PolynomialSplineBase.hpp"
-#include "robot_utils/function_approximators/polynomialSplines/PolynomialSplineQuintic.hpp"
-#include "robot_utils/function_approximators/polynomialSplines/PolynomialSplineCubic.hpp"
-
-using namespace robot_utils;
+#include "curves/PolynomialSplineContainer.hpp"
+#include "curves/PolynomialSplineBase.hpp"
+#include "curves/PolynomialSplineQuintic.hpp"
+#include "curves/PolynomialSplineCubic.hpp"
 
 namespace curves {
 
