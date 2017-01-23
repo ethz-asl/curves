@@ -1,9 +1,8 @@
 /*
-
  * @file CompositionCurve-inl.hpp
  * @date Feb 06, 2015
  * @author Renaud Dubé, Abel Gawel, Mike Bosse
-
+ */
 
 // COMPOSITION_STRATEGY is used to select the strategy for composing the
 // correction curve with the base curve at the evaluation time t:
@@ -277,58 +276,8 @@ typename SE3CompositionCurve<C1, C2>::ValueType SE3CompositionCurve<C1, C2>::eva
 }
 
 template <class C1, class C2>
-gtsam::Expression<typename SE3CompositionCurve<C1, C2>::ValueType>
-SE3CompositionCurve<C1, C2>::getValueExpression(const Time& time) const{
-
-#if COMPOSITION_STRATEGY == 1
-  // (1) corr(t) * base(t) is implemented
-  return kindr::minimal::compose(correctionCurve_.getValueExpression(time),
-                                 gtsam::Expression<ValueType>(baseCurve_.evaluate(time)));
-#elif COMPOSITION_STRATEGY == 2
-  // (2) corr is evaluated at the coefficient times (t1, t2) where the interpolation
-  //     on base is computed resulting in
-  //     interpolation(corr(t1) * base(t1), corr(t2) * base(t2), alpha)
-  typename C2::CoefficientIter it1, it2;
-  baseCurve_.manager_.getCoefficientsAt(time, &it1, &it2);
-  if(it1->first == time || it2->first == time) {
-    return kindr::minimal::compose(correctionCurve_.getValueExpression(time),
-                                   gtsam::Expression<ValueType>(baseCurve_.evaluate(time)));
-  } else {
-    //if the iterators returned are in order (last element bug)
-    Time tA, tB;
-    if (it1->first < it2->first) {
-      tA = it1->first;
-      tB = it2->first;
-    } else {
-      tA = it2->first;
-      tB = it1->first;
-    }
-
-    gtsam::Expression<ValueType> E_dA = correctionCurve_.getValueExpression(tA);
-    gtsam::Expression<ValueType> E_dB = correctionCurve_.getValueExpression(tB);
-
-    gtsam::Expression<ValueType> E_A(baseCurve_.evaluate(tA));
-    gtsam::Expression<ValueType> E_B(baseCurve_.evaluate(tB));
-
-    gtsam::Expression<ValueType> E_dAA = kindr::minimal::compose(E_dA, E_A);
-    gtsam::Expression<ValueType> E_dBB = kindr::minimal::compose(E_dB, E_B);
-
-    double alpha = double(time - tA)/double(tB - tA);
-
-    return kindr::minimal::slerp(E_dAA, E_dBB, alpha);
-  }
-#endif
-}
-
-template <class C1, class C2>
 typename SE3CompositionCurve<C1, C2>::DerivativeType SE3CompositionCurve<C1, C2>::evaluateDerivative(Time time,
                                                                                                      unsigned derivativeOrder) const{
-  //todo
-}
-
-template <class C1, class C2>
-gtsam::Expression<typename SE3CompositionCurve<C1, C2>::DerivativeType>
-SE3CompositionCurve<C1, C2>::getDerivativeExpression(const Time& time, unsigned derivativeOrder) const{
   //todo
 }
 
@@ -398,21 +347,6 @@ Vector6d SE3CompositionCurve<C1, C2>::evaluateDerivativeB(unsigned derivativeOrd
 }
 
 template <class C1, class C2>
-void SE3CompositionCurve<C1, C2>::initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const{
-  correctionCurve_.initializeGTSAMValues(keys, values);
-}
-
-template <class C1, class C2>
-void SE3CompositionCurve<C1, C2>::initializeGTSAMValues(gtsam::Values* values) const{
-  correctionCurve_.initializeGTSAMValues(values);
-}
-
-template <class C1, class C2>
-void SE3CompositionCurve<C1, C2>::updateFromGTSAMValues(const gtsam::Values& values){
-  correctionCurve_.updateFromGTSAMValues(values);
-}
-
-template <class C1, class C2>
 void SE3CompositionCurve<C1, C2>::clear(){
   baseCurve_.clear();
   correctionCurve_.clear();
@@ -428,22 +362,12 @@ void SE3CompositionCurve<C1, C2>::setCorrectionCoefficientAtTime(Time time, Valu
   CHECK(correctionCurve_.manager_.hasCoefficientAtTime(time));
   correctionCurve_.manager_.insertCoefficient(time, value);
 }
-template <class C1, class C2>
-void SE3CompositionCurve<C1, C2>::addPriorFactors(gtsam::NonlinearFactorGraph* graph,
-                                                  Time priorTime) const {
-  correctionCurve_.addPriorFactors(graph, priorTime);
-}
 
 template <class C1, class C2>
 void SE3CompositionCurve<C1, C2>::transformCurve(const ValueType T) {
   // Apply the transformation on the left side
   // todo here we assume that the correctionCurve is identity.
   baseCurve_.transformCurve(T);
-}
-
-template <class C1, class C2>
-Time SE3CompositionCurve<C1, C2>::getTimeAtKey(gtsam::Key key) const {
-  return correctionCurve_.getTimeAtKey(key);
 }
 
 template <class C1, class C2>
@@ -546,4 +470,3 @@ void SE3CompositionCurve<C1, C2>::getCurveTimes(std::vector<Time>* outTimes) con
 }
 
 } // namespace curves
-*/

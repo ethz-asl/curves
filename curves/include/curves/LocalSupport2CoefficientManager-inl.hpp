@@ -11,7 +11,7 @@
 #include <iostream>
 #include <curves/LocalSupport2CoefficientManager.hpp>
 #include <curves/KeyGenerator.hpp>
-#include <assert.h>
+#include <glog/logging.h>
 
 namespace curves {
 
@@ -394,42 +394,6 @@ void LocalSupport2CoefficientManager<Coefficient>::checkInternalConsistency(bool
   }
   if (doExit) {
     exit(0);
-  }
-}
-
-template <class Coefficient>
-void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const {
-  for (gtsam::KeySet::const_iterator it1 = keys.begin(); it1 != keys.end(); ++it1 ) {
-    typename boost::unordered_map<Key, CoefficientIter>::const_iterator it2 = keyToCoefficient_.find(*it1);
-    // Only add the values for the keys which are requested and belong to this curve
-    if (it2 != keyToCoefficient_.end()) {
-      values->insert(*it1,it2->second->second.coefficient);
-    }
-  }
-}
-
-template <class Coefficient>
-void LocalSupport2CoefficientManager<Coefficient>::initializeGTSAMValues(gtsam::Values* values) const {
-  std::vector<Key> allKeys;
-  getKeys(&allKeys);
-  gtsam::KeySet keySet;
-
-  //todo way to make this more efficient?
-  for (size_t i = 0; i < allKeys.size(); ++i) {
-    keySet.insert(allKeys[i]);
-  }
-
-  initializeGTSAMValues(keySet, values);
-}
-
-template <class Coefficient>
-void LocalSupport2CoefficientManager<Coefficient>::updateFromGTSAMValues(const gtsam::Values& values) {
-  gtsam::Values::const_iterator iter;
-  for (iter = values.begin(); iter != values.end(); ++iter) {
-    // Only update the curve coefficients
-    if (keyToCoefficient_.find(iter->key) != keyToCoefficient_.end()) {
-      updateCoefficientByKey(iter->key,iter->value.cast<Coefficient>());
-    }
   }
 }
 

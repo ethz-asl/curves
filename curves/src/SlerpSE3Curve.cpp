@@ -31,8 +31,8 @@ void SlerpSE3Curve::print(const std::string& str) const {
   double sum_dp = 0;
   Eigen::Vector3d p1, p2;
   for(size_t i = 0; i < times.size()-1; ++i) {
-    p1 = evaluate(times[i]).getPosition();
-    p2 = evaluate(times[i+1]).getPosition();
+    p1 = evaluate(times[i]).getPosition().vector();
+    p2 = evaluate(times[i+1]).getPosition().vector();
     sum_dp += (p1-p2).norm();
   }
   std::cout << "average dt between coefficients: " << (manager_.getMaxTime() -manager_.getMinTime())  / (times.size()-1) << " ns." << std::endl;
@@ -95,40 +95,43 @@ typename SlerpSE3Curve::DerivativeType
 SlerpSE3Curve::evaluateDerivative(
     Time time, unsigned derivativeOrder) const
 {
-  // time is out of bound --> error
-  CHECK_GE(time, this->getMinTime()) << "Time out of bounds";
-  CHECK_LE(time, this->getMaxTime()) << "Time out of bounds";
-
-  Eigen::VectorXd dCoeff;
-  Time dt;
-  CoefficientIter rval0, rval1;
-  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
-  CHECK(success) << "Unable to get the coefficients at time " << time;
-  // first derivative
-  if (derivativeOrder == 1) {
-    //todo Verify this
-    dCoeff = gtsam::traits<Coefficient>::Local(rval1->second.coefficient,rval0->second.coefficient);
-    dt = rval1->first - rval0->first;
-    return dCoeff/dt;
-    // order of derivative > 1 returns vector of zeros
-  } else {
-    const int dimension = gtsam::traits<Coefficient>::dimension;
-    return Eigen::VectorXd::Zero(dimension,1);
-  }
+  CHECK(false) << "Not implemented";
+//  // time is out of bound --> error
+//  CHECK_GE(time, this->getMinTime()) << "Time out of bounds";
+//  CHECK_LE(time, this->getMaxTime()) << "Time out of bounds";
+//
+//  Eigen::VectorXd dCoeff;
+//  Time dt;
+//  CoefficientIter rval0, rval1;
+//  bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
+//  CHECK(success) << "Unable to get the coefficients at time " << time;
+//  // first derivative
+//  if (derivativeOrder == 1) {
+//    //todo Verify this
+//    dCoeff = gtsam::traits<Coefficient>::Local(rval1->second.coefficient,rval0->second.coefficient);
+//    dt = rval1->first - rval0->first;
+//    return dCoeff/dt;
+//    // order of derivative > 1 returns vector of zeros
+//  } else {
+//    // TODO
+//    const int dimension = gtsam::traits<Coefficient>::dimension;
+//    return Eigen::VectorXd::Zero(dimension,1);
+//  }
 }
 
 /// \brief \f[T^{\alpha}\f]
 SE3 transformationPower(SE3 T, double alpha)
 {
-  SO3 R(T.getRotation());
-  SE3::Position t(T.getPosition());
-
-  AngleAxis angleAxis(R);
-  angleAxis.setUnique();
-  angleAxis.setAngle(angleAxis.angle() * alpha);
-  angleAxis.setUnique();
-
-  return SE3(SO3(angleAxis),(t*alpha).eval());
+  CHECK(false) << "Not implemented";
+//  SO3 R(T.getRotation());
+//  SE3::Position t(T.getPosition());
+//
+//  AngleAxis angleAxis(R);
+//  angleAxis.setUnique();
+//  angleAxis.setAngle(angleAxis.angle() * alpha);
+//  angleAxis.setUnique();
+//
+//  return SE3(SO3(angleAxis),(t*alpha).eval());
 }
 
 /// \brief \f[A*B\f]
@@ -140,7 +143,8 @@ SE3 composeTransformations(SE3 A, SE3 B)
 /// \brief \f[T^{-1}\f]
 SE3 inverseTransformation(SE3 T)
 {
-  return T.inverted();
+  CHECK(false) << "Not implemented";
+//  return T.inverted();
 }
 
 SE3 invertAndComposeImplementation(SE3 A, SE3 B)
@@ -151,32 +155,32 @@ SE3 invertAndComposeImplementation(SE3 A, SE3 B)
 
 SE3 SlerpSE3Curve::evaluate(Time time) const
 {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 
   // Check if the curve is only defined at this one time
-  if (manager_.getMaxTime() == time && manager_.getMinTime() == time) {
-    return manager_.coefficientBegin()->second.coefficient;
-  } else {
-    if (time == manager_.getMaxTime()) {
-      // Efficient evaluation of a curve end
-      return (--manager_.coefficientEnd())->second.coefficient;
-    } else {
-      CoefficientIter a, b;
-      bool success = manager_.getCoefficientsAt(time, &a, &b);
-      CHECK(success) << "Unable to get the coefficients at time " << time;
-      SE3 T_W_A = a->second.coefficient;
-      SE3 T_W_B = b->second.coefficient;
-      double alpha = double(time - a->first)/double(b->first - a->first);
-
-      //Implementation of T_W_I = T_W_A*exp(alpha*log(inv(T_W_A)*T_W_B))
-      using namespace kindr::minimal;
-      SE3 T_A_B = invertAndComposeImplementation(T_W_A, T_W_B, boost::none, boost::none);
-      gtsam::Vector6 log_T_A_B = transformationLogImplementation(T_A_B, boost::none);
-      gtsam::Vector6 log_T_A_I = vectorScalingImplementation<int(6)>(log_T_A_B, alpha, boost::none, boost::none);
-      SE3 T_A_I = transformationExpImplementation(log_T_A_I, boost::none);
-      return composeImplementation(T_W_A, T_A_I, boost::none, boost::none);
-    }
-  }
+//  if (manager_.getMaxTime() == time && manager_.getMinTime() == time) {
+//    return manager_.coefficientBegin()->second.coefficient;
+//  } else {
+//    if (time == manager_.getMaxTime()) {
+//      // Efficient evaluation of a curve end
+//      return (--manager_.coefficientEnd())->second.coefficient;
+//    } else {
+//      CoefficientIter a, b;
+//      bool success = manager_.getCoefficientsAt(time, &a, &b);
+//      CHECK(success) << "Unable to get the coefficients at time " << time;
+//      SE3 T_W_A = a->second.coefficient;
+//      SE3 T_W_B = b->second.coefficient;
+//      double alpha = double(time - a->first)/double(b->first - a->first);
+//
+//      //Implementation of T_W_I = T_W_A*exp(alpha*log(inv(T_W_A)*T_W_B))
+//      using namespace kindr::minimal;
+//      SE3 T_A_B = invertAndComposeImplementation(T_W_A, T_W_B, boost::none, boost::none);
+//      gtsam::Vector6 log_T_A_B = transformationLogImplementation(T_A_B, boost::none);
+//      gtsam::Vector6 log_T_A_I = vectorScalingImplementation<int(6)>(log_T_A_B, alpha, boost::none, boost::none);
+//      SE3 T_A_I = transformationExpImplementation(log_T_A_I, boost::none);
+//      return composeImplementation(T_W_A, T_A_I, boost::none, boost::none);
+//    }
+//  }
 }
 
 void SlerpSE3Curve::setTimeRange(Time minTime, Time maxTime) {

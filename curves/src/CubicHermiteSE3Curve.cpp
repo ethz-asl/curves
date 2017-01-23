@@ -111,7 +111,7 @@ void CubicHermiteSE3Curve::fitCurveWithDerivatives(const std::vector<Time>& time
                                     const DerivativeType& finalDerivative,
                                     std::vector<Key>* outKeys)
 {
-  CHECK_EQ(times.size() == values.size());
+  CHECK_EQ(times.size(), values.size());
   CHECK_GE(times.size(), 3) << "Hermite curve must be defined by > 2 coefficients";
 
   clear();
@@ -582,7 +582,7 @@ void CubicHermiteSE3Curve::saveCurveAtTimes(const std::string& filename, std::ve
   std::vector<Eigen::VectorXd> curveValues;
   ValueType val;
   for (size_t i = 0; i < times.size(); ++i) {
-    val = evaluate(times[i]);
+    evaluate(val, times[i]);
     v << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
         val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
     curveValues.push_back(v);
@@ -593,10 +593,6 @@ void CubicHermiteSE3Curve::saveCurveAtTimes(const std::string& filename, std::ve
 
 void CubicHermiteSE3Curve::getCurveTimes(std::vector<Time>* outTimes) const {
   manager_.getTimes(outTimes);
-}
-
-Time CubicHermiteSE3Curve::getTimeAtKey(gtsam::Key key) const {
-  return manager_.getCoefficientTimeByKey(key);
 }
 
 } // namespace curves

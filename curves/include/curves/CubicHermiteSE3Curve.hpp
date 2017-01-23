@@ -220,8 +220,6 @@ class CubicHermiteSE3Curve : public SE3Curve {
   /// \brief Perform a rigid transformation on the left side of the curve
   void transformCurve(const ValueType T);
 
-  virtual Time getTimeAtKey(gtsam::Key key) const;
-
   void saveCurveTimesAndValues(const std::string& filename) const;
 
   void saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const;
@@ -299,7 +297,7 @@ inline Key SamplingPolicy::defaultExtend<CubicHermiteSE3Curve, ValueType>(const 
 
   // manager is empty
   if (curve->manager_.size() == 0) {
-    derivative << 0,0,0,0,0,0;
+    derivative.setZero();
     // 1 value in manager (2 in total)
   } else if (curve->manager_.size() == 1) {
     // get latest coefficient from manager
@@ -324,18 +322,14 @@ inline Key SamplingPolicy::defaultExtend<CubicHermiteSE3Curve, ValueType>(const 
 
     // update derivative of previous coefficient
     DerivativeType derivative0;
-    derivative0 << curve->calculateSlope(rVal0->first,
-                                  time,
-                                  rVal0->second.coefficient.getTransformation(),
-                                  value);
+    derivative0 = curve->calculateSlope(rVal0->first, time,
+                                        rVal0->second.coefficient.getTransformation(), value);
     Coefficient updated(rVal1->second.coefficient.getTransformation(), derivative0);
     curve->manager_.updateCoefficientByKey(rVal1->second.key, updated);
 
     // calculate slope
-    derivative << curve->calculateSlope(rVal1->first,
-                                 time,
-                                 rVal1->second.coefficient.getTransformation(),
-                                 value);
+    derivative = curve->calculateSlope(rVal1->first, time,
+                                       rVal1->second.coefficient.getTransformation(), value);
   }
   measurementsSinceLastExtend_ = 0;
   lastExtend_ = time;
@@ -351,7 +345,7 @@ inline Key SamplingPolicy::interpolationExtend<CubicHermiteSE3Curve, ValueType>(
     // extend curve with new interpolation coefficient if necessary
     CoefficientIter rValInterp = --curve->manager_.coefficientEnd();
     CoefficientIter last = --curve->manager_.coefficientEnd();
-    derivative << last->second.coefficient.getTransformationDerivative();
+    derivative = last->second.coefficient.getTransformationDerivative();
   } else {
     // assumes the interpolation coefficient is already set (at end of curve)
     // assumes same velocities as last Coefficient
@@ -361,10 +355,8 @@ inline Key SamplingPolicy::interpolationExtend<CubicHermiteSE3Curve, ValueType>(
                                &rVal0,
                                &rValInterp);
 
-    derivative << curve->calculateSlope(rVal0->first,
-                                 time,
-                                 rVal0->second.coefficient.getTransformation(),
-                                 value);
+    derivative = curve->calculateSlope(rVal0->first, time,
+                                       rVal0->second.coefficient.getTransformation(), value);
 
     // update the interpolated coefficient with given values and velocities from last coefficeint
     curve->manager_.removeCoefficientAtTime(rValInterp->first);
@@ -405,88 +397,5 @@ namespace kindr {
 typedef curves::SE3Curve::ValueType ValueType;
 typedef curves::SE3Curve::DerivativeType DerivativeType;
 typedef kindr::HermiteTransformation<double> Coefficient;
-// Expressions for HermiteTransformation -> Transformation
-static QuatTransformation transformationFromHermiteTransformationImplementation(
-    const HermiteTransformation<double>& T, gtsam::OptionalJacobian<6, 12> HT) {
-  if(HT) {
-    HT->leftCols<6>().setIdentity();
-    HT->rightCols<6>().setZero();
-  }
-  return T.getTransformation();
-}
-
-static ETransformation transformationFromHermiteTransformation(
-    const EHermiteTransformation& T) {
-  return ETransformation(
-      &transformationFromHermiteTransformationImplementation, T);
-}
-
-// Expressions for HermiteTransformation -> AngularVelocities
-static Eigen::Vector3d angularVelocitiesFromHermiteTransformationImplementation(
-    const HermiteTransformation<double>& T, gtsam::OptionalJacobian<3, 12> HT) {
-  if(HT) {
-    HT->block(0,0,3,3).setZero();
-    HT->block(0,3,3,3).setZero();
-    HT->block(0,6,3,3).setZero();
-    HT->block(0,9,3,3).setIdentity();
-  }
-  return T.getTransformationDerivative().tail<3>();
-}
-
-static EVector3 angularVelocitiesFromHermiteTransformation(
-    const EHermiteTransformation& T) {
-  return EVector3(
-      &angularVelocitiesFromHermiteTransformationImplementation, T);
-}
-
-// Expressions for HermiteTransformation -> Velocities
-static Eigen::Vector3d velocitiesFromHermiteTransformationImplementation(
-    const HermiteTransformation<double>& T, gtsam::OptionalJacobian<3, 12> HT) {
-  if(HT) {
-    HT->block(0,0,3,3).setZero();
-    HT->block(0,3,3,3).setZero();
-    HT->block(0,6,3,3).setIdentity();
-    HT->block(0,9,3,3).setZero();
-  }
-  return T.getTransformationDerivative().head<3>();
-}
-
-static EVector3 velocitiesFromHermiteTransformation(
-    const EHermiteTransformation& T) {
-  return EVector3(
-      &velocitiesFromHermiteTransformationImplementation, T);
-}
-
-static Coefficient composeHermiteTransformationImplementation(
-    const ValueType& T, const DerivativeType& v,
-    gtsam::OptionalJacobian<12, 6> H1,
-    gtsam::OptionalJacobian<12, 6> H2) {
-  if (H1) {
-    H1->topRows<6>().setIdentity();
-    H1->bottomRows<6>().setZero();
-  }
-  if (H2) {
-    H2->topRows<6>().setZero();
-    H2->bottomRows<6>().setIdentity();
-  }
-  return Coefficient(T, v);
-}
-
-// Expression for Transformation & Velocities -> HermiteTransformation
-static EHermiteTransformation composeHermiteTransformation(
-    const ETransformation& T,
-    const EVector6& v) {
-  return EHermiteTransformation(
-      &composeHermiteTransformationImplementation, T, v);
-}
-/// \brief Scale a point.
-///
-/// This is syntatic sugar to be able to write
-/// Expression<Eigen::Vector3d> walpha = w * alpha;
-/// instead of
-/// Expression<Eigen::Vector3d> walpha = Expression<Eigen::Vector3d>(&vectorScaling, w, alpha);
-static EVector3 operator*(const EVector3& w, const double& alpha) {
-  return vectorScaling(w, alpha);
-}
 
 }

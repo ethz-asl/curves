@@ -1,14 +1,10 @@
 /*
-
  * @file CompositionCurve.hpp
  * @date Feb 06, 2015
  * @author Renaud Dubé, Abel Gawel, Mike Bosse
+ */
 
-
-#ifndef CURVES_COMPOSITION_CURVE_HPP
-#define CURVES_COMPOSITION_CURVE_HPP
-
-#include "gtsam/nonlinear/NonlinearFactorGraph.h"
+#pragma once
 
 namespace curves {
 
@@ -96,11 +92,6 @@ class SE3CompositionCurve : public SE3Curve {
     /// derivatives of order >1 equal 0
     virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
-    /// \brief Get an evaluator at this time
-    virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const;
-
-    virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const;
-
     virtual void setTimeRange(Time minTime, Time maxTime);
 
     /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
@@ -147,15 +138,6 @@ class SE3CompositionCurve : public SE3Curve {
     ///        and the angular velocity (3,4,5).
     virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
 
-    /// \brief Initialize a GTSAM values structure with the desired keys
-    virtual void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const;
-
-    /// \brief Initialize a GTSAM values structure for all keys
-    virtual void initializeGTSAMValues(gtsam::Values* values) const;
-
-    /// \brief Update the relevant curve coefficients from the GTSAM values structure
-    virtual void updateFromGTSAMValues(const gtsam::Values& values);
-
     /// \brief Clear the base and correction curves.
     virtual void clear();
 
@@ -165,14 +147,8 @@ class SE3CompositionCurve : public SE3Curve {
     /// \brief Set the correction coefficient value at the specified time.
     void setCorrectionCoefficientAtTime(Time time, ValueType value);
 
-    /// \brief Add factors to constrain the variables active at this time.
-    void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
-
     /// \brief Perform a rigid transformation on the left side of the curve
     void transformCurve(const ValueType T);
-
-    /// \brief Get the time of the selected coefficient
-    virtual Time getTimeAtKey(gtsam::Key key) const;
 
     /// \brief Reset the correction curve to identity values with knots at desired times
     void resetCorrectionCurve(const std::vector<Time>& times);
@@ -207,6 +183,3 @@ class SE3CompositionCurve : public SE3Curve {
 } // namespace curves
 
 #include "SE3CompositionCurve-inl.hpp"
-
-#endif  CURVES_COMPOSITION_CURVE_HPP
-*/

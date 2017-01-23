@@ -85,13 +85,8 @@ class SE3Curve : public Curve<SE3Config> {
 
   virtual void clear() = 0;
 
-  /// \brief Add factors to constrain the variables active at this time.
-  virtual void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const = 0;
-
   /// \brief Perform a rigid transformation on the left side of the curve
   virtual void transformCurve(const ValueType T) = 0;
-
-  virtual Time getTimeAtKey(gtsam::Key key) const = 0;
 
   virtual void saveCurveTimesAndValues(const std::string& filename) const = 0;
 
