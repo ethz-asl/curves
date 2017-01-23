@@ -3,19 +3,14 @@ project(curves)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
+# TODO Why?
+set(kindr_FOUND 1)
 find_package(catkin REQUIRED COMPONENTS
+  kindr
 )
 
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
-
-# Attempt to find catkinized kindr
-find_package(kindr QUIET)
-if(NOT kindr_FOUND)
-  # Attempt to find package-based kindr
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(kindr kindr REQUIRED)
-endif()
 
 # Add Doxygen documentation
 add_subdirectory(doc/doxygen)
@@ -26,6 +21,7 @@ catkin_package(
   LIBRARIES
     ${PROJECT_NAME}
   CATKIN_DEPENDS
+    kindr
   DEPENDS
     eigen
     boost
@@ -36,7 +32,6 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
-  ${Kindr_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}

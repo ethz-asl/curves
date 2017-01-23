@@ -9,6 +9,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>kindr</depend>
   <depend>eigen</depend>
   <depend>boost</depend>
   <depend>libgoogle-glog-dev</depend>
