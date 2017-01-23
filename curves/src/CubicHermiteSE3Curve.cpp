@@ -13,7 +13,7 @@
 namespace curves {
 
 CubicHermiteSE3Curve::CubicHermiteSE3Curve() : SE3Curve() {
-
+  hermitePolicy_.setMinimumMeasurements(4);
 }
 
 CubicHermiteSE3Curve::~CubicHermiteSE3Curve() {}
@@ -24,6 +24,7 @@ void CubicHermiteSE3Curve::print(const std::string& str) const {
   std::cout << str << std::endl;
   std::cout << "num of coefficients: " << manager_.size() << std::endl;
   std::cout << "dimension: " << 6 << std::endl;
+  std::stringstream ss;
   std::vector<Key> keys;
   std::vector<Time> times;
   manager_.getTimes(&times);
@@ -32,11 +33,11 @@ void CubicHermiteSE3Curve::print(const std::string& str) const {
       " and " << manager_.getMaxTime() <<std::endl;
   std::cout <<"=========================================" <<std::endl;
   for (size_t i = 0; i < manager_.size(); i++) {
-    std::cout << "coefficient " << keys[i] << ": ";
-    std::cout << manager_.getCoefficientByKey(keys[i]).getTransformation() << std::endl;
-//    gtsam::traits<Coefficient>::Print(manager_.getCoefficientByKey(keys[i]),ss.str());
-    std::cout << " | time: " << times[i];
-    std::cout << std::endl;
+    ss << "coefficient " << keys[i] << ": ";
+    ss << manager_.getCoefficientByKey(keys[i]).getTransformation() << std::endl;
+    ss << " | time: " << times[i];
+    ss << std::endl;
+    ss.str("");
   }
   std::cout <<"=========================================" <<std::endl;
 }
@@ -98,11 +99,6 @@ int CubicHermiteSE3Curve::size() const {
   return manager_.size();
 }
 
-//typedef gtsam::Expression<kindr::minimal::RotationQuaternion> EQuaternion;
-//typedef gtsam::Expression<Eigen::Vector3d> EVector3;
-//typedef gtsam::Expression<kindr::minimal::QuatTransformation> ETransformation;
-//typedef gtsam::Expression<kindr::minimal::HermiteTransformation<double>> EHermiteTransformation;
-
 void CubicHermiteSE3Curve::fitCurve(const std::vector<Time>& times,
                                     const std::vector<ValueType>& values,
                                     std::vector<Key>* outKeys) {
@@ -115,7 +111,10 @@ void CubicHermiteSE3Curve::fitCurveWithDerivatives(const std::vector<Time>& time
                                     const DerivativeType& finalDerivative,
                                     std::vector<Key>* outKeys)
 {
-  assert(times.size() == values.size());
+  CHECK_EQ(times.size() == values.size());
+  CHECK_GE(times.size(), 3) << "Hermite curve must be defined by > 2 coefficients";
+
+  clear();
 
   // construct the Hemrite coefficients
   std::vector<Coefficient> coefficients;
@@ -141,7 +140,6 @@ void CubicHermiteSE3Curve::fitCurveWithDerivatives(const std::vector<Time>& time
       // Other keys.
       derivative = calculateSlope(times[i-1], times[i+1], values[i-1], values[i+1]);
     }
-
     coefficients.push_back(Coefficient(values[i], derivative));
   }
 
@@ -493,84 +491,112 @@ bool CubicHermiteSE3Curve::evaluateLinearAcceleration(kindr::Acceleration3D& lin
 //}
 
 void CubicHermiteSE3Curve::setTimeRange(Time minTime, Time maxTime) {
-  std::cerr << "Not implemented." << std::endl;
+  // \todo Abel and Renaud
+  CHECK(false) << "Not implemented";
 }
 
 /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
 Eigen::Vector3d CubicHermiteSE3Curve::evaluateAngularVelocityA(Time time) {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the angular velocity of Frame a as seen from Frame b, expressed in Frame b.
 Eigen::Vector3d CubicHermiteSE3Curve::evaluateAngularVelocityB(Time time) {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the velocity of Frame b as seen from Frame a, expressed in Frame a.
 Eigen::Vector3d CubicHermiteSE3Curve::evaluateLinearVelocityA(Time time) {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the velocity of Frame a as seen from Frame b, expressed in Frame b.
 Eigen::Vector3d CubicHermiteSE3Curve::evaluateLinearVelocityB(Time time) {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular velocity of Frame b as seen from Frame a,
 /// expressed in Frame a. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
 Vector6d CubicHermiteSE3Curve::evaluateTwistA(Time time) {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular velocity of Frame a as seen from Frame b,
 /// expressed in Frame b. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
 Vector6d CubicHermiteSE3Curve::evaluateTwistB(Time time) {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the angular derivative of Frame b as seen from Frame a, expressed in Frame a.
 Eigen::Vector3d CubicHermiteSE3Curve::evaluateAngularDerivativeA(unsigned derivativeOrder, Time time) {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the angular derivative of Frame a as seen from Frame b, expressed in Frame b.
 Eigen::Vector3d CubicHermiteSE3Curve::evaluateAngularDerivativeB(unsigned derivativeOrder, Time time) {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the derivative of Frame b as seen from Frame a, expressed in Frame a.
 Eigen::Vector3d CubicHermiteSE3Curve::evaluateLinearDerivativeA(unsigned derivativeOrder, Time time) {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the derivative of Frame a as seen from Frame b, expressed in Frame b.
 Eigen::Vector3d CubicHermiteSE3Curve::evaluateLinearDerivativeB(unsigned derivativeOrder, Time time) {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular derivative of Frame b as seen from Frame a,
 /// expressed in Frame a. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
 Vector6d CubicHermiteSE3Curve::evaluateDerivativeA(unsigned derivativeOrder, Time time) {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular velocity of Frame a as seen from Frame b,
 /// expressed in Frame b. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
 Vector6d CubicHermiteSE3Curve::evaluateDerivativeB(unsigned derivativeOrder, Time time) {
-  std::cerr << "Not implemented." << std::endl;
+  CHECK(false) << "Not implemented";
 }
 
-//void CubicHermiteSE3Curve::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
-//  manager_.initializeGTSAMValues(keys, values);
-//}
-//
-//void CubicHermiteSE3Curve::initializeGTSAMValues(gtsam::Values* values) const {
-//  manager_.initializeGTSAMValues(values);
-//}
-//
-//void CubicHermiteSE3Curve::updateFromGTSAMValues(const gtsam::Values& values) {
-//  manager_.updateFromGTSAMValues(values);
-//}
+void CubicHermiteSE3Curve::setMinSamplingPeriod(Time time) {
+  hermitePolicy_.setMinSamplingPeriod(time);
+}
 
-//void CubicHermiteSE3Curve::setMinSamplingPeriod(Time time) {
-//  hermitePolicy_.setMinSamplingPeriod(time);
-//}
+///   eg. 4 will add a coefficient every 4 extend
+void CubicHermiteSE3Curve::setSamplingRatio(const int ratio) {
+  hermitePolicy_.setMinimumMeasurements(ratio);
+}
 
 void CubicHermiteSE3Curve::clear() {
   manager_.clear();
 }
 
-} // namespace
+void CubicHermiteSE3Curve::transformCurve(const ValueType T) {
+  //todo
+}
+
+void CubicHermiteSE3Curve::saveCurveTimesAndValues(const std::string& filename) const {
+  std::vector<Time> curveTimes;
+  manager_.getTimes(&curveTimes);
+
+  saveCurveAtTimes(filename, curveTimes);
+}
+
+void CubicHermiteSE3Curve::saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const {
+  Eigen::VectorXd v(7);
+
+  std::vector<Eigen::VectorXd> curveValues;
+  ValueType val;
+  for (size_t i = 0; i < times.size(); ++i) {
+    val = evaluate(times[i]);
+    v << val.getPosition().x(), val.getPosition().y(), val.getPosition().z(),
+        val.getRotation().w(), val.getRotation().x(), val.getRotation().y(), val.getRotation().z();
+    curveValues.push_back(v);
+  }
+
+  CurvesTestHelpers::writeTimeVectorCSV(filename, times, curveValues);
+}
+
+void CubicHermiteSE3Curve::getCurveTimes(std::vector<Time>* outTimes) const {
+  manager_.getTimes(outTimes);
+}
+
+Time CubicHermiteSE3Curve::getTimeAtKey(gtsam::Key key) const {
+  return manager_.getCoefficientTimeByKey(key);
+}
+
+} // namespace curves

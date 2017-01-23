@@ -41,12 +41,12 @@ TEST(CurvesTestSuite, testExpressionKeysAndEvaluation) {
 
   // populate gtsam Values container with coefficients & keys, 3 ways:
   Values gtsamValues;
-  gtsam::FastVector<gtsam::Key> keys;
+  gtsam::KeySet keys;
 
   // classic approach
   for (size_t i=0; i<values.size(); ++i) {
     gtsamValues.insert(outKeys[i], ValueType(values[i]));
-    keys.push_back(outKeys[i]);
+    keys.insert(outKeys[i]);
   }
   gtsamValues.clear();
 
@@ -89,9 +89,14 @@ TEST(CurvesTestSuite, testExpressionGTSAMoptimization) {
   std::vector<gtsam::Key> outKeys;
   curve.fitCurve(times, coefficients, &outKeys);
 
+  gtsam::KeySet keys;
+  for (size_t i=0; i<outKeys.size(); ++i) {
+    keys.insert(outKeys[i]);
+  }
+
   // Populate GTSAM values
   Values initials, expected;
-  curve.initializeGTSAMValues(outKeys, &expected);
+  curve.initializeGTSAMValues(keys, &expected);
   for(size_t i=0; i< coefficients.size(); i++) {
     initials.insert(outKeys[i],ValueType(0,0,0));
   }

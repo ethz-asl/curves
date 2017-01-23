@@ -46,8 +46,11 @@ class SE3CompositionCurve : public SE3Curve {
     /// \brief Checks if the curve is empty.
     bool isEmpty() const;
 
-    /// \brief Returns the number of coefficients in the base curve
+    /// \brief Returns the number of coefficients in the correction curve
     int size() const;
+
+    /// \brief Returns the number of coefficients in the base curve
+    int baseSize() const;
 
     /// \brief Returns the number of coefficients in the correction curve
     int correctionSize() const;
@@ -61,6 +64,10 @@ class SE3CompositionCurve : public SE3Curve {
     /// \brief Set the minimum sampling period for the correction curve.
     ///        Overloads the function defined in SE3Curve base class.
     void setMinSamplingPeriod(const Time minSamplingPeriod);
+
+    /// \brief Set the sampling ratio for the correction curve.
+    ///   eg. 4 will add a coefficient every 4 extend
+    void setSamplingRatio(const int ratio);
 
     /// \brief Fold in the correction curve into the base curve and reinitialize
     ///        correction curve coefficients to identity transformations.
@@ -141,7 +148,7 @@ class SE3CompositionCurve : public SE3Curve {
     virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
 
     /// \brief Initialize a GTSAM values structure with the desired keys
-    virtual void initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const;
+    virtual void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const;
 
     /// \brief Initialize a GTSAM values structure for all keys
     virtual void initializeGTSAMValues(gtsam::Values* values) const;
@@ -161,10 +168,43 @@ class SE3CompositionCurve : public SE3Curve {
     /// \brief Add factors to constrain the variables active at this time.
     void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
 
+    /// \brief Perform a rigid transformation on the left side of the curve
+    void transformCurve(const ValueType T);
+
+    /// \brief Get the time of the selected coefficient
+    virtual Time getTimeAtKey(gtsam::Key key) const;
+
+    /// \brief Reset the correction curve to identity values with knots at desired times
+    void resetCorrectionCurve(const std::vector<Time>& times);
+
+    /// \brief Set the base curve to given values with knots at desired times
+    /// Resets the curve beforehand.
+    void setBaseCurve(const std::vector<Time>& times, const std::vector<ValueType>& values);
+
+    /// \brief Add / replace the given coefficients without resetting the curve.
+    void setBaseCurvePart(const std::vector<Time>& times, const std::vector<ValueType>& values);
+
+    /// \brief Modifies values of the base coefficient in batch, starting at times[0] and assuming that
+    /// a coefficient exists at all the specified times.
+    void modifyBaseCoefficientsValuesInBatch(const std::vector<Time>& times, const std::vector<ValueType>& values);
+
+    /// \brief Save the base curve times and composed curve values
+    void saveCurveTimesAndValues(const std::string& filename) const;
+
+    void saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const;
+
+    void saveCorrectionCurveAtTimes(const std::string& filename, std::vector<Time> times) const;
+
+    void saveCorrectionCurveTimesAndValues(const std::string& filename) const;
+
+    void getBaseCurveTimes(std::vector<Time>* outTimes) const;
+
+    void getBaseCurveTimesInWindow(std::vector<Time>* outTimes, Time begTime, Time endTime) const;
+
+    void getCurveTimes(std::vector<Time>* outTimes) const;
 };
 
 } // namespace curves
-
 
 #include "SE3CompositionCurve-inl.hpp"
 

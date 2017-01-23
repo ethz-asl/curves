@@ -10,7 +10,7 @@
 
 namespace curves {
 
-typedef double Time; // Time type for curves.
+typedef double Time;
 typedef size_t Key;
 
 template<typename CurveConfig>
@@ -63,7 +63,7 @@ class Curve
   /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
                       const std::vector<ValueType>& values,
-                      std::vector<Key>* outKeys) = 0;
+                      std::vector<Key>* outKeys = NULL) = 0;
 
   /// \brief Fit a new curve to these data points.
   ///
@@ -75,15 +75,11 @@ class Curve
 
   ///@}
 
-  static double toTime(Time time)
-  {
-    return (double) time / 1e9;
-  }
+   /// \brief Clear all the curve coefficients
+   virtual void clear() = 0;
 
-  static Time toCurvesTime(double time)
-  {
-    return (Time) time * 1e9;
-  }
+   /// \brief Perform a rigid transformation on the left side of the curve
+   virtual void transformCurve(const ValueType T) = 0;
 };
 
-}  // namespace robot_utils
+}  // namespace

@@ -136,7 +136,6 @@ Eigen::Matrix<double,N,1> linearInterpolation(Eigen::Matrix<double,N,1>  v1,
                                               Eigen::Matrix<double,N,1>  v2, double alpha,
                                               gtsam::OptionalJacobian<N,N> H1,
                                               gtsam::OptionalJacobian<N,N> H2) {
-
   if (H1) { *H1 = Eigen::Matrix<double,N,N>::Identity()*(1-alpha); }
   if (H2) { *H2 = Eigen::Matrix<double,N,N>::Identity()*alpha; }
 
@@ -171,7 +170,7 @@ LinearInterpolationVectorSpaceCurve<N>::getDerivativeExpression(const Time& time
 }
 
 template<int N>
-void LinearInterpolationVectorSpaceCurve<N>::initializeGTSAMValues(gtsam::FastVector<gtsam::Key> keys, gtsam::Values* values) const {
+void LinearInterpolationVectorSpaceCurve<N>::initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const {
   manager_.initializeGTSAMValues(keys, values);
 }
 
@@ -194,19 +193,28 @@ template<int N>
 void LinearInterpolationVectorSpaceCurve<N>::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const {
   gtsam::noiseModel::Constrained::shared_ptr priorNoise = gtsam::noiseModel::Constrained::All(gtsam::traits<Coefficient>::dimension);
 
-  //Add one fixed prior at priorTime and two before to ensure that at least two
+  // Constraint the coefficients which influence the curve value at priorTime
   CoefficientIter rVal0, rVal1;
   manager_.getCoefficientsAt(priorTime, &rVal0, &rVal1);
 
-  gtsam::ExpressionFactor<Coefficient> f0(priorNoise,
+  gtsam::ExpressionFactor<Coefficient> factor0(priorNoise,
                                           rVal0->second.coefficient,
                                           gtsam::Expression<Coefficient>(rVal0->second.key));
-  gtsam::ExpressionFactor<Coefficient> f1(priorNoise,
+  gtsam::ExpressionFactor<Coefficient> factor1(priorNoise,
                                           rVal1->second.coefficient,
                                           gtsam::Expression<Coefficient>(rVal1->second.key));
-  graph->push_back(f0);
-  graph->push_back(f1);
+  graph->push_back(factor0);
+  graph->push_back(factor1);
+}
 
+template<int N>
+void LinearInterpolationVectorSpaceCurve<N>::transformCurve(const ValueType T) {
+  //todo
+}
+
+template<int N>
+Time LinearInterpolationVectorSpaceCurve<N>::getTimeAtKey(gtsam::Key key) const {
+  return manager_.getCoefficientTimeByKey(key);
 }
 
 } // namespace curves

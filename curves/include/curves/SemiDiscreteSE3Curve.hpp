@@ -1,38 +1,32 @@
 /*
- * SlerpSE3Curve.hpp
- *
- *  Created on: Oct 10, 2014
- *      Author: Renaud Dube, Abel Gawel, Péter Fankhauser
- *   Institute: ETH Zurich, Autonomous Systems Lab
+ * @file SemiDiscreteSE3Curve.hpp
+ * @date Feb 3, 2016
+ * @author Renaud Dubé, Abel Gawel
  */
 
-#pragma once
+#ifndef CURVES_SEMI_DISCRETE_SE3_CURVE_HPP
+#define CURVES_SEMI_DISCRETE_SE3_CURVE_HPP
 
 #include "SE3Curve.hpp"
 #include "LocalSupport2CoefficientManager.hpp"
-#include "kindr/Core"
 #include "SE3CompositionCurve.hpp"
+#include "gtsam/nonlinear/NonlinearFactorGraph.h"
 #include "SamplingPolicy.hpp"
 #include "CubicHermiteSE3Curve.hpp"
 
 namespace curves {
 
-/// Implements the Slerp (Spherical linear interpolation) curve class.
-/// The Slerp interpolation function is defined as, with the respective Jacobians regarding  A and B:
-/// \f[ T = A(A^{-1}B)^{\alpha} \f]
-class SlerpSE3Curve : public SE3Curve {
-  friend class SE3CompositionCurve<SlerpSE3Curve, SlerpSE3Curve>;
-  friend class SE3CompositionCurve<SlerpSE3Curve, CubicHermiteSE3Curve>;
+/// Implements a discrete SE3 curve class.
+class SemiDiscreteSE3Curve : public SE3Curve {
+  friend class SE3CompositionCurve<SemiDiscreteSE3Curve, SemiDiscreteSE3Curve>;
   friend class SamplingPolicy;
  public:
-  typedef SE3Curve::ValueType ValueType;
-  typedef SE3Curve::DerivativeType DerivativeType;
   typedef ValueType Coefficient;
   typedef LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;
   typedef LocalSupport2CoefficientManager<Coefficient>::CoefficientIter CoefficientIter;
 
-  SlerpSE3Curve();
-  virtual ~SlerpSE3Curve();
+  SemiDiscreteSE3Curve();
+  virtual ~SemiDiscreteSE3Curve();
 
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
@@ -80,6 +74,11 @@ class SlerpSE3Curve : public SE3Curve {
   /// derivatives of order >1 equal 0
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
+  /// \brief Get an evaluator at this time
+  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const;
+
+  virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const;
+
   virtual void setTimeRange(Time minTime, Time maxTime);
 
   /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
@@ -126,6 +125,15 @@ class SlerpSE3Curve : public SE3Curve {
   ///        and the angular velocity (3,4,5).
   virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
 
+  /// Initialize a GTSAM values structure with the desired keys
+  virtual void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const;
+
+  /// Initialize a GTSAM values structure for all keys
+  virtual void initializeGTSAMValues(gtsam::Values* values) const;
+
+  // updates the relevant curve coefficients from the GTSAM values structure
+  virtual void updateFromGTSAMValues(const gtsam::Values& values);
+
   // set minimum sampling period
   void setMinSamplingPeriod(Time time);
 
@@ -135,8 +143,13 @@ class SlerpSE3Curve : public SE3Curve {
 
   virtual void clear();
 
+  /// \brief Add factors to constrain the variables active at this time.
+  void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
+
   /// \brief Perform a rigid transformation on the left side of the curve
   void transformCurve(const ValueType T);
+
+  virtual Time getTimeAtKey(gtsam::Key key) const;
 
   void saveCurveTimesAndValues(const std::string& filename) const;
 
@@ -190,25 +203,20 @@ class SlerpSE3Curve : public SE3Curve {
 
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
-  SamplingPolicy slerpPolicy_;
+  SamplingPolicy discretePolicy_;
 };
 
-typedef kindr::HomogeneousTransformationPosition3RotationQuaternionD SE3;
+typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
 typedef SE3::Rotation SO3;
-typedef kindr::AngleAxisPD AngleAxis;
+typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
 
-SE3 transformationPower(SE3  T, double alpha);
-
-SE3 composeTransformations(SE3 A, SE3 B);
-
-SE3 inverseTransformation(SE3 T);
 
 // extend policy for slerp curves
 template<>
-inline void SamplingPolicy::extend<SlerpSE3Curve, SE3>(const std::vector<Time>& times,
-                                                       const std::vector<SE3>& values,
-                                                       SlerpSE3Curve* curve,
-                                                       std::vector<Key>* outKeys) {
+inline void SamplingPolicy::extend<SemiDiscreteSE3Curve, SE3>(const std::vector<Time>& times,
+                                                          const std::vector<SE3>& values,
+                                                          SemiDiscreteSE3Curve* curve,
+                                                          std::vector<Key>* outKeys) {
   //todo: deal with minSamplingPeriod_ when extending with multiple times
   if (times.size() != 1) {
     curve->manager_.insertCoefficients(times, values, outKeys);
@@ -225,7 +233,7 @@ inline void SamplingPolicy::extend<SlerpSE3Curve, SE3>(const std::vector<Time>& 
         if (measurementsSinceLastExtend_ == 1) {
           curve->manager_.addCoefficientAtEnd(times[0], values[0], outKeys);
         } else {
-          SlerpSE3Curve::TimeToKeyCoefficientMap::iterator itPrev = (--curve->manager_.coefficientEnd());
+          SemiDiscreteSE3Curve::TimeToKeyCoefficientMap::iterator itPrev = (--curve->manager_.coefficientEnd());
           curve->manager_.modifyCoefficient(itPrev, times[0], values[0]);
         }
         if (measurementsSinceLastExtend_ == minimumMeasurements_) {
@@ -238,3 +246,4 @@ inline void SamplingPolicy::extend<SlerpSE3Curve, SE3>(const std::vector<Time>& 
 
 } // namespace curves
 
+#endif /* CURVES_DISCRETE_SE3_CURVE_HPP */

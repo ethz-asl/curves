@@ -1,23 +1,23 @@
 /*
- * SlerpSE3Curve.cpp
- *
- *  Created on: Oct 10, 2014
- *      Author: Renaud Dube, Abel Gawel, Péter Fankhauser
- *   Institute: ETH Zurich, Autonomous Systems Lab
+ * @file SemiDiscreteSE3Curve.cpp
+ * @date Oct 10, 2014
+ * @author Renaud Dube, Abel Gawel
  */
 
-#include <curves/SlerpSE3Curve.hpp>
+#include <curves/SemiDiscreteSE3Curve.hpp>
 #include <iostream>
+
+#include "gtsam/nonlinear/ExpressionFactor.h"
 
 namespace curves {
 
-SlerpSE3Curve::SlerpSE3Curve() : SE3Curve() {}
+SemiDiscreteSE3Curve::SemiDiscreteSE3Curve() : SE3Curve() {}
 
-SlerpSE3Curve::~SlerpSE3Curve() {}
+SemiDiscreteSE3Curve::~SemiDiscreteSE3Curve() {}
 
-void SlerpSE3Curve::print(const std::string& str) const {
+void SemiDiscreteSE3Curve::print(const std::string& str) const {
   std::cout << "=========================================" << std::endl;
-  std::cout << "=========== Slerp SE3 CURVE =============" << std::endl;
+  std::cout << "=========== SemiDiscrete SE3 CURVE =============" << std::endl;
   std::cout << str << std::endl;
   std::cout << "num of coefficients: " << manager_.size() << std::endl;
   std::cout << "dimension: " << 6 << std::endl;
@@ -40,6 +40,7 @@ void SlerpSE3Curve::print(const std::string& str) const {
   std::cout <<"=========================================" <<std::endl;
   for (size_t i = 0; i < manager_.size(); i++) {
     ss << "coefficient " << keys[i] << ": ";
+    gtsam::traits<Coefficient>::Print(manager_.getCoefficientByKey(keys[i]),ss.str());
     std::cout << " | time: " << times[i];
     std::cout << std::endl;
     ss.str("");
@@ -47,25 +48,25 @@ void SlerpSE3Curve::print(const std::string& str) const {
   std::cout <<"=========================================" <<std::endl;
 }
 
-Time SlerpSE3Curve::getMaxTime() const {
+Time SemiDiscreteSE3Curve::getMaxTime() const {
   return manager_.getMaxTime();
 }
 
-Time SlerpSE3Curve::getMinTime() const {
+Time SemiDiscreteSE3Curve::getMinTime() const {
   return manager_.getMinTime();
 }
 
-bool SlerpSE3Curve::isEmpty() const {
+bool SemiDiscreteSE3Curve::isEmpty() const {
   return manager_.empty();
 }
 
-int SlerpSE3Curve::size() const {
+int SemiDiscreteSE3Curve::size() const {
   return manager_.size();
 }
 
-void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
-                             const std::vector<ValueType>& values,
-                             std::vector<Key>* outKeys) {
+void SemiDiscreteSE3Curve::fitCurve(const std::vector<Time>& times,
+                                    const std::vector<ValueType>& values,
+                                    std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size());
   if(times.size() > 0) {
     clear();
@@ -73,28 +74,25 @@ void SlerpSE3Curve::fitCurve(const std::vector<Time>& times,
   }
 }
 
-void SlerpSE3Curve::setCurve(const std::vector<Time>& times,
-              const std::vector<ValueType>& values) {
+void SemiDiscreteSE3Curve::setCurve(const std::vector<Time>& times,
+                                    const std::vector<ValueType>& values) {
   CHECK_EQ(times.size(), values.size());
   if(times.size() > 0) {
-    manager_.insertCoefficients(times, values);
+    manager_.insertCoefficients(times,values);
   }
 }
 
-void SlerpSE3Curve::extend(const std::vector<Time>& times,
-                           const std::vector<ValueType>& values,
-                           std::vector<Key>* outKeys) {
-
-  if (times.size() != values.size())
+void SemiDiscreteSE3Curve::extend(const std::vector<Time>& times,
+                                  const std::vector<ValueType>& values,
+                                  std::vector<Key>* outKeys) {
   CHECK_EQ(times.size(), values.size()) << "number of times and number of coefficients don't match";
-
-  slerpPolicy_.extend<SlerpSE3Curve, ValueType>(times, values, this, outKeys);
+  discretePolicy_.extend<SemiDiscreteSE3Curve, ValueType>(times, values, this, outKeys);
 }
 
-typename SlerpSE3Curve::DerivativeType
-SlerpSE3Curve::evaluateDerivative(
-    Time time, unsigned derivativeOrder) const
-{
+typename SemiDiscreteSE3Curve::DerivativeType
+SemiDiscreteSE3Curve::evaluateDerivative(Time time,
+                                         unsigned derivativeOrder) const {
+
   // time is out of bound --> error
   CHECK_GE(time, this->getMinTime()) << "Time out of bounds";
   CHECK_LE(time, this->getMaxTime()) << "Time out of bounds";
@@ -117,42 +115,35 @@ SlerpSE3Curve::evaluateDerivative(
   }
 }
 
-/// \brief \f[T^{\alpha}\f]
-SE3 transformationPower(SE3 T, double alpha)
-{
-  SO3 R(T.getRotation());
-  SE3::Position t(T.getPosition());
+/// \brief forms slerp interpolation into a binary expression with 2 leafs and binds alpha into it,
+///        uses break down of expression into its operations
+///        \f[ T = A(A^{-1}B)^{\alpha} \f]
+gtsam::Expression<typename SemiDiscreteSE3Curve::ValueType>
+SemiDiscreteSE3Curve::getValueExpression(const Time& time) const {
+  typedef typename SemiDiscreteSE3Curve::ValueType ValueType;
+  using namespace gtsam;
+  CoefficientIter a, b;
+  bool success = manager_.getCoefficientsAt(time, &a, &b);
+  CHECK(success) << "Unable to get the coefficients at time " << time;
+  Expression<ValueType> leaf_a(a->second.key);
+  Expression<ValueType> leaf_b(b->second.key);
 
-  AngleAxis angleAxis(R);
-  angleAxis.setUnique();
-  angleAxis.setAngle(angleAxis.angle() * alpha);
-  angleAxis.setUnique();
+  // If the time is closer to a
+  if (b->first - time >= time - a->first) {
+    return leaf_a;
+  } else {
+    return leaf_b;
+  }
 
-  return SE3(SO3(angleAxis),(t*alpha).eval());
 }
 
-/// \brief \f[A*B\f]
-SE3 composeTransformations(SE3 A, SE3 B)
-{
-  return A*B;
+gtsam::Expression<typename SemiDiscreteSE3Curve::DerivativeType>
+SemiDiscreteSE3Curve::getDerivativeExpression(const Time& time, unsigned derivativeOrder) const {
+  // \todo Abel and Renaud
+  CHECK(false) << "Not implemented";
 }
 
-/// \brief \f[T^{-1}\f]
-SE3 inverseTransformation(SE3 T)
-{
-  return T.inverted();
-}
-
-SE3 invertAndComposeImplementation(SE3 A, SE3 B)
-{
-  SE3 result = composeTransformations(inverseTransformation(A), B);
-  return result;
-}
-
-SE3 SlerpSE3Curve::evaluate(Time time) const
-{
-  std::cerr << "Not implemented." << std::endl;
-
+SE3 SemiDiscreteSE3Curve::evaluate(Time time) const {
   // Check if the curve is only defined at this one time
   if (manager_.getMaxTime() == time && manager_.getMinTime() == time) {
     return manager_.coefficientBegin()->second.coefficient;
@@ -161,6 +152,7 @@ SE3 SlerpSE3Curve::evaluate(Time time) const
       // Efficient evaluation of a curve end
       return (--manager_.coefficientEnd())->second.coefficient;
     } else {
+      // Semi discrete
       CoefficientIter a, b;
       bool success = manager_.getCoefficientsAt(time, &a, &b);
       CHECK(success) << "Unable to get the coefficients at time " << time;
@@ -179,82 +171,120 @@ SE3 SlerpSE3Curve::evaluate(Time time) const
   }
 }
 
-void SlerpSE3Curve::setTimeRange(Time minTime, Time maxTime) {
+void SemiDiscreteSE3Curve::setTimeRange(Time minTime, Time maxTime) {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
 
 /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
-Eigen::Vector3d SlerpSE3Curve::evaluateAngularVelocityA(Time time) {
+Eigen::Vector3d SemiDiscreteSE3Curve::evaluateAngularVelocityA(Time time) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the angular velocity of Frame a as seen from Frame b, expressed in Frame b.
-Eigen::Vector3d SlerpSE3Curve::evaluateAngularVelocityB(Time time) {
+Eigen::Vector3d SemiDiscreteSE3Curve::evaluateAngularVelocityB(Time time) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the velocity of Frame b as seen from Frame a, expressed in Frame a.
-Eigen::Vector3d SlerpSE3Curve::evaluateLinearVelocityA(Time time) {
+Eigen::Vector3d SemiDiscreteSE3Curve::evaluateLinearVelocityA(Time time) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the velocity of Frame a as seen from Frame b, expressed in Frame b.
-Eigen::Vector3d SlerpSE3Curve::evaluateLinearVelocityB(Time time) {
+Eigen::Vector3d SemiDiscreteSE3Curve::evaluateLinearVelocityB(Time time) {
   CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular velocity of Frame b as seen from Frame a,
 /// expressed in Frame a. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
-Vector6d SlerpSE3Curve::evaluateTwistA(Time time) {
+Vector6d SemiDiscreteSE3Curve::evaluateTwistA(Time time) {
   CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular velocity of Frame a as seen from Frame b,
 /// expressed in Frame b. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
-Vector6d SlerpSE3Curve::evaluateTwistB(Time time) {
+Vector6d SemiDiscreteSE3Curve::evaluateTwistB(Time time) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the angular derivative of Frame b as seen from Frame a, expressed in Frame a.
-Eigen::Vector3d SlerpSE3Curve::evaluateAngularDerivativeA(unsigned derivativeOrder, Time time) {
+Eigen::Vector3d SemiDiscreteSE3Curve::evaluateAngularDerivativeA(unsigned derivativeOrder, Time time) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the angular derivative of Frame a as seen from Frame b, expressed in Frame b.
-Eigen::Vector3d SlerpSE3Curve::evaluateAngularDerivativeB(unsigned derivativeOrder, Time time) {
+Eigen::Vector3d SemiDiscreteSE3Curve::evaluateAngularDerivativeB(unsigned derivativeOrder, Time time) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the derivative of Frame b as seen from Frame a, expressed in Frame a.
-Eigen::Vector3d SlerpSE3Curve::evaluateLinearDerivativeA(unsigned derivativeOrder, Time time) {
+Eigen::Vector3d SemiDiscreteSE3Curve::evaluateLinearDerivativeA(unsigned derivativeOrder, Time time) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the derivative of Frame a as seen from Frame b, expressed in Frame b.
-Eigen::Vector3d SlerpSE3Curve::evaluateLinearDerivativeB(unsigned derivativeOrder, Time time) {
+Eigen::Vector3d SemiDiscreteSE3Curve::evaluateLinearDerivativeB(unsigned derivativeOrder, Time time) {
   CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular derivative of Frame b as seen from Frame a,
 /// expressed in Frame a. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
-Vector6d SlerpSE3Curve::evaluateDerivativeA(unsigned derivativeOrder, Time time) {
+Vector6d SemiDiscreteSE3Curve::evaluateDerivativeA(unsigned derivativeOrder, Time time) {
   CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular velocity of Frame a as seen from Frame b,
 /// expressed in Frame b. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
-Vector6d SlerpSE3Curve::evaluateDerivativeB(unsigned derivativeOrder, Time time) {
+Vector6d SemiDiscreteSE3Curve::evaluateDerivativeB(unsigned derivativeOrder, Time time) {
   CHECK(false) << "Not implemented";
 }
 
-void SlerpSE3Curve::setMinSamplingPeriod(Time time) {
-  slerpPolicy_.setMinSamplingPeriod(time);
+void SemiDiscreteSE3Curve::initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const {
+  manager_.initializeGTSAMValues(keys, values);
+}
+
+void SemiDiscreteSE3Curve::initializeGTSAMValues(gtsam::Values* values) const {
+  manager_.initializeGTSAMValues(values);
+}
+
+void SemiDiscreteSE3Curve::updateFromGTSAMValues(const gtsam::Values& values) {
+  manager_.updateFromGTSAMValues(values);
+}
+
+void SemiDiscreteSE3Curve::setMinSamplingPeriod(Time time) {
+  discretePolicy_.setMinSamplingPeriod(time);
 }
 
 ///   eg. 4 will add a coefficient every 4 extend
-void SlerpSE3Curve::setSamplingRatio(const int ratio) {
-  slerpPolicy_.setMinimumMeasurements(ratio);
+void SemiDiscreteSE3Curve::setSamplingRatio(const int ratio) {
+  discretePolicy_.setMinimumMeasurements(ratio);
 }
 
-void SlerpSE3Curve::clear() {
+void SemiDiscreteSE3Curve::clear() {
   manager_.clear();
 }
 
-void SlerpSE3Curve::transformCurve(const ValueType T) {
+void SemiDiscreteSE3Curve::addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const {
+  Eigen::Matrix<double,6,1> noise;
+  noise(0) = 0.0000001;
+  noise(1) = 0.0000001;
+  noise(2) = 0.0000001;
+  noise(3) = 0.0000001;
+  noise(4) = 0.0000001;
+  noise(5) = 0.0000001;
+
+  gtsam::noiseModel::Diagonal::shared_ptr priorNoise = gtsam::noiseModel::Diagonal::
+      Sigmas(noise);
+
+  CoefficientIter rVal0, rVal1;
+  manager_.getCoefficientsAt(priorTime, &rVal0, &rVal1);
+
+  gtsam::ExpressionFactor<Coefficient> f0(priorNoise,
+                                          rVal0->second.coefficient,
+                                          gtsam::Expression<Coefficient>(rVal0->second.key));
+  gtsam::ExpressionFactor<Coefficient> f1(priorNoise,
+                                          rVal1->second.coefficient,
+                                          gtsam::Expression<Coefficient>(rVal1->second.key));
+  graph->push_back(f0);
+  graph->push_back(f1);
+
+}
+
+void SemiDiscreteSE3Curve::transformCurve(const ValueType T) {
   std::vector<Time> coefTimes;
   manager_.getTimes(&coefTimes);
   for (size_t i = 0; i < coefTimes.size(); ++i) {
@@ -263,14 +293,18 @@ void SlerpSE3Curve::transformCurve(const ValueType T) {
   }
 }
 
-void SlerpSE3Curve::saveCurveTimesAndValues(const std::string& filename) const {
+Time SemiDiscreteSE3Curve::getTimeAtKey(gtsam::Key key) const {
+  return manager_.getCoefficientTimeByKey(key);
+}
+
+void SemiDiscreteSE3Curve::saveCurveTimesAndValues(const std::string& filename) const {
   std::vector<Time> curveTimes;
   manager_.getTimes(&curveTimes);
 
   saveCurveAtTimes(filename, curveTimes);
 }
 
-void SlerpSE3Curve::saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const {
+void SemiDiscreteSE3Curve::saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const {
   Eigen::VectorXd v(7);
 
   std::vector<Eigen::VectorXd> curveValues;
@@ -285,7 +319,7 @@ void SlerpSE3Curve::saveCurveAtTimes(const std::string& filename, std::vector<Ti
   CurvesTestHelpers::writeTimeVectorCSV(filename, times, curveValues);
 }
 
-void SlerpSE3Curve::getCurveTimes(std::vector<Time>* outTimes) const {
+void SemiDiscreteSE3Curve::getCurveTimes(std::vector<Time>* outTimes) const {
   manager_.getTimes(outTimes);
 }
 
