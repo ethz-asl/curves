@@ -12,5 +12,6 @@
   <depend>robot_utils</depend>
   <depend>eigen</depend>
   <depend>boost</depend>
+  <depend>glog_catkin</depend>
 </package>
 

@@ -14,6 +14,8 @@
 #include "curves/Curve.hpp"
 #include "curves/ScalarCurveConfig.hpp"
 
+#include <glog/logging.h>
+
 // Robot Utils
 #include "robot_utils/function_approximators/polynomialSplines/PolynomialSplineContainer.hpp"
 #include "robot_utils/function_approximators/polynomialSplines/PolynomialSplineBase.hpp"
@@ -134,6 +136,17 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
       container_.addSpline(spline);
     }
     minTime_ = 0.0;
+  }
+
+  virtual void clear()
+  {
+    container_.reset();
+    minTime_ = 0.0;
+  }
+
+  virtual void transformCurve(const ValueType T)
+  {
+    CHECK(false) << "Not implemented";
   }
 
  private:

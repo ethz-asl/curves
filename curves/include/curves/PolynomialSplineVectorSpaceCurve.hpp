@@ -15,6 +15,8 @@
 #include "curves/Curve.hpp"
 #include "curves/VectorSpaceCurve.hpp"
 
+#include <glog/logging.h>
+
 // Robot Utils
 #include "robot_utils/function_approximators/polynomialSplines/PolynomialSplineContainer.hpp"
 #include "robot_utils/function_approximators/polynomialSplines/PolynomialSplineBase.hpp"
@@ -147,10 +149,16 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
     throw std::runtime_error("PolynomialSplineVectorSpaceCurve::fitCurve is not yet implemented!");
   }
 
-  virtual void clearCurve() {
+  virtual void clear()
+  {
     for (size_t i = 0; i < N; ++i) {
       containers_.at(i).reset();
     }
+  }
+
+  virtual void transformCurve(const ValueType T)
+  {
+    CHECK(false) << "Not implemented";
   }
 
  private:

@@ -5,6 +5,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 find_package(catkin REQUIRED COMPONENTS
   robot_utils
+  glog_catkin
 )
 
 find_package(Eigen3 REQUIRED)

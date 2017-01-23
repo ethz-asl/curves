@@ -112,8 +112,6 @@ void CubicHermiteSE3Curve::fitCurveWithDerivatives(const std::vector<Time>& time
                                     std::vector<Key>* outKeys)
 {
   CHECK_EQ(times.size(), values.size());
-  CHECK_GE(times.size(), 3) << "Hermite curve must be defined by > 2 coefficients";
-
   clear();
 
   // construct the Hemrite coefficients
