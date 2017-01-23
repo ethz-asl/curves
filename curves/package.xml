@@ -2,16 +2,21 @@
 <package format="2">
   <name>curves</name>
   <version>0.0.1</version>
-  <description>curves</description>
-
-  <maintainer email="paul.furgale@gmail.com">Paul Furgale</maintainer>
+  <description>Curves spline library.</description>
+  <maintainer email="pfankhauser@ethz.ch">Péter Fankhauser</maintainer>
   <license>BSD</license>
-
+  <url type="website">https://github.com/ethz-asl/curves</url>
+  <author>Renaud Dube</author>
+  <author>Abel Gawel</author>
+  <author>Péter Fankhauser</author>
+  <author>Dario Bellicoso</author>
+  <author>Christian Gehring</author>
+  <author>Mike Bosse</author>
+  <author>Paul Furgale</author>
+  <author>Gabriel Agamennoni</author>
   <buildtool_depend>catkin</buildtool_depend>
-
   <depend>kindr</depend>
   <depend>eigen</depend>
   <depend>boost</depend>
   <depend>libgoogle-glog-dev</depend>
 </package>
-

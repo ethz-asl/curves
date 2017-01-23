@@ -1,22 +1,45 @@
-(Min)Curves
-=====
+# Curves
 
-A library for curves generation.
+A library for curves generation and estimation using curves.
 
-Forked from: [https://github.com/ethz-asl/curves](https://github.com/ethz-asl/curves)
+The source code is released under a [BSD 3-Clause license](ros_package_template/LICENSE).
 
-**Authors: Mike Bosse, Paul Furgale, Gabriel Agamennoni, Abel Gawel, Renaud Dube**
+**Authors: Renaud Dube, Abel Gawel, Péter Fankhauser, Dario Bellicoso, Christian Gehring, Mike Bosse, Paul Furgale, Gabriel Agamennoni**
 
-**This fork is maintained by Péter Fankhauser    
-Contact: Péter Fankhauser, pfankhauser@ethz.ch  
-Affiliation: Autonomous Systems Lab, ETH Zurich**
-
-Differences to the original [Curves](https://github.com/ethz-asl/curves) library:
-
-* No dependencies on GSTAM,
-* Use of [kindr](https://github.com/ethz-asl/kindr) instead of [minkindr](https://github.com/ethz-asl/minkindr),
-* Tools (curves_ros) for conversion from and to ROS trajectory messages.
+**Maintainer: Péter Fankhauser, pfankhauser@ethz.ch**
 
 ## Build status
 
 [![Build Status](http://rsl-ci.ethz.ch/buildStatus/icon?job=curves)](http://rsl-ci.ethz.ch/job/curves/)
+
+## Installation
+
+### Installation from Packages
+
+TODO
+
+### Building from Source
+
+#### Dependencies
+
+- [Kindr](https://github.com/ethz-asl/kindr.git) (kinematics library)
+- [Eigen](http://eigen.tuxfamily.org) (linear algebra library)
+
+#### Building
+
+To build from source, clone the latest version from this repository into your catkin workspace and compile the package using
+
+	cd catkin_workspace/src
+	git clone https://github.com/ethz-asl/curves.git
+	cd ../
+	catkin_make
+
+### Unit Tests
+
+Run the unit tests with
+
+	catkin_make run_tests_curves run_tests_curves
+
+## Bugs & Feature Requests
+
+Please report bugs and request features using the [Issue Tracker](https://github.com/ethz-asl/curves/issues).
