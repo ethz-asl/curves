@@ -134,8 +134,8 @@ class LocalSupport2CoefficientManager {
   /// nonnull.
   ///
   /// @returns true if it was successful
-  bool getCoefficientsAt(Time time,
-                         CoefficientIter* outCoefficient0, CoefficientIter* outCoefficient1) const;
+  bool getCoefficientsAt(Time time, CoefficientIter* outCoefficient0,
+                         CoefficientIter* outCoefficient1) const;
 
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
   void getCoefficientsInRange(Time startTime,

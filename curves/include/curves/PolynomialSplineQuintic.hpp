@@ -19,7 +19,7 @@ class PolynomialSplineQuintic : public PolynomialSplineBase {
 
   const std::vector<double>& getCoeffs() const;
   bool evalCoeffs(const SplineOpts& opts);
-  void setCoeffsAndDuration(const std::vector<double>& coeffs_, double duration);
+  void setCoeffsAndDuration(const std::vector<double>& coeffs, double duration);
 
   double getPositionAtTime(double tk) const;
   double getVelocityAtTime(double tk) const;

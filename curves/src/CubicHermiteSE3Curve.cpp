@@ -6,9 +6,10 @@
  *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#include <curves/CubicHermiteSE3Curve.hpp>
-#include <curves/SlerpSE3Curve.hpp>
 #include <iostream>
+
+#include "curves/CubicHermiteSE3Curve.hpp"
+#include "curves/SlerpSE3Curve.hpp"
 
 namespace curves {
 

@@ -6,6 +6,7 @@
  */
 
 #include <curves/CubicHermiteE3Curve.hpp>
+
 namespace curves {
 
 CubicHermiteE3Curve::CubicHermiteE3Curve() {
@@ -28,7 +29,7 @@ void CubicHermiteE3Curve::print(const std::string& str) const {
   manager_.getKeys(&keys);
   std::cout << "curve defined between times: " << manager_.getMinTime() <<
       " and " << manager_.getMaxTime() <<std::endl;
-  std::cout <<"=========================================" <<std::endl;
+  std::cout << "=========================================" << std::endl;
   for (size_t i = 0; i < manager_.size(); i++) {
     std::cout << "coefficient " << keys[i] << ": ";
     std::cout << manager_.getCoefficientByKey(keys[i]).getPosition() << std::endl;
@@ -36,7 +37,7 @@ void CubicHermiteE3Curve::print(const std::string& str) const {
     std::cout << " | time: " << times[i];
     std::cout << std::endl;
   }
-  std::cout <<"=========================================" <<std::endl;
+  std::cout << "=========================================" << std::endl;
 }
 
 bool CubicHermiteE3Curve::writeEvalToFile(const std::string& filename, int nSamples) const {
@@ -134,6 +135,7 @@ void CubicHermiteE3Curve::fitPeriodicCurve(const std::vector<Time>& times,
    *
    */
   const size_t nPoints = times.size();
+  //TODO Add a check on nPoints which should be >= 2 otherwise that breaks.
   DerivativeType derivative = calculateSlope(times[nPoints-2], times[1], values[nPoints-2], values[1]);
   fitCurveWithDerivatives(times, values, derivative, derivative, outKeys);
 }
@@ -202,7 +204,7 @@ bool CubicHermiteE3Curve::evaluate(ValueType& value, Time time) const {
      const DerivativeType d_W_B = b->second.coefficient.getVelocity();
 
      // make alpha
-     const double dt_sec = (b->first - a->first);// * 1e-9;
+     const double dt_sec = (b->first - a->first);
      const double alpha = double(time - a->first)/(b->first - a->first);
 
      // Implemantation of Hermite Interpolation not easy and not fun (without expressions)!
@@ -229,9 +231,11 @@ bool CubicHermiteE3Curve::evaluate(ValueType& value, Time time) const {
 }
 
 /// Evaluate the curve derivatives.
-bool CubicHermiteE3Curve::evaluateDerivative(DerivativeType& derivative, Time time, unsigned int derivativeOrder) const {
+bool CubicHermiteE3Curve::evaluateDerivative(DerivativeType& derivative, Time time,
+                                             unsigned int derivativeOrder) const
+{
   if (derivativeOrder == 1) {
-      // Check if the curve is only defined at this one time
+    // Check if the curve is only defined at this one time
       if (manager_.getMaxTime() == time && manager_.getMinTime() == time) {
         derivative = manager_.coefficientBegin()->second.coefficient.getVelocity();
         return true;
@@ -287,8 +291,6 @@ bool CubicHermiteE3Curve::evaluateDerivative(DerivativeType& derivative, Time ti
     }
 }
 
-
-
 bool CubicHermiteE3Curve::evaluateLinearAcceleration(Acceleration& linearAcceleration, Time time) const {
   CoefficientIter a, b;
    bool success = manager_.getCoefficientsAt(time, &a, &b);
@@ -321,11 +323,10 @@ bool CubicHermiteE3Curve::evaluateLinearAcceleration(Acceleration& linearAcceler
    const double d_gamma3 = (6.0*alpha - 2.0)*d_alpha;
 
    linearAcceleration = Acceleration(T_W_A*d_gamma0*one_over_dt_sec + d_W_A*d_gamma1 +
-                                              T_W_B*d_gamma2*one_over_dt_sec + d_W_B*d_gamma3);
+                                     T_W_B*d_gamma2*one_over_dt_sec + d_W_B*d_gamma3);
 
    return true;
 }
-
 
 void CubicHermiteE3Curve::clear() {
   manager_.clear();

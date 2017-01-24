@@ -20,23 +20,23 @@ class PolynomialSplineContainer {
   virtual ~PolynomialSplineContainer();
 
   bool advance(double dt);
-  bool addSpline(PolynomialSplineQuintic& spline);
+  bool addSpline(const PolynomialSplineQuintic& spline);
   bool reset();
   bool resetTime();
 
   double getContainerDuration() const;
 
-  double getPosition();
-  double getVelocity();
-  double getAcceleration();
+  double getPosition() const;
+  double getVelocity() const;
+  double getAcceleration() const;
 
   double getPositionAtTime(double t) const;
   double getVelocityAtTime(double t) const;
   double getAccelerationAtTime(double t) const;
 
-  double getEndPosition();
-  double getEndVelocity();
-  double getEndAcceleration();
+  double getEndPosition() const;
+  double getEndVelocity() const;
+  double getEndAcceleration() const;
 
   double getContainerTime() const;
 

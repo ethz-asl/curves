@@ -232,7 +232,7 @@ bool LocalSupport2CoefficientManager<Coefficient>::hasCoefficientWithKey(Key key
 template <class Coefficient>
 void LocalSupport2CoefficientManager<Coefficient>::updateCoefficientByKey(Key key, const Coefficient& coefficient) {
   typename  boost::unordered_map<Key, CoefficientIter>::iterator it = keyToCoefficient_.find(key);
-  CHECK(it != keyToCoefficient_.end() ) << "Key " << key << " is not in the container.";
+  CHECK(it != keyToCoefficient_.end()) << "Key " << key << " is not in the container.";
   *const_cast<CoefficientType*>(&(it)->second->second.coefficient) = coefficient;
 }
 
@@ -246,7 +246,7 @@ Coefficient LocalSupport2CoefficientManager<Coefficient>::getCoefficientByKey(Ke
 template <class Coefficient>
 Time LocalSupport2CoefficientManager<Coefficient>::getCoefficientTimeByKey(Key key) const {
   typename  boost::unordered_map<Key, CoefficientIter>::const_iterator it = keyToCoefficient_.find(key);
-  CHECK( it != keyToCoefficient_.end() ) << "Key " << key << " is not in the container.";
+  CHECK(it != keyToCoefficient_.end()) << "Key " << key << " is not in the container.";
   return it->second->first;
 }
 

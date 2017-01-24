@@ -18,7 +18,7 @@ class PolynomialSplineCubic : public PolynomialSplineBase {
 
   const std::vector<double>& getCoeffs() const;
   bool evalCoeffs(const SplineOpts& opts);
-  void setCoeffsAndDuration(const std::vector<double>& coeffs_, double duration);
+  void setCoeffsAndDuration(const std::vector<double>& coeffs, double duration);
 
   double getPositionAtTime(double dt) const;
   double getVelocityAtTime(double dt) const;

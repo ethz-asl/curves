@@ -15,7 +15,6 @@
 
 namespace curves {
 
-
 PolynomialSplineContainer::PolynomialSplineContainer():
     timeOffset_(0.0),
     containerTime_(0.0),
@@ -27,12 +26,14 @@ PolynomialSplineContainer::PolynomialSplineContainer():
 }
 
 
-PolynomialSplineContainer::~PolynomialSplineContainer() {
+PolynomialSplineContainer::~PolynomialSplineContainer()
+{
   // TODO Auto-generated destructor stub
 }
 
 
-bool PolynomialSplineContainer::advance(double dt) {
+bool PolynomialSplineContainer::advance(double dt)
+{
   // Check container size
 //  if (containerSize == 0 || containerSize == activeSplineIdx_) {
 ////    throw std::runtime_error("splinecontainer::advance");
@@ -65,39 +66,40 @@ bool PolynomialSplineContainer::advance(double dt) {
   return true;
 }
 
-
-void PolynomialSplineContainer::setContainerTime(double t) {
+void PolynomialSplineContainer::setContainerTime(double t)
+{
   containerTime_ = t;
   double timeOffset;
   activeSplineIdx_ = getActiveSplineIndexAtTime(t, timeOffset);
 }
 
-
 /*
  * Time vector tau(tk) is defined as:
  *  tau(tk) = [ tk^5  tk^4  tk^3  tk^2  tk  1].'
  */
-void getTimeVector(Eigen::Matrix<double,1,6>& timeVec, double t_k) {
+void getTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k)
+{
   timeVec(5) = 1.0;
   timeVec(4) = t_k;
-  timeVec(3) = t_k*timeVec(4);
-  timeVec(2) = t_k*timeVec(3);
-  timeVec(1) = t_k*timeVec(2);
-  timeVec(0) = t_k*timeVec(1);
+  timeVec(3) = t_k * timeVec(4);
+  timeVec(2) = t_k * timeVec(3);
+  timeVec(1) = t_k * timeVec(2);
+  timeVec(0) = t_k * timeVec(1);
 }
 
 /*
  * Time vector dtau(tk) is defined as:
  *  dtau(tk) = [ 5tk^4  4tk^3  3tk^2  2tk  1  0].'
  */
-void getdTimeVector(Eigen::Matrix<double,1,6>& timeVec, double t_k) {
+void getdTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k)
+{
 //  timeVec(0) = 5.0*boost::math::pow<4>(t_k);
 //  timeVec(1) = 4.0*boost::math::pow<3>(t_k);
 //  timeVec(2) = 3.0*boost::math::pow<2>(t_k);
-  timeVec(0) = 5.0*t_k*t_k*t_k*t_k;
-  timeVec(1) = 4.0*t_k*t_k*t_k;
-  timeVec(2) = 3.0*t_k*t_k;
-  timeVec(3) = 2.0*t_k;
+  timeVec(0) = 5.0 * t_k * t_k * t_k * t_k;
+  timeVec(1) = 4.0 * t_k * t_k * t_k;
+  timeVec(2) = 3.0 * t_k * t_k;
+  timeVec(3) = 2.0 * t_k;
   timeVec(4) = 1.0;
   timeVec(5) = 0.0;
 }
@@ -106,12 +108,13 @@ void getdTimeVector(Eigen::Matrix<double,1,6>& timeVec, double t_k) {
  * Time vector ddtau(tk) is defined as:
  *  ddtau(tk) = [ 20tk^3  12tk^2  6tk  2  0  0].'
  */
-void getddTimeVector(Eigen::Matrix<double,1,6>& timeVec, double t_k) {
+void getddTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k)
+{
 //  timeVec(0) = 20.0*boost::math::pow<3>(t_k);
 //  timeVec(1) = 12.0*boost::math::pow<2>(t_k);
-  timeVec(0) = 20.0*t_k*t_k*t_k;
-  timeVec(1) = 12.0*t_k*t_k;
-  timeVec(2) = 6.0*t_k;
+  timeVec(0) = 20.0 * t_k * t_k * t_k;
+  timeVec(1) = 12.0 * t_k * t_k;
+  timeVec(2) = 6.0 * t_k;
   timeVec(3) = 2.0;
   timeVec(4) = 0.0;
   timeVec(5) = 0.0;
@@ -126,18 +129,18 @@ void getddTimeVector(Eigen::Matrix<double,1,6>& timeVec, double t_k) {
  * Coefficient vector is:
  *    q = [a15x a14x ... a10x a15y ... a10y a25x ... a20y ... an5x ... an0y]
  */
-int getCoeffIndex(int splineIdx, int aIdx) {
-  int splineOffset = (splineIdx-1)*6;
+int getCoeffIndex(int splineIdx, int aIdx)
+{
+  int splineOffset = (splineIdx - 1) * 6;
   int idx = splineOffset + aIdx;
 
   return idx;
 }
 
-
-inline int getSplineColumnIndex(int splineIdx) {
+inline int getSplineColumnIndex(int splineIdx)
+{
   return getCoeffIndex(splineIdx, 0);
 }
-
 
 void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions,
                                         const std::vector<double>& knotValues,
@@ -287,18 +290,20 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
 
 }
 
-int PolynomialSplineContainer::getActiveSplineIndex() const {
+int PolynomialSplineContainer::getActiveSplineIndex() const
+{
   return activeSplineIdx_;
 }
 
-bool PolynomialSplineContainer::addSpline(PolynomialSplineQuintic& spline) {
+bool PolynomialSplineContainer::addSpline(const PolynomialSplineQuintic& spline)
+{
   splines_.push_back(spline);
   containerDuration_ += spline.getSplineDuration();
   return true;
 }
 
-
-bool PolynomialSplineContainer::reset() {
+bool PolynomialSplineContainer::reset()
+{
   splines_.clear();
   activeSplineIdx_ = 0;
   containerDuration_ = 0.0;
@@ -306,65 +311,72 @@ bool PolynomialSplineContainer::reset() {
   return true;
 }
 
-
-bool PolynomialSplineContainer::resetTime() {
+bool PolynomialSplineContainer::resetTime()
+{
   timeOffset_ = 0.0;
   containerTime_ = 0.0;
   activeSplineIdx_ = 0;
   return true;
 }
 
-
-double PolynomialSplineContainer::getContainerDuration() const {
+double PolynomialSplineContainer::getContainerDuration() const
+{
   return containerDuration_;
 }
 
-PolynomialSplineBase* PolynomialSplineContainer::getSpline(int splineIndex) {
+PolynomialSplineBase* PolynomialSplineContainer::getSpline(int splineIndex)
+{
   return &splines_.at(splineIndex);
 }
 
-
-double PolynomialSplineContainer::getContainerTime() const {
+double PolynomialSplineContainer::getContainerTime() const
+{
   return containerTime_;
 }
 
-
-bool PolynomialSplineContainer::isEmpty() const {
+bool PolynomialSplineContainer::isEmpty() const
+{
   return splines_.empty();
 }
 
-
-double PolynomialSplineContainer::getPosition() {
+double PolynomialSplineContainer::getPosition() const
+{
 //  std::cout << "splineIdx: " << activeSplineIdx_ << std::endl;
   if (splines_.empty()) return 0.0;
-  if (activeSplineIdx_ == splines_.size()) return splines_.at(activeSplineIdx_-1).getPositionAtTime(containerTime_-timeOffset_);
-  return splines_.at(activeSplineIdx_).getPositionAtTime(containerTime_-timeOffset_);
+  if (activeSplineIdx_ == splines_.size())
+    return splines_.at(activeSplineIdx_ - 1).getPositionAtTime(containerTime_ - timeOffset_);
+  return splines_.at(activeSplineIdx_).getPositionAtTime(containerTime_ - timeOffset_);
 }
 
 
-double PolynomialSplineContainer::getVelocity() {
+double PolynomialSplineContainer::getVelocity() const {
   if (splines_.empty()) return 0.0;
-  if (activeSplineIdx_ == splines_.size()) return splines_.at(activeSplineIdx_-1).getVelocityAtTime(containerTime_-timeOffset_);
-  return splines_.at(activeSplineIdx_).getVelocityAtTime(containerTime_-timeOffset_);
+  if (activeSplineIdx_ == splines_.size())
+    return splines_.at(activeSplineIdx_ - 1).getVelocityAtTime(containerTime_ - timeOffset_);
+  return splines_.at(activeSplineIdx_).getVelocityAtTime(containerTime_ - timeOffset_);
 }
 
 
-double PolynomialSplineContainer::getAcceleration() {
+double PolynomialSplineContainer::getAcceleration() const
+{
   if (splines_.empty()) return 0.0;
-  if (activeSplineIdx_ == splines_.size()) return splines_.at(activeSplineIdx_-1).getAccelerationAtTime(containerTime_-timeOffset_);
-  return splines_.at(activeSplineIdx_).getAccelerationAtTime(containerTime_-timeOffset_);
+  if (activeSplineIdx_ == splines_.size())
+    return splines_.at(activeSplineIdx_ - 1).getAccelerationAtTime(containerTime_ - timeOffset_);
+  return splines_.at(activeSplineIdx_).getAccelerationAtTime(containerTime_ - timeOffset_);
 }
 
-double PolynomialSplineContainer::getPositionAtTime(double t) const {
+double PolynomialSplineContainer::getPositionAtTime(double t) const
+{
   double timeOffset = 0.0;
   int activeSplineIdx = getActiveSplineIndexAtTime(t, timeOffset);
   if (activeSplineIdx < 0) {
     return splines_.at(0).getPositionAtTime(0.0);
   }
   if (activeSplineIdx == splines_.size()) {
-    return splines_.at(activeSplineIdx-1).getPositionAtTime(splines_.at(activeSplineIdx-1).getSplineDuration());
+    return splines_.at(activeSplineIdx - 1).getPositionAtTime(
+        splines_.at(activeSplineIdx - 1).getSplineDuration());
   }
-  return splines_.at(activeSplineIdx).getPositionAtTime(t-timeOffset);
+  return splines_.at(activeSplineIdx).getPositionAtTime(t - timeOffset);
 }
 
 int PolynomialSplineContainer::getActiveSplineIndexAtTime(double t, double& timeOffset) const
@@ -373,8 +385,10 @@ int PolynomialSplineContainer::getActiveSplineIndexAtTime(double t, double& time
   timeOffset = 0.0;
 
   for (size_t i = 0; i < splines_.size(); i++) {
-    if ((t - timeOffset < splines_[i].getSplineDuration())) return i;
-    if (i < (splines_.size() - 1)) timeOffset += splines_[i].getSplineDuration();
+    if ((t - timeOffset < splines_[i].getSplineDuration()))
+      return i;
+    if (i < (splines_.size() - 1))
+      timeOffset += splines_[i].getSplineDuration();
   }
 
   return (splines_.size() - 1);
@@ -385,50 +399,54 @@ int PolynomialSplineContainer::getActiveSplineIndexAtTime(double t, double& time
 //  throw std::runtime_error("not yet implemented");
 //}
 
-double PolynomialSplineContainer::getVelocityAtTime(double t)  const {
+double PolynomialSplineContainer::getVelocityAtTime(double t) const
+{
   double timeOffset = 0.0;
   int activeSplineIdx = getActiveSplineIndexAtTime(t, timeOffset);
   if (activeSplineIdx < 0) {
     return splines_.at(0).getVelocityAtTime(0.0);
   }
   if (activeSplineIdx == splines_.size()) {
-    return splines_.at(activeSplineIdx-1).getVelocityAtTime(splines_.at(activeSplineIdx-1).getSplineDuration());
+    return splines_.at(activeSplineIdx - 1).getVelocityAtTime(
+        splines_.at(activeSplineIdx - 1).getSplineDuration());
   }
-  return splines_.at(activeSplineIdx).getVelocityAtTime(t-timeOffset);
+  return splines_.at(activeSplineIdx).getVelocityAtTime(t - timeOffset);
 }
 
 //double PolynomialSplineContainer::getAccelerationAtTime(double t) {
 //  throw std::runtime_error("not yet implemented");
 //}
 
-double PolynomialSplineContainer::getAccelerationAtTime(double t) const {
+double PolynomialSplineContainer::getAccelerationAtTime(double t) const
+{
   double timeOffset = 0.0;
   int activeSplineIdx = getActiveSplineIndexAtTime(t, timeOffset);
   if (activeSplineIdx < 0) {
     return splines_.at(0).getAccelerationAtTime(0.0);
   }
   if (activeSplineIdx == splines_.size()) {
-    return splines_.at(activeSplineIdx-1).getAccelerationAtTime(splines_.at(activeSplineIdx-1).getSplineDuration());
+    return splines_.at(activeSplineIdx - 1).getAccelerationAtTime(
+        splines_.at(activeSplineIdx - 1).getSplineDuration());
   }
-  return splines_.at(activeSplineIdx).getAccelerationAtTime(t-timeOffset);
+  return splines_.at(activeSplineIdx).getAccelerationAtTime(t - timeOffset);
 }
 
-double PolynomialSplineContainer::getEndPosition() {
-  double lastSplineDuration = splines_.at(splines_.size()-1).getSplineDuration();
-  return splines_.at(splines_.size()-1).getPositionAtTime(lastSplineDuration);
+double PolynomialSplineContainer::getEndPosition() const
+{
+  double lastSplineDuration = splines_.at(splines_.size() - 1).getSplineDuration();
+  return splines_.at(splines_.size() - 1).getPositionAtTime(lastSplineDuration);
 }
 
-
-double PolynomialSplineContainer::getEndVelocity() {
-  double lastSplineDuration = splines_.at(splines_.size()-1).getSplineDuration();
-  return splines_.at(splines_.size()-1).getVelocityAtTime(lastSplineDuration);
+double PolynomialSplineContainer::getEndVelocity() const
+{
+  double lastSplineDuration = splines_.at(splines_.size() - 1).getSplineDuration();
+  return splines_.at(splines_.size() - 1).getVelocityAtTime(lastSplineDuration);
 }
 
-
-double PolynomialSplineContainer::getEndAcceleration() {
-  double lastSplineDuration = splines_.at(splines_.size()-1).getSplineDuration();
-  return splines_.at(splines_.size()-1).getAccelerationAtTime(lastSplineDuration);
+double PolynomialSplineContainer::getEndAcceleration() const
+{
+  double lastSplineDuration = splines_.at(splines_.size() - 1).getSplineDuration();
+  return splines_.at(splines_.size() - 1).getAccelerationAtTime(lastSplineDuration);
 }
-
 
 } /* namespace */

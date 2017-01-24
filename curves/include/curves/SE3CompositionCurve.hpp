@@ -4,6 +4,8 @@
  * @author Renaud Dubé, Abel Gawel, Mike Bosse
  */
 
+#include "curves/SE3Curve.hpp"
+
 #pragma once
 
 namespace curves {

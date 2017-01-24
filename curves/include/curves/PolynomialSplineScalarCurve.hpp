@@ -33,12 +33,9 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
       : Curve<ScalarCurveConfig>(),
         minTime_(0.0)
   {
-
   }
 
-  virtual ~PolynomialSplineScalarCurve()
-  {
-  }
+  virtual ~PolynomialSplineScalarCurve() {}
 
   virtual void print(const std::string& str = "") const
   {
@@ -118,7 +115,8 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
                         double finalVelocity, double finalAcceleration,
                         std::vector<Key>* outKeys = NULL)
   {
-    container_.setData(times, values, initialVelocity, initialAcceleration, finalVelocity, finalAcceleration);
+    container_.setData(times, values, initialVelocity, initialAcceleration, finalVelocity,
+                       finalAcceleration);
     minTime_ = times.front();
   }
 

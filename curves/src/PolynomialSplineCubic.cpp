@@ -60,8 +60,8 @@ bool PolynomialSplineCubic::evalCoeffs(const SplineOpts& opts) {
 }
 
 
-void PolynomialSplineCubic::setCoeffsAndDuration(const std::vector<double>& coeffs_, double duration) {
-  splineCoeff_ = coeffs_;
+void PolynomialSplineCubic::setCoeffsAndDuration(const std::vector<double>& coeffs, double duration) {
+  splineCoeff_ = coeffs;
   splineDuration_ = duration;
 }
 

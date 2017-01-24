@@ -8,12 +8,12 @@
 
 #pragma once
 
-#include "SE3Curve.hpp"
-#include "LocalSupport2CoefficientManager.hpp"
-
 #include <kindr/Core>
-#include "SamplingPolicy.hpp"
-#include "SE3CompositionCurve.hpp"
+
+#include "curves/LocalSupport2CoefficientManager.hpp"
+#include "curves/SamplingPolicy.hpp"
+#include "curves/SE3CompositionCurve.hpp"
+#include "curves/SE3Curve.hpp"
 
 // wrapper class for Hermite-style coefficients (made of QuatTransformation and Vector6)
 namespace kindr {

@@ -76,15 +76,15 @@ bool PolynomialSplineQuintic::evalCoeffs(const SplineOpts& opts) {
   return didEvaluateCoeffs_;
 }
 
-void PolynomialSplineQuintic::setCoeffsAndDuration(const std::vector<double>& coeffs_, double duration) {
-  splineCoeff_ = coeffs_;
+void PolynomialSplineQuintic::setCoeffsAndDuration(const std::vector<double>& coeffs, double duration) {
+  splineCoeff_ = coeffs;
   splineDuration_ = duration;
 }
 
 
 double PolynomialSplineQuintic::getPositionAtTime(double tk) const {
 
-  tk = std::max ( 0.0, std::min(tk, splineDuration_) );
+  tk = std::max(0.0, std::min(tk, splineDuration_));
 
   // Direct multiplication is more efficient then pow(x, y).
 //  return   splineCoeff_[5]*boost::math::pow<5>(tk)
@@ -103,7 +103,7 @@ double PolynomialSplineQuintic::getPositionAtTime(double tk) const {
 
 double PolynomialSplineQuintic::getVelocityAtTime(double tk) const {
 
-  tk = std::max ( 0.0, std::min(tk, splineDuration_) );
+  tk = std::max(0.0, std::min(tk, splineDuration_));
 
 //  return   5.0*splineCoeff_[5]*boost::math::pow<4>(tk)
 //         + 4.0*splineCoeff_[4]*boost::math::pow<3>(tk)

@@ -8,9 +8,10 @@
 
 #pragma once
 
-#include "SE3Curve.hpp"
-#include "LocalSupport2CoefficientManager.hpp"
 #include <kindr/Core>
+
+#include "curves/LocalSupport2CoefficientManager.hpp"
+#include "curves/SE3Curve.hpp"
 
 struct HermiteE3Knot {
   typedef Eigen::Vector3d Position;
@@ -44,7 +45,6 @@ struct HermiteE3Knot {
   Velocity velocity_;
 };
 
-
 namespace curves {
 
 /// Implements the Cubic Hermite curve class. See KimKimShin paper.
@@ -59,7 +59,6 @@ namespace curves {
 // b0 = 2t³-3t²+1, b_1 = -2t³+3t², b_2 = t³-2t²+t, b_3 = t³-t²
 // Spline equation:
 // p(t) = p0 * b0 + p1 * b1 + p2 * b2 + p3 + b3
-
 
 class CubicHermiteE3Curve  {
  public:
@@ -124,8 +123,8 @@ class CubicHermiteE3Curve  {
   virtual bool evaluate(ValueType& value, Time time) const;
 
   /// Evaluate the curve derivatives.
-  virtual bool evaluateDerivative(DerivativeType& derivative, Time time, unsigned int derivativeOrder) const;
-
+  virtual bool evaluateDerivative(DerivativeType& derivative, Time time,
+                                  unsigned int derivativeOrder) const;
 
   bool evaluateLinearAcceleration(Acceleration& linearAcceleration, Time time) const;
 
@@ -136,6 +135,4 @@ class CubicHermiteE3Curve  {
   LocalSupport2CoefficientManager<Coefficient> manager_;
 };
 
-
 } // namespace curves
-

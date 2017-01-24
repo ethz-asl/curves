@@ -29,7 +29,7 @@ class PolynomialSplineBase {
 
   virtual const std::vector<double>& getCoeffs() const = 0;
   virtual bool evalCoeffs(const SplineOpts& opts) = 0;
-  virtual void setCoeffsAndDuration(const std::vector<double>& coeffs_, double duration) = 0;
+  virtual void setCoeffsAndDuration(const std::vector<double>& coeffs, double duration) = 0;
 
   virtual double getPositionAtTime(double dt) const = 0;
   virtual double getVelocityAtTime(double dt) const = 0;
