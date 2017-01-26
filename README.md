@@ -22,8 +22,11 @@ TODO
 
 #### Dependencies
 
-- [Kindr](https://github.com/ethz-asl/kindr.git) (kinematics library)
 - [Eigen](http://eigen.tuxfamily.org) (linear algebra library)
+- [Kindr](https://github.com/ethz-asl/kindr.git) (kinematics library)
+- [Glog](https://github.com/google/glog) (logging library)
+
+			sudo apt-get install libgoogle-glog-dev
 
 #### Building
 

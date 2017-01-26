@@ -9,11 +9,14 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
 
+# Glog
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(glog libglog REQUIRED)
+
 # Attempt to find catkinized kindr
 find_package(kindr QUIET)
 if(NOT kindr_FOUND)
   # Attempt to find package-based kindr
-  find_package(PkgConfig REQUIRED)
   pkg_check_modules(kindr kindr REQUIRED)
 endif()
 
@@ -66,7 +69,7 @@ add_dependencies(${PROJECT_NAME}
   ${catkin_EXPORTED_TARGETS}
 )
 
-catkin_add_gtest(${PROJECT_NAME}_tests 
+catkin_add_gtest(${PROJECT_NAME}_tests
   test/test_main.cpp
   test/CubicHermiteSE3CurveTest.cpp
   test/PolynomialSplineContainerTest.cpp
