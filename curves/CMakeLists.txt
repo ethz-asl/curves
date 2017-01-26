@@ -32,7 +32,7 @@ catkin_package(
   DEPENDS
     eigen
     boost
-    libgoogle-glog-dev
+    glog
 )
 
 include_directories(
