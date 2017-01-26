@@ -286,7 +286,7 @@ void SlerpSE3Curve::saveCurveAtTimes(const std::string& filename, std::vector<Ti
     curveValues.push_back(v);
   }
 
-  CurvesTestHelpers::writeTimeVectorCSV(filename, times, curveValues);
+  writeTimeVectorCSV(filename, times, curveValues);
 }
 
 void SlerpSE3Curve::getCurveTimes(std::vector<Time>* outTimes) const {

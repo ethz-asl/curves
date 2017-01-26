@@ -13,8 +13,8 @@
 
 #define COMPOSITION_STRATEGY 1
 
-#include "SE3CompositionCurve.hpp"
-#include "../test/test_Helpers.hpp"
+#include "curves/SE3CompositionCurve.hpp"
+#include "curves/helpers.hpp"
 
 namespace curves{
 
@@ -69,9 +69,9 @@ void SE3CompositionCurve<C1, C2>::saveCurves(const std::string& filename) const 
     combinedCurveValues.push_back(v);
   }
 
-  CurvesTestHelpers::writeTimeVectorCSV(filename + "_base.csv", baseCurveTimes, baseCurveValues);
-  CurvesTestHelpers::writeTimeVectorCSV(filename + "_correction.csv", correctionCurveTimes, correctionCurveValues);
-  CurvesTestHelpers::writeTimeVectorCSV(filename + "_composed.csv", baseCurveTimes, combinedCurveValues);
+  writeTimeVectorCSV(filename + "_base.csv", baseCurveTimes, baseCurveValues);
+  writeTimeVectorCSV(filename + "_correction.csv", correctionCurveTimes, correctionCurveValues);
+  writeTimeVectorCSV(filename + "_composed.csv", baseCurveTimes, combinedCurveValues);
 
 }
 
@@ -426,7 +426,7 @@ void SE3CompositionCurve<C1, C2>::saveCurveAtTimes(const std::string& filename, 
     curveValues.push_back(v);
   }
 
-  CurvesTestHelpers::writeTimeVectorCSV(filename, times, curveValues);
+  writeTimeVectorCSV(filename, times, curveValues);
 }
 
 template <class C1, class C2>
@@ -450,7 +450,7 @@ void SE3CompositionCurve<C1, C2>::saveCorrectionCurveAtTimes(const std::string& 
     curveValues.push_back(v);
   }
 
-  CurvesTestHelpers::writeTimeVectorCSV(filename, times, curveValues);
+  writeTimeVectorCSV(filename, times, curveValues);
 }
 
 template <class C1, class C2>

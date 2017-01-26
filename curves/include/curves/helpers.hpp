@@ -1,18 +1,19 @@
 /*
- * @file test_Helpers.hpp
+ * @file helpers.hpp
  * @date Oct 17, 2014
- * @author Sean Andersson
+ * @author Sean Andersson, Peter Fankhauser
  */
 
-#ifndef TEST_HELPER_FUNCTIONS_HPP
-#define TEST_HELPER_FUNCTIONS_HPP
+#pragma once
 #include <stdlib.h>
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include <glog/logging.h>
 #include <Eigen/Core>
-namespace CurvesTestHelpers {
+
+namespace curves {
+
 template <typename T>
 static std::string toString(const T& t) {
   std::ostringstream ss; ss<<t; return ss.str();
@@ -96,9 +97,9 @@ static void writeTimeVectorCSV(std::string fileName, const std::vector<curves::T
   for (unsigned i = 0; i < times.size(); i++) {
     CHECK_EQ(vDim, values.at(i).rows()) << "all vectors must be of the same dimension.";
     strRow.clear();
-    strRow.push_back(toString(times[i]));
+    strRow.push_back(toString<Time>(times[i]));
     for (unsigned v = 0; v < vDim; v++) {
-      strRow.push_back(toString(values[i][v]));
+      strRow.push_back(toString<double>(values[i][v]));
     };
     strMatrix.push_back(strRow);
   }
@@ -131,5 +132,5 @@ static void loadTimeTimeVectorCSV(std::string fileName, std::vector<curves::Time
     outValues->push_back(tempVec);
   }
 }
+
 }
-#endif /* TEST_HELPER_FUNCTIONS_HPP */

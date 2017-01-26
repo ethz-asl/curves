@@ -316,7 +316,7 @@ void SemiDiscreteSE3Curve::saveCurveAtTimes(const std::string& filename, std::ve
     curveValues.push_back(v);
   }
 
-  CurvesTestHelpers::writeTimeVectorCSV(filename, times, curveValues);
+  writeTimeVectorCSV(filename, times, curveValues);
 }
 
 void SemiDiscreteSE3Curve::getCurveTimes(std::vector<Time>* outTimes) const {

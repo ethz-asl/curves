@@ -13,7 +13,7 @@
 #include <gtsam/base/numericalDerivative.h>
 #include "kindr/minimal/testing-gtsam.h"
 
-#include "test_Helpers.hpp"
+#include "curves/helpers.hpp"
 
 #include <Eigen/Core>
 #include <boost/assign/list_of.hpp>

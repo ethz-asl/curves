@@ -6,7 +6,7 @@
 
 #include <curves/SlerpSE2Curve.hpp>
 #include <curves/Pose2_Expressions.hpp>
-#include <../test/test_Helpers.hpp>
+#include <curves/helpers.hpp>
 
 #include <iostream>
 
@@ -257,7 +257,7 @@ void SlerpSE2Curve::saveCurveTimesAndValues(const std::string& filename) const {
     curveValues.push_back(v);
   }
 
-  CurvesTestHelpers::writeTimeVectorCSV(filename, curveTimes, curveValues);
+  writeTimeVectorCSV(filename, curveTimes, curveValues);
 }
 
 } // namespace curves
