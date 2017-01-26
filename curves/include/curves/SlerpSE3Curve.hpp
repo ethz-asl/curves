@@ -1,19 +1,19 @@
 /*
- * @file SlerpSE3Curve.hpp
- * @date Oct 10, 2014
- * @author Renaud Dube, Abel Gawel
+ * SlerpSE3Curve.hpp
+ *
+ *  Created on: Oct 10, 2014
+ *      Author: Renaud Dube, Abel Gawel, Péter Fankhauser
+ *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#ifndef CURVES_SLERP_SE3_CURVE_HPP
-#define CURVES_SLERP_SE3_CURVE_HPP
+#pragma once
 
 #include "SE3Curve.hpp"
 #include "LocalSupport2CoefficientManager.hpp"
+#include "kindr/Core"
 #include "SE3CompositionCurve.hpp"
-#include "gtsam/nonlinear/NonlinearFactorGraph.h"
 #include "SamplingPolicy.hpp"
 #include "CubicHermiteSE3Curve.hpp"
-
 
 namespace curves {
 
@@ -80,11 +80,6 @@ class SlerpSE3Curve : public SE3Curve {
   /// derivatives of order >1 equal 0
   virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
 
-  /// \brief Get an evaluator at this time
-  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const;
-
-  virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const;
-
   virtual void setTimeRange(Time minTime, Time maxTime);
 
   /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
@@ -131,15 +126,6 @@ class SlerpSE3Curve : public SE3Curve {
   ///        and the angular velocity (3,4,5).
   virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
 
-  /// Initialize a GTSAM values structure with the desired keys
-  virtual void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const;
-
-  /// Initialize a GTSAM values structure for all keys
-  virtual void initializeGTSAMValues(gtsam::Values* values) const;
-
-  // updates the relevant curve coefficients from the GTSAM values structure
-  virtual void updateFromGTSAMValues(const gtsam::Values& values);
-
   // set minimum sampling period
   void setMinSamplingPeriod(Time time);
 
@@ -149,13 +135,8 @@ class SlerpSE3Curve : public SE3Curve {
 
   virtual void clear();
 
-  /// \brief Add factors to constrain the variables active at this time.
-  void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
-
   /// \brief Perform a rigid transformation on the left side of the curve
   void transformCurve(const ValueType T);
-
-  virtual Time getTimeAtKey(gtsam::Key key) const;
 
   void saveCurveTimesAndValues(const std::string& filename) const;
 
@@ -206,14 +187,15 @@ class SlerpSE3Curve : public SE3Curve {
   int baseSize() const {return size();};
 
   void saveCorrectionCurveTimesAndValues(const std::string& filename) const {};
+
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
   SamplingPolicy slerpPolicy_;
 };
 
-typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
+typedef kindr::HomogeneousTransformationPosition3RotationQuaternionD SE3;
 typedef SE3::Rotation SO3;
-typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
+typedef kindr::AngleAxisPD AngleAxis;
 
 SE3 transformationPower(SE3  T, double alpha);
 
@@ -256,4 +238,3 @@ inline void SamplingPolicy::extend<SlerpSE3Curve, SE3>(const std::vector<Time>& 
 
 } // namespace curves
 
-#endif /* CURVES_SLERP_SE3_CURVE_HPP */

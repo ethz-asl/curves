@@ -1,22 +1,21 @@
 /*
- * @file LocalSupport2CoefficientManager.hpp
- * @date Aug 17, 2014
- * @author Paul Furgale, Abel Gawel, Renaud Dube
+ * LocalSupport2CoefficientManager.hpp
+ *
+ *  Created on: Oct 10, 2014
+ *      Author: Paul Furgale, Abel Gawel, Renaud Dube, Péter Fankhauser
+ *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#ifndef CT_LOCAL_SUPPORT_2_COEFFICIENT_MANAGER_HPP
-#define CT_LOCAL_SUPPORT_2_COEFFICIENT_MANAGER_HPP
+#pragma once
 
+#include "curves/Curve.hpp"
 #include <Eigen/Core>
 #include <boost/unordered_map.hpp>
 #include <vector>
 #include <map>
 
-#include "gtsam/nonlinear/Expression.h"
-
 namespace curves {
 
-typedef boost::int64_t Time;
 typedef size_t Key;
 
 template <class Coefficient>
@@ -85,7 +84,7 @@ class LocalSupport2CoefficientManager {
   Key insertCoefficient(Time time, const Coefficient& coefficient);
 
   /// \brief Insert coefficients. Optionally returns the keys for these coefficients.
-  /// 
+  ///
   /// If outKeys is not NULL, this function will not check if
   /// it is empty; new keys will be appended to this vector.
   void insertCoefficients(const std::vector<Time>& times,
@@ -135,12 +134,12 @@ class LocalSupport2CoefficientManager {
   /// nonnull.
   ///
   /// @returns true if it was successful
-  bool getCoefficientsAt(Time time, 
-                         CoefficientIter* outCoefficient0, CoefficientIter* outCoefficient1) const;
+  bool getCoefficientsAt(Time time, CoefficientIter* outCoefficient0,
+                         CoefficientIter* outCoefficient1) const;
 
   /// \brief Get the coefficients that are active within a range \f$[t_s,t_e) \f$.
-  void getCoefficientsInRange(Time startTime, 
-                              Time endTime, 
+  void getCoefficientsInRange(Time startTime,
+                              Time endTime,
                               CoefficientMap* outCoefficients) const;
 
   /// \brief Get all of the curve's coefficients.
@@ -187,15 +186,6 @@ class LocalSupport2CoefficientManager {
   /// the end. This is useful for gtest death tests
   void checkInternalConsistency(bool doExit = false) const;
 
-  /// Initialize a GTSAM values structure with the desired keys
-  void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const;
-
-  /// Initialize a GTSAM values structure for all keys
-  void initializeGTSAMValues(gtsam::Values* values) const;
-
-  // updates the relevant curve coefficients from the GTSAM values structure
-  void updateFromGTSAMValues(const gtsam::Values& values);
-
  private:
   /// Key to coefficient mapping
   boost::unordered_map<Key, CoefficientIter> keyToCoefficient_;
@@ -207,8 +197,6 @@ class LocalSupport2CoefficientManager {
 
 };
 
-} // namespace curves
+} // namespace
 
 #include "LocalSupport2CoefficientManager-inl.hpp"
-
-#endif /* CT_LOCAL_SUPPORT_2_COEFFICIENT_MANAGER_HPP */

@@ -1,67 +1,60 @@
 /*
- * @file CubicHermiteSE3Curve.hpp
- * @date Feb 10, 2015
- * @author Abel Gawel, Renaud Dube
+ * CubicHermiteSE3Curve.hpp
+ *
+ *  Created on: Feb 10, 2015
+ *      Author: Abel Gawel, Renaud Dube, Péter Fankhauser, Christian Gehring
+ *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#ifndef CURVES_CUBIC_HERMITE_SE3_CURVE_HPP
-#define CURVES_CUBIC_HERMITE_SE3_CURVE_HPP
+#pragma once
 
-#include "SE3Curve.hpp"
-#include "LocalSupport2CoefficientManager.hpp"
-#include "kindr/minimal/cubic-hermite-interpolation-gtsam.h"
-#include "kindr/minimal/cubic-hermite-quaternion-gtsam.h"
-#include "kindr/minimal/rotation-quaternion-gtsam.h"
-#include "kindr/minimal/common-gtsam.h"
-#include "gtsam/nonlinear/NonlinearFactorGraph.h"
-#include "SamplingPolicy.hpp"
-#include "SE3CompositionCurve.hpp"
+#include <kindr/Core>
+
+#include "curves/LocalSupport2CoefficientManager.hpp"
+#include "curves/SamplingPolicy.hpp"
+#include "curves/SE3CompositionCurve.hpp"
+#include "curves/SE3Curve.hpp"
 
 // wrapper class for Hermite-style coefficients (made of QuatTransformation and Vector6)
 namespace kindr {
-namespace minimal {
-
-typedef gtsam::Expression<kindr::minimal::RotationQuaternion> EQuaternion;
-typedef gtsam::Expression<Eigen::Vector3d> EVector3;
-typedef gtsam::Expression<Eigen::Matrix<double, 6, 1>> EVector6;
-typedef gtsam::Expression<kindr::minimal::QuatTransformation> ETransformation;
 
 template <typename Scalar>
 struct HermiteTransformation {
-  typedef QuatTransformationTemplate<Scalar> QuatTransformation;
-  typedef Eigen::Matrix<Scalar, 6, 1> Vector6;
+  typedef kindr::HomTransformQuatD Transform;
+  typedef kindr::TwistGlobalD Twist;
 
  public:
   HermiteTransformation();
-  HermiteTransformation(const QuatTransformation& transform, const Vector6& derivatives);
-  ~HermiteTransformation();
+  HermiteTransformation(const Transform& transform, const Twist& derivatives);
+  virtual ~HermiteTransformation();
 
-  QuatTransformation getTransformation() const {
+  Transform getTransformation() const {
     return transformation_;
   }
 
-  Vector6 getTransformationDerivative() const {
+  Twist getTransformationDerivative() const {
     return transformationDerivative_;
   }
 
-  void setTransformation(const QuatTransformation& transformation) {
+  void setTransformation(const Transform& transformation) {
     transformation_ = transformation;
   }
 
-  void setTransformationDerivative(const Vector6& transformationDerivative) {
+  void setTransformationDerivative(const Twist& transformationDerivative) {
     transformationDerivative_ = transformationDerivative;
   }
 
  private:
-  QuatTransformation transformation_;
-  Vector6 transformationDerivative_;
+  Transform transformation_;
+  Twist transformationDerivative_;
 };
+
 template <typename Scalar>
 HermiteTransformation<Scalar>::HermiteTransformation() {};
 
 template <typename Scalar>
-HermiteTransformation<Scalar>::HermiteTransformation(const QuatTransformation& transform,
-                                                     const Vector6& derivatives) :
+HermiteTransformation<Scalar>::HermiteTransformation(const Transform& transform,
+                                                     const Twist& derivatives) :
                                                      transformation_(transform),
                                                      transformationDerivative_(derivatives) {};
 
@@ -69,64 +62,12 @@ template <typename Scalar>
 HermiteTransformation<Scalar>::~HermiteTransformation() {};
 
 }
-}
-
-// traits for Hermite-style coefficients wrapper
-namespace gtsam {
-template<> struct traits<kindr::minimal::HermiteTransformation<double> > {
-  // The dimension of the manifold.
-  enum {
-    dimension = 12
-  };
-
-  typedef kindr::minimal::HermiteTransformation<double> type;
-  typedef type::QuatTransformation QuatTransformation;
-  typedef type::Vector6 Vector6;
-  // the "vector" typedef is used by gtsam.
-  typedef Eigen::Matrix<double, dimension, 1> vector;
-
-  // Print the type.
-  static void Print(const type& T,
-                    const std::string& str) {
-    if(str.size() > 0) { std::cout << str << ":\n";}
-    std::cout << T.getTransformation().getTransformationMatrix() << std::endl;
-    std::cout << T.getTransformationDerivative().transpose() << std::endl;
-  }
-
-  // Check the equality of two values.
-  static bool Equals(const type& T1,
-                     const type& T2, double tol) {
-    return (T1.getTransformation().getTransformationMatrix() - T2.getTransformation().getTransformationMatrix()).array().abs().maxCoeff() < tol &&
-        gtsam::traits<Vector6>::Equals(T1.getTransformationDerivative(), T2.getTransformationDerivative());
-  }
-
-  // v_local = [log(T_w_other * T_w_origin^-1); V_other - V_origin]
-  static vector Local(const type& origin, const type& other) {
-    vector rval;
-    rval << (other.getTransformation() * origin.getTransformation().inverted()).log(),
-        (other.getTransformationDerivative() - origin.getTransformationDerivative());
-    return rval;
-  }
-
-  static type Retract(const type& origin, const vector& d) {
-    type rval;
-    // The QuatTransformation constructor is using the exp map compatible with log
-    rval.setTransformation(QuatTransformation(Vector6(d.head<6>())) * origin.getTransformation());
-
-    rval.setTransformationDerivative(Vector6(d.tail<6>()) + origin.getTransformationDerivative());
-    return rval;
-  }
-  static int GetDimension(const type& /* origin */) {
-    return dimension;
-  }
-};  // traits
-} // namespace gtsam
 
 namespace curves {
 
 typedef SE3Curve::ValueType ValueType;
 typedef SE3Curve::DerivativeType DerivativeType;
-typedef kindr::minimal::HermiteTransformation<double> Coefficient;
+typedef kindr::HermiteTransformation<double> Coefficient;
 typedef LocalSupport2CoefficientManager<Coefficient>::TimeToKeyCoefficientMap TimeToKeyCoefficientMap;
 typedef LocalSupport2CoefficientManager<Coefficient>::CoefficientIter CoefficientIter;
 
@@ -158,14 +99,16 @@ typedef LocalSupport2CoefficientManager<Coefficient>::CoefficientIter Coefficien
 class CubicHermiteSE3Curve : public SE3Curve {
 
   friend class SamplingPolicy;
-
  public:
-  typedef kindr::minimal::HermiteTransformation<double> Coefficient;
+  typedef kindr::HermiteTransformation<double> Coefficient;
+
   CubicHermiteSE3Curve();
   virtual ~CubicHermiteSE3Curve();
 
   /// Print the value of the coefficient, for debugging and unit tests
   virtual void print(const std::string& str = "") const;
+
+  virtual bool writeEvalToFile(const std::string& filename, int nSamples) const;
 
   /// The first valid time for the curve.
   virtual Time getMinTime() const;
@@ -193,26 +136,32 @@ class CubicHermiteSE3Curve : public SE3Curve {
 
   /// \brief Fit a new curve to these data points.
   ///
-  /// The existing curve will be cleared.
+  /// The existing curve will be cleared.fitCurveWithDerivatives
   /// Underneath the curve should have some default policy for fitting.
   virtual void fitCurve(const std::vector<Time>& times,
                         const std::vector<ValueType>& values,
                         std::vector<Key>* outKeys = NULL);
 
+  virtual void fitCurveWithDerivatives(const std::vector<Time>& times,
+                        const std::vector<ValueType>& values,
+                        const DerivativeType& initialDerivative = DerivativeType(),
+                        const DerivativeType& finalDerivative = DerivativeType(),
+                        std::vector<Key>* outKeys = NULL);
+
+  virtual void fitPeriodicCurve(const std::vector<Time>& times,
+                                const std::vector<ValueType>& values,
+                                std::vector<Key>* outKeys = NULL);
+
+
   /// Evaluate the ambient space of the curve.
-  virtual ValueType evaluate(Time time) const;
+  virtual bool evaluate(ValueType& value, Time time) const;
 
   /// Evaluate the curve derivatives.
-  virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const;
-
-  /// \brief Get an evaluator at this time
-  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const;
-
-  virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const;
-
-  void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const;
+  virtual bool evaluateDerivative(DerivativeType& derivative, Time time, unsigned int derivativeOrder) const;
 
   virtual void setTimeRange(Time minTime, Time maxTime);
+
+  bool evaluateLinearAcceleration(kindr::Acceleration3D& linearAcceleration, Time time);
 
   /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
   virtual Eigen::Vector3d evaluateAngularVelocityA(Time time);
@@ -258,15 +207,6 @@ class CubicHermiteSE3Curve : public SE3Curve {
   ///        and the angular velocity (3,4,5).
   virtual Vector6d evaluateDerivativeB(unsigned derivativeOrder, Time time);
 
-  /// Initialize a GTSAM values structure with the desired keys
-  virtual void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const;
-
-  /// Initialize a GTSAM values structure for all keys
-  virtual void initializeGTSAMValues(gtsam::Values* values) const;
-
-  // updates the relevant curve coefficients from the GTSAM values structure
-  virtual void updateFromGTSAMValues(const gtsam::Values& values);
-
   // set the minimum sampling period
   void setMinSamplingPeriod(Time time);
 
@@ -279,8 +219,6 @@ class CubicHermiteSE3Curve : public SE3Curve {
 
   /// \brief Perform a rigid transformation on the left side of the curve
   void transformCurve(const ValueType T);
-
-  virtual Time getTimeAtKey(gtsam::Key key) const;
 
   void saveCurveTimesAndValues(const std::string& filename) const;
 
@@ -333,15 +271,20 @@ class CubicHermiteSE3Curve : public SE3Curve {
   SamplingPolicy hermitePolicy_;
 };
 
-typedef kindr::minimal::QuatTransformationTemplate<double> SE3;
+typedef kindr::HomogeneousTransformationPosition3RotationQuaternionD SE3;
 typedef SE3::Rotation SO3;
-typedef kindr::minimal::AngleAxisTemplate<double> AngleAxis;
+typedef kindr::AngleAxisPD AngleAxis;
+typedef kindr::RotationQuaternionPD RotationQuaternion;
+typedef Eigen::Matrix<double, 6, 1> Vector6;
+typedef kindr::TwistGlobalD Twist;
 
 SE3 transformationPower(SE3  T, double alpha);
 
 SE3 composeTransformations(SE3 A, SE3 B);
 
 SE3 inverseTransformation(SE3 T);
+
+SE3 invertAndComposeImplementation(SE3 A, SE3 B);
 
 // implements the special (extend) policies for Cubic Hermite curves
 template <>
@@ -354,7 +297,7 @@ inline Key SamplingPolicy::defaultExtend<CubicHermiteSE3Curve, ValueType>(const 
 
   // manager is empty
   if (curve->manager_.size() == 0) {
-    derivative << 0,0,0,0,0,0;
+    derivative.setZero();
     // 1 value in manager (2 in total)
   } else if (curve->manager_.size() == 1) {
     // get latest coefficient from manager
@@ -379,18 +322,14 @@ inline Key SamplingPolicy::defaultExtend<CubicHermiteSE3Curve, ValueType>(const 
 
     // update derivative of previous coefficient
     DerivativeType derivative0;
-    derivative0 << curve->calculateSlope(rVal0->first,
-                                  time,
-                                  rVal0->second.coefficient.getTransformation(),
-                                  value);
+    derivative0 = curve->calculateSlope(rVal0->first, time,
+                                        rVal0->second.coefficient.getTransformation(), value);
     Coefficient updated(rVal1->second.coefficient.getTransformation(), derivative0);
     curve->manager_.updateCoefficientByKey(rVal1->second.key, updated);
 
     // calculate slope
-    derivative << curve->calculateSlope(rVal1->first,
-                                 time,
-                                 rVal1->second.coefficient.getTransformation(),
-                                 value);
+    derivative = curve->calculateSlope(rVal1->first, time,
+                                       rVal1->second.coefficient.getTransformation(), value);
   }
   measurementsSinceLastExtend_ = 0;
   lastExtend_ = time;
@@ -406,7 +345,7 @@ inline Key SamplingPolicy::interpolationExtend<CubicHermiteSE3Curve, ValueType>(
     // extend curve with new interpolation coefficient if necessary
     CoefficientIter rValInterp = --curve->manager_.coefficientEnd();
     CoefficientIter last = --curve->manager_.coefficientEnd();
-    derivative << last->second.coefficient.getTransformationDerivative();
+    derivative = last->second.coefficient.getTransformationDerivative();
   } else {
     // assumes the interpolation coefficient is already set (at end of curve)
     // assumes same velocities as last Coefficient
@@ -416,10 +355,8 @@ inline Key SamplingPolicy::interpolationExtend<CubicHermiteSE3Curve, ValueType>(
                                &rVal0,
                                &rValInterp);
 
-    derivative << curve->calculateSlope(rVal0->first,
-                                 time,
-                                 rVal0->second.coefficient.getTransformation(),
-                                 value);
+    derivative = curve->calculateSlope(rVal0->first, time,
+                                       rVal0->second.coefficient.getTransformation(), value);
 
     // update the interpolated coefficient with given values and velocities from last coefficeint
     curve->manager_.removeCoefficientAtTime(rValInterp->first);
@@ -456,97 +393,9 @@ inline void SamplingPolicy::extend<CubicHermiteSE3Curve, ValueType>(const std::v
 } // namespace curves
 
 namespace kindr {
-namespace minimal {
 
-typedef gtsam::Expression<kindr::minimal::HermiteTransformation<double>> EHermiteTransformation;
 typedef curves::SE3Curve::ValueType ValueType;
 typedef curves::SE3Curve::DerivativeType DerivativeType;
-typedef kindr::minimal::HermiteTransformation<double> Coefficient;
-// Expressions for HermiteTransformation -> Transformation
-static QuatTransformation transformationFromHermiteTransformationImplementation(
-    const HermiteTransformation<double>& T, gtsam::OptionalJacobian<6, 12> HT) {
-  if(HT) {
-    HT->leftCols<6>().setIdentity();
-    HT->rightCols<6>().setZero();
-  }
-  return T.getTransformation();
-}
-
-static ETransformation transformationFromHermiteTransformation(
-    const EHermiteTransformation& T) {
-  return ETransformation(
-      &transformationFromHermiteTransformationImplementation, T);
-}
-
-// Expressions for HermiteTransformation -> AngularVelocities
-static Eigen::Vector3d angularVelocitiesFromHermiteTransformationImplementation(
-    const HermiteTransformation<double>& T, gtsam::OptionalJacobian<3, 12> HT) {
-  if(HT) {
-    HT->block(0,0,3,3).setZero();
-    HT->block(0,3,3,3).setZero();
-    HT->block(0,6,3,3).setZero();
-    HT->block(0,9,3,3).setIdentity();
-  }
-  return T.getTransformationDerivative().tail<3>();
-}
-
-static EVector3 angularVelocitiesFromHermiteTransformation(
-    const EHermiteTransformation& T) {
-  return EVector3(
-      &angularVelocitiesFromHermiteTransformationImplementation, T);
-}
-
-// Expressions for HermiteTransformation -> Velocities
-static Eigen::Vector3d velocitiesFromHermiteTransformationImplementation(
-    const HermiteTransformation<double>& T, gtsam::OptionalJacobian<3, 12> HT) {
-  if(HT) {
-    HT->block(0,0,3,3).setZero();
-    HT->block(0,3,3,3).setZero();
-    HT->block(0,6,3,3).setIdentity();
-    HT->block(0,9,3,3).setZero();
-  }
-  return T.getTransformationDerivative().head<3>();
-}
-
-static EVector3 velocitiesFromHermiteTransformation(
-    const EHermiteTransformation& T) {
-  return EVector3(
-      &velocitiesFromHermiteTransformationImplementation, T);
-}
-
-static Coefficient composeHermiteTransformationImplementation(
-    const ValueType& T, const DerivativeType& v,
-    gtsam::OptionalJacobian<12, 6> H1,
-    gtsam::OptionalJacobian<12, 6> H2) {
-  if (H1) {
-    H1->topRows<6>().setIdentity();
-    H1->bottomRows<6>().setZero();
-  }
-  if (H2) {
-    H2->topRows<6>().setZero();
-    H2->bottomRows<6>().setIdentity();
-  }
-  return Coefficient(T, v);
-}
-
-// Expression for Transformation & Velocities -> HermiteTransformation
-static EHermiteTransformation composeHermiteTransformation(
-    const ETransformation& T,
-    const EVector6& v) {
-  return EHermiteTransformation(
-      &composeHermiteTransformationImplementation, T, v);
-}
-/// \brief Scale a point.
-///
-/// This is syntatic sugar to be able to write
-/// Expression<Eigen::Vector3d> walpha = w * alpha;
-/// instead of
-/// Expression<Eigen::Vector3d> walpha = Expression<Eigen::Vector3d>(&vectorScaling, w, alpha);
-static EVector3 operator*(const EVector3& w, const double& alpha) {
-  return vectorScaling(w, alpha);
-}
+typedef kindr::HermiteTransformation<double> Coefficient;
 
 }
-}
-
-#endif /* CURVES_CUBIC_HERMITE_SE3_CURVE_HPP */

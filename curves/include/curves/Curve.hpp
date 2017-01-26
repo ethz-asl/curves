@@ -1,25 +1,23 @@
 /*
- * @file Curve.hpp
- * @date Aug 17, 2014
- * @author Paul Furgale, Renaud Dube
+ * Curve.hpp
+ *
+ *  Created on: Mar 5, 2015
+ *      Author: Paul Furgale, Abel Gawel, Renaud Dube, Péter Fankhauser
+ *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#ifndef CURVES_CURVE_HPP
-#define CURVES_CURVE_HPP
-
-#include "gtsam/nonlinear/Expression.h"
-#include <boost/cstdint.hpp>
+#pragma once
 
 namespace curves {
 
-typedef boost::int64_t Time;
+typedef double Time;
 typedef size_t Key;
 
 template<typename CurveConfig>
 class Curve
 {
  public:
-  
+
   /// The value type of the curve.
   typedef typename CurveConfig::ValueType ValueType;
 
@@ -50,19 +48,10 @@ class Curve
   ///@{
 
   /// Evaluate the ambient space of the curve.
-  virtual ValueType evaluate(Time time) const = 0;
-  
-  /// Evaluate the curve derivatives.
-  virtual DerivativeType evaluateDerivative(Time time, unsigned derivativeOrder) const = 0;
+  virtual bool evaluate(ValueType& value, Time time) const = 0;
 
-//  /// \brief Get an evaluator at this time.
-//  virtual EvaluatorTypePtr getEvaluator(const Time& time) const = 0;
-
-  /// \brief Get a gtsam::Expression which evaluates the curve at this time.
-  virtual gtsam::Expression<ValueType> getValueExpression(const Time& time) const = 0;
-
-  /// \brief Get a gtsam::Expression which evaluates the derivative of the curve at this time.
-  virtual gtsam::Expression<DerivativeType> getDerivativeExpression(const Time& time, unsigned derivativeOrder) const = 0;
+//  /// Evaluate the curve derivatives.
+  virtual bool evaluateDerivative(DerivativeType& derivative, Time time, unsigned derivativeOrder) const = 0;
 
   ///@}
 
@@ -74,7 +63,7 @@ class Curve
   /// Underneath the curve should have some default policy for fitting.
   virtual void extend(const std::vector<Time>& times,
                       const std::vector<ValueType>& values,
-                      std::vector<Key>* outKeys  = NULL) = 0;
+                      std::vector<Key>* outKeys = NULL) = 0;
 
   /// \brief Fit a new curve to these data points.
   ///
@@ -86,26 +75,11 @@ class Curve
 
   ///@}
 
-   /// Initialize a GTSAM values structure with the desired keys
-   virtual void initializeGTSAMValues(gtsam::KeySet keys, gtsam::Values* values) const = 0;
-
-   /// Initialize a GTSAM values structure for all keys
-   virtual void initializeGTSAMValues(gtsam::Values* values) const = 0;
-
-   // updates the relevant curve coefficients from the GTSAM values structure
-   virtual void updateFromGTSAMValues(const gtsam::Values& values) = 0;
-
    /// \brief Clear all the curve coefficients
    virtual void clear() = 0;
 
    /// \brief Perform a rigid transformation on the left side of the curve
    virtual void transformCurve(const ValueType T) = 0;
-
-   virtual Time getTimeAtKey(gtsam::Key key) const = 0;
-
 };
 
-} // namespace curves
-
-
-#endif /* CURVES_CURVE_HPP */
+}  // namespace

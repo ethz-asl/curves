@@ -1,15 +1,16 @@
 /*
- * @file SE3Curve.hpp
- * @date Oct 03, 2014
- * @author Paul Furgale, Renaud Dube
+ * ScalarCurveConfig.hpp
+ *
+ *  Created on: Mar 5, 2015
+ *      Author: Paul Furgale, Renaud Dube, Péter Fankhauser
+ *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#ifndef SE3_CURVE_H_
-#define SE3_CURVE_H_
+#pragma once
 
-#include "SE3Config.hpp"
-#include "Curve.hpp"
-#include "gtsam/nonlinear/NonlinearFactorGraph.h"
+#include "curves/SE3Config.hpp"
+#include "curves/Curve.hpp"
+#include <Eigen/Core>
 
 namespace curves {
 
@@ -84,13 +85,8 @@ class SE3Curve : public Curve<SE3Config> {
 
   virtual void clear() = 0;
 
-  /// \brief Add factors to constrain the variables active at this time.
-  virtual void addPriorFactors(gtsam::NonlinearFactorGraph* graph, Time priorTime) const = 0;
-
   /// \brief Perform a rigid transformation on the left side of the curve
   virtual void transformCurve(const ValueType T) = 0;
-
-  virtual Time getTimeAtKey(gtsam::Key key) const = 0;
 
   virtual void saveCurveTimesAndValues(const std::string& filename) const = 0;
 
@@ -149,8 +145,7 @@ class SE3Curve : public Curve<SE3Config> {
   //virtual size_t dim() const;
   ///@}
  private:
+
 };
 
-}  // namespace curves
-
-#endif // SE3_CURVE_H_
+} // namespace

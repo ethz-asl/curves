@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>curves_ros</name>
+  <version>0.0.1</version>
+  <description>ROS interface for curves library.</description>
+  <maintainer email="pfankhauser@ethz.ch">Péter Fankhauser</maintainer>
+  <license>BSD</license>
+  <url type="website">https://github.com/ethz-asl/curves</url>
+  <author email="pfankhauser@ethz.ch">Péter Fankhauser</author>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>curves</depend>
+  <depend>kindr_ros</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>eigen</depend>
+</package>

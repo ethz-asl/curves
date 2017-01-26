@@ -1,11 +1,12 @@
 /*
- * @file KeyGenerator.hpp
- * @date Aug 17, 2014
- * @author Paul Furgale
+ * KeyGenerator.hpp
+ *
+ *  Created on: Aug 17, 2014
+ *      Author: Paul Furgale, Péter Fankhauser
+ *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#ifndef CT_KEYGENERATOR_HPP
-#define CT_KEYGENERATOR_HPP
+#pragma once
 
 #include <cstddef>
 
@@ -14,12 +15,9 @@ namespace curves {
 class KeyGenerator
 {
  public:
-  
+
   static size_t getNextKey();
-  
+
 };
 
 } // namespace curves
-
-
-#endif /* CT_KEYGENERATOR_HPP */

@@ -1,13 +1,12 @@
 /*
- * @file ScalarCurveConfig.hpp
- * @date Aug 18, 2014
- * @author Paul Furgale
+ * ScalarCurveConfig.hpp
+ *
+ *  Created on: Mar 5, 2015
+ *      Author: Paul Furgale, Péter Fankhauser
+ *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#ifndef CURVES_SCALAR_CURVE_CONFIG_HPP
-#define CURVES_SCALAR_CURVE_CONFIG_HPP
-
-#include <Eigen/Core>
+#pragma once
 
 namespace curves {
 
@@ -16,7 +15,4 @@ struct ScalarCurveConfig {
   typedef double DerivativeType;
 };
 
-} // namespace curves
-
-
-#endif /* CURVES_SCALAR_CURVE_CONFIG_HPP */
+} // namespace

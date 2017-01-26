@@ -1,11 +1,12 @@
 /*
- * @file VectorSpaceConfig.hpp
- * @date Aug 18, 2014
- * @author Paul Furgale, Renaud Dube
+ * ScalarCurveConfig.hpp
+ *
+ *  Created on: Mar 5, 2015
+ *      Author: Paul Furgale, Renaud Dube, Péter Fankhauser
+ *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#ifndef CURVES_VECTOR_SPACE_CONFIG_HPP
-#define CURVES_VECTOR_SPACE_CONFIG_HPP
+#pragma once
 
 #include <Eigen/Core>
 
@@ -17,7 +18,4 @@ struct VectorSpaceConfig {
   typedef Eigen::Matrix<double,N,1> DerivativeType;
 };
 
-} // namespace curves
-
-
-#endif /* CURVES_VECTOR_SPACE_CONFIG_HPP */
+} // namespace

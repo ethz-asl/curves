@@ -27,3 +27,6 @@
 
 # Result files
 *optimized*
+
+# Python
+*.pydevproject

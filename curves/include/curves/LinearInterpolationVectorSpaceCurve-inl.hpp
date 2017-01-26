@@ -1,8 +1,9 @@
 /*
+
  * @file LinearInterpolationVectorSpaceCurve.hpp
  * @date Aug 17, 2014
  * @author Paul Furgale, Abel Gawel, Renaud Dube
- */
+
 
 #include <curves/LinearInterpolationVectorSpaceCurve.hpp>
 #include <iostream>
@@ -93,7 +94,7 @@ typename LinearInterpolationVectorSpaceCurve<N>::ValueType
 LinearInterpolationVectorSpaceCurve<N>::evaluate(Time time) const {
   CoefficientIter rval0, rval1;
   bool success = manager_.getCoefficientsAt(time, &rval0, &rval1);
-  CHECK(success) << "Unable to get the coefficients at time " << time;  
+  CHECK(success) << "Unable to get the coefficients at time " << time;
 
   Time dt = rval1->first - rval0->first;
   Time t = rval1->first - time;
@@ -109,7 +110,7 @@ LinearInterpolationVectorSpaceCurve<N>::evaluateDerivative(Time time,
                                                            unsigned derivativeOrder) const {
 
   // time is out of bound --> error
-  CHECK_GE(time, this->getMinTime()) << "Time out of bounds"; 
+  CHECK_GE(time, this->getMinTime()) << "Time out of bounds";
   CHECK_LT(time, this->getMaxTime()) << "Time out of bounds";
   CHECK_GT(derivativeOrder, 0) << "DerivativeOrder must be greater than 0";
 
@@ -217,3 +218,4 @@ Time LinearInterpolationVectorSpaceCurve<N>::getTimeAtKey(gtsam::Key key) const 
 }
 
 } // namespace curves
+*/
