@@ -3,7 +3,7 @@
   <name>curves</name>
   <version>0.0.2</version>
   <description>Curves spline library.</description>
-  <maintainer email="pfankhauser@ethz.ch">Péter Fankhauser</maintainer>
+  <maintainer email="pfankhauser@ethz.ch">Peter Fankhauser</maintainer>
   <license>BSD</license>
   <url type="website">https://github.com/ethz-asl/curves</url>
   <author>Renaud Dubé</author>
