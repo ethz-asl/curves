@@ -379,16 +379,17 @@ double PolynomialSplineContainer::getPositionAtTime(double t) const
   return splines_.at(activeSplineIdx).getPositionAtTime(t - timeOffset);
 }
 
-int PolynomialSplineContainer::getActiveSplineIndexAtTime(double t, double& timeOffset) const
-{
+int PolynomialSplineContainer::getActiveSplineIndexAtTime(double t, double& timeOffset) const {
   if (splines_.empty()) return -1;
   timeOffset = 0.0;
 
   for (size_t i = 0; i < splines_.size(); i++) {
-    if ((t - timeOffset < splines_[i].getSplineDuration()))
+    if ((t - timeOffset < splines_[i].getSplineDuration())) {
       return i;
-    if (i < (splines_.size() - 1))
+    }
+    if (i < (splines_.size() - 1)) {
       timeOffset += splines_[i].getSplineDuration();
+    }
   }
 
   return (splines_.size() - 1);
