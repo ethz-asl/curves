@@ -449,4 +449,8 @@ double PolynomialSplineContainer::getEndAcceleration() const
   return splines_.at(splines_.size() - 1).getAccelerationAtTime(lastSplineDuration);
 }
 
+const std::vector<PolynomialSplineQuintic>& PolynomialSplineContainer::getSplines() const {
+  return splines_;
+}
+
 } /* namespace */

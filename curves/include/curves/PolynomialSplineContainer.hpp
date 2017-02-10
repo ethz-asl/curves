@@ -55,6 +55,8 @@ class PolynomialSplineContainer {
 
   void setContainerTime(double t);
 
+  const std::vector<PolynomialSplineQuintic>& getSplines() const;
+
   static constexpr double undefinedValue = std::numeric_limits<double>::quiet_NaN();
 
  protected:
