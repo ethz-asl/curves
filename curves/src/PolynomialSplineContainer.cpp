@@ -157,7 +157,7 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
   unsigned int num_initial_constraints = 3;
   unsigned int num_final_constraints = 3;
 
-  unsigned int num_constraints = (num_knots-2)*4 + num_initial_constraints + num_final_constraints;
+  unsigned int num_constraints = (num_splines-1)*4 + num_initial_constraints + num_final_constraints;
 
   std::vector<double> tfs;// (num_splines);
   for (unsigned int i=0; i<num_splines; i++) {
@@ -226,7 +226,7 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
   /**********************************
    * Set spline junction conditions *
    **********************************/
-  for (size_t k=0; k<num_knots-1; k++) {
+  for (size_t k=0; k<num_splines-1; k++) {
 
     int prevSplineId = k;
     int nextSplineId = k+1;
