@@ -77,7 +77,7 @@ void PolynomialSplineContainer::setContainerTime(double t)
  * Time vector tau(tk) is defined as:
  *  tau(tk) = [ tk^5  tk^4  tk^3  tk^2  tk  1].'
  */
-void getTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k)
+void PolynomialSplineContainer::getTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k) const
 {
   timeVec(5) = 1.0;
   timeVec(4) = t_k;
@@ -91,7 +91,7 @@ void getTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k)
  * Time vector dtau(tk) is defined as:
  *  dtau(tk) = [ 5tk^4  4tk^3  3tk^2  2tk  1  0].'
  */
-void getdTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k)
+void PolynomialSplineContainer::getdTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k) const
 {
 //  timeVec(0) = 5.0*boost::math::pow<4>(t_k);
 //  timeVec(1) = 4.0*boost::math::pow<3>(t_k);
@@ -108,7 +108,7 @@ void getdTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k)
  * Time vector ddtau(tk) is defined as:
  *  ddtau(tk) = [ 20tk^3  12tk^2  6tk  2  0  0].'
  */
-void getddTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k)
+void PolynomialSplineContainer::getddTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k) const
 {
 //  timeVec(0) = 20.0*boost::math::pow<3>(t_k);
 //  timeVec(1) = 12.0*boost::math::pow<2>(t_k);
@@ -129,15 +129,11 @@ void getddTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k)
  * Coefficient vector is:
  *    q = [a15x a14x ... a10x a15y ... a10y a25x ... a20y ... an5x ... an0y]
  */
-int getCoeffIndex(int splineIdx, int aIdx)
-{
-  int splineOffset = (splineIdx - 1) * 6;
-  int idx = splineOffset + aIdx;
-
-  return idx;
+int PolynomialSplineContainer::getCoeffIndex(int splineIdx, int aIdx) const {
+  return splineIdx*6 + aIdx;
 }
 
-inline int getSplineColumnIndex(int splineIdx)
+int PolynomialSplineContainer::getSplineColumnIndex(int splineIdx) const
 {
   return getCoeffIndex(splineIdx, 0);
 }
@@ -192,15 +188,15 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
 
   int constraintIdx = 0;
 //  A.block(0, getCoeffIndex(1, a5),1,6) = timeVec;    // a_10_x
-  A.block(constraintIdx, getSplineColumnIndex(1), 1, num_coeffs_spline) = timeVec;
+  A.block(constraintIdx, getSplineColumnIndex(0), 1, num_coeffs_spline) = timeVec;
   b(constraintIdx) = knotValues[0];
   constraintIdx++;
 
-  A.block(constraintIdx, getSplineColumnIndex(1), 1, num_coeffs_spline) = dTimeVec;   // a_11_x
+  A.block(constraintIdx, getSplineColumnIndex(0), 1, num_coeffs_spline) = dTimeVec;   // a_11_x
   b(constraintIdx) = initialVelocity; // initial velocity
   constraintIdx++;
 
-  A.block(constraintIdx, getSplineColumnIndex(1), 1, num_coeffs_spline) = ddTimeVec;  // a_12_x
+  A.block(constraintIdx, getSplineColumnIndex(0), 1, num_coeffs_spline) = ddTimeVec;  // a_12_x
   b(constraintIdx) = initialAcceleration; // initial acceleration
   constraintIdx++;
 
@@ -213,15 +209,15 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
   getdTimeVector(dTimeVec, tf);
   getddTimeVector(ddTimeVec, tf);
 
-  A.block(constraintIdx, getSplineColumnIndex(num_splines), 1, num_coeffs_spline) = timeVec;
+  A.block(constraintIdx, getSplineColumnIndex(num_splines-1), 1, num_coeffs_spline) = timeVec;
   b(constraintIdx) = knotValues.back();
   constraintIdx++;
 
-  A.block(constraintIdx, getSplineColumnIndex(num_splines), 1, num_coeffs_spline) = dTimeVec;
+  A.block(constraintIdx, getSplineColumnIndex(num_splines-1), 1, num_coeffs_spline) = dTimeVec;
   b(constraintIdx) = finalVelocity;
   constraintIdx++;
 
-  A.block(constraintIdx, getSplineColumnIndex(num_splines), 1, num_coeffs_spline) = ddTimeVec;
+  A.block(constraintIdx, getSplineColumnIndex(num_splines-1), 1, num_coeffs_spline) = ddTimeVec;
   b(constraintIdx) = finalAcceleration;
   constraintIdx++;
   /***************************/
@@ -230,12 +226,12 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
   /**********************************
    * Set spline junction conditions *
    **********************************/
-  for (size_t k=1; k<=num_knots-2; k++) {
+  for (size_t k=0; k<num_knots-1; k++) {
 
     int prevSplineId = k;
     int nextSplineId = k+1;
 
-    double tf = tfs[k-1];
+    double tf = tfs[k];
 
     getTimeVector(timeVec, 0.0);
     getdTimeVector(dTimeVec, 0.0);
@@ -246,12 +242,12 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
     getddTimeVector(ddTimeVecTf, tf);
 
     A.block(constraintIdx, getSplineColumnIndex(prevSplineId), 1, num_coeffs_spline) = timeVecTf;
-    b(constraintIdx) = knotValues[k];
+    b(constraintIdx) = knotValues[k+1];
 //    std::cout << "knot val: " << knotValues[k] << std::endl;
     constraintIdx++;
 
     A.block(constraintIdx, getSplineColumnIndex(nextSplineId), 1, num_coeffs_spline) = timeVec;
-    b(constraintIdx) = knotValues[k];
+    b(constraintIdx) = knotValues[k+1];
     constraintIdx++;
 
     A.block(constraintIdx, getSplineColumnIndex(prevSplineId), 1, num_coeffs_spline) = dTimeVecTf;
@@ -277,7 +273,7 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
   for (unsigned int i = 0; i <num_splines; i++) {
     coefficients.clear();
     for (int k = num_coeffs_spline-1; k >= 0; k--) {
-      coefficients.push_back( static_cast<double>(coeffs( getSplineColumnIndex(i+1)+k ) ));
+      coefficients.push_back( static_cast<double>(coeffs( getSplineColumnIndex(i)+k ) ));
     }
     spline.setCoeffsAndDuration(coefficients, tfs[i]);
     this->addSpline(spline);

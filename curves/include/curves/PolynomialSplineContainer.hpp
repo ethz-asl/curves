@@ -60,6 +60,13 @@ class PolynomialSplineContainer {
   static constexpr double undefinedValue = std::numeric_limits<double>::quiet_NaN();
 
  protected:
+  void getTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k) const;
+  void getdTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k) const;
+  void getddTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k) const;
+
+  int getCoeffIndex(int splineIdx, int aIdx) const;
+  int getSplineColumnIndex(int splineIdx) const;
+
   std::vector<PolynomialSplineQuintic> splines_;
   double timeOffset_;
   double containerTime_;
