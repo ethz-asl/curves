@@ -33,13 +33,14 @@ catkin_package(
     eigen
     boost
     glog
+    kindr
 )
 
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
-  ${Kindr_INCLUDE_DIRS}
+  ${kindr_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}
