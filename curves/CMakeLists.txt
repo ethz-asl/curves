@@ -34,6 +34,7 @@ catkin_package(
     eigen
     boost
     glog
+    kindr
 )
 
 include_directories(
