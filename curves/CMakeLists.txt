@@ -30,6 +30,7 @@ catkin_package(
     ${PROJECT_NAME}
   CATKIN_DEPENDS
   DEPENDS
+    kindr
     eigen
     boost
     glog
@@ -39,7 +40,7 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
-  ${Kindr_INCLUDE_DIRS}
+  ${kindr_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}
@@ -75,6 +76,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
   test/PolynomialSplineContainerTest.cpp
   test/PolynomialSplineVectorSpaceCurveTest.cpp
   test/PolynomialSplineQuinticScalarCurveTest.cpp
+  test/PolynomialSplinesTest.cpp
 #  test/test_LocalSupport2CoefficientManager.cpp
 #  test/test_Hermite.cpp
 #  test/test_MITb_dataset.cpp

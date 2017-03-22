@@ -39,8 +39,7 @@ double PolynomialSplineQuintic::getTime() const {
   return time_;
 }
 
-
-const std::vector<double>& PolynomialSplineQuintic::getCoeffs() const {
+const PolynomialSplineQuintic::SplineCoefficients& PolynomialSplineQuintic::getCoeffs() const {
   return splineCoeff_;
 }
 
@@ -76,8 +75,15 @@ bool PolynomialSplineQuintic::evalCoeffs(const SplineOpts& opts) {
   return didEvaluateCoeffs_;
 }
 
-void PolynomialSplineQuintic::setCoeffsAndDuration(const std::vector<double>& coeffs, double duration) {
+void PolynomialSplineQuintic::setCoeffsAndDuration(const PolynomialSplineQuintic::SplineCoefficients& coeffs, double duration) {
   splineCoeff_ = coeffs;
+  splineDuration_ = duration;
+}
+
+void PolynomialSplineQuintic::setCoeffsAndDuration(const Eigen::Matrix<double, 6, 1>& coeffs, double duration) {
+  for (unsigned int k=0; k<6; k++) {
+    splineCoeff_[k] = coeffs(k);
+  }
   splineDuration_ = duration;
 }
 

@@ -14,12 +14,16 @@ namespace curves {
 
 class PolynomialSplineQuintic : public PolynomialSplineBase {
  public:
+
+  using SplineCoefficients = std::vector<double>;
+
   PolynomialSplineQuintic();
   virtual ~PolynomialSplineQuintic();
 
-  const std::vector<double>& getCoeffs() const;
+  const SplineCoefficients& getCoeffs() const;
   bool evalCoeffs(const SplineOpts& opts);
-  void setCoeffsAndDuration(const std::vector<double>& coeffs, double duration);
+  void setCoeffsAndDuration(const SplineCoefficients& coeffs, double duration);
+  void setCoeffsAndDuration(const Eigen::Matrix<double, 6, 1>& coeffs, double duration);
 
   double getPositionAtTime(double tk) const;
   double getVelocityAtTime(double tk) const;
@@ -40,7 +44,7 @@ class PolynomialSplineQuintic : public PolynomialSplineBase {
    * s(t) = a5*t^5 + a4*t^5 + a3*t^3 + a2*t^2 + a1*t + a0
    * splineCoeff_ = [a0 a1 a2 a3 a4 a5]
    */
-  std::vector<double> splineCoeff_;
+  SplineCoefficients splineCoeff_;
 };
 
 } /* namespace */
