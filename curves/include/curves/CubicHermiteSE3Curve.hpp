@@ -275,6 +275,7 @@ typedef kindr::HomogeneousTransformationPosition3RotationQuaternionD SE3;
 typedef SE3::Rotation SO3;
 typedef kindr::AngleAxisPD AngleAxis;
 typedef kindr::RotationQuaternionPD RotationQuaternion;
+typedef kindr::RotationVectorPD RotationVector;
 typedef Eigen::Matrix<double, 6, 1> Vector6;
 typedef kindr::TwistGlobalD Twist;
 
