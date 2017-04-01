@@ -42,8 +42,6 @@ catkin_package(
     curves
     kindr_ros
     trajectory_msgs
-  DEPENDS
-    eigen
 )
 
 include_directories(
@@ -59,12 +57,6 @@ add_library(
   src/RosMultiDOFJointTrajectoryInterface.cpp
   src/RosMultiDOFJointTrajectoryTranslationInterface.cpp
 )
-
-add_dependencies(
-  ${PROJECT_NAME}
-  curves
-  roscpp
-  trajectory_msgs)
 
 target_link_libraries(
   ${PROJECT_NAME}
