@@ -12,5 +12,5 @@
   <depend>curves</depend>
   <depend>kindr_ros</depend>
   <depend>trajectory_msgs</depend>
-  <depend>eigen</depend>
+  <build_export_depend>eigen</build_export_depend>
 </package>
