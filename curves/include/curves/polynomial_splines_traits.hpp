@@ -114,8 +114,8 @@ struct spline_rep<double, 3> {
     b << opts.pos0_, opts.vel0_, opts.posT_, opts.velT_;
 
     Eigen::Matrix<double, numCoefficients, numCoefficients> A;
-    A << Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(spline_rep<double, 3>::tauZero.data()),
-         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>((dtau(0.0)).data()),
+    A << Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(tauZero.data()),
+         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(dtauZero.data()),
          Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((tau(opts.tf_)).data()),
          Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((dtau(opts.tf_)).data());
 
@@ -161,9 +161,9 @@ struct spline_rep<double, 5> {
     b << opts.pos0_, opts.vel0_, opts.acc0_, opts.posT_, opts.velT_, opts.accT_;
 
     Eigen::Matrix<double, numCoefficients, numCoefficients> A;
-    A << Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(spline_rep<double, 5>::tauZero.data()),
-         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(spline_rep<double, 5>::dtauZero.data()),
-         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(spline_rep<double, 5>::ddtauZero.data()),
+    A << Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(tauZero.data()),
+         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(dtauZero.data()),
+         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(ddtauZero.data()),
          Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((tau(opts.tf_)).data()),
          Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((dtau(opts.tf_)).data()),
          Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((ddtau(opts.tf_)).data());
