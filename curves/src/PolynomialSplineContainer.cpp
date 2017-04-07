@@ -267,15 +267,14 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
 
 
   PolynomialSplineQuintic spline;
-  std::vector<double> coefficients;
+  PolynomialSplineQuintic::SplineCoefficients coefficients;
 
 //  std::cout << "number of splines: " << num_splines << std::endl;
   for (unsigned int i = 0; i <num_splines; i++) {
-    coefficients.clear();
     for (int k = num_coeffs_spline-1; k >= 0; k--) {
-      coefficients.push_back( static_cast<double>(coeffs( getSplineColumnIndex(i)+k ) ));
+      coefficients[k] = ( static_cast<double>(coeffs( getSplineColumnIndex(i)+k ) ));
     }
-    spline.setCoeffsAndDuration(coefficients, tfs[i]);
+    spline.setCoefficientsAndDuration(coefficients, tfs[i]);
     this->addSpline(spline);
   }
 
@@ -320,7 +319,7 @@ double PolynomialSplineContainer::getContainerDuration() const
   return containerDuration_;
 }
 
-PolynomialSplineBase* PolynomialSplineContainer::getSpline(int splineIndex)
+PolynomialSplineQuintic* PolynomialSplineContainer::getSpline(int splineIndex)
 {
   return &splines_.at(splineIndex);
 }

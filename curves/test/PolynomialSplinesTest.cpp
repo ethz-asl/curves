@@ -23,9 +23,6 @@ std::uniform_real_distribution<double> uniformDistribution(-10.0, 10.0);
 
 TEST(PolynomialSplines, PolynomialSplinesCubic)
 {
-
-  robot_utils::HighResolutionClockTimer timer;
-
   curves::PolynomialSplineCubic spline;
 
   curves::SplineOptions opts(std::abs(uniformDistribution(randomEngine)),

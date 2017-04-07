@@ -49,10 +49,8 @@ add_library(${PROJECT_NAME}
   src/CubicHermiteE3Curve.cpp
   src/SlerpSE3Curve.cpp
   src/SE3Curve.cpp
-  src/PolynomialSplineBase.cpp
-  src/PolynomialSplineQuintic.cpp
-  src/PolynomialSplineCubic.cpp
   src/PolynomialSplineContainer.cpp
+  src/polynomial_splines_traits.cpp
 #  src/SE2Curve.cpp
 #  src/SlerpSE2Curve.cpp
 #  src/DiscreteSE3Curve.cpp

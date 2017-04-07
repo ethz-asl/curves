@@ -22,25 +22,44 @@ namespace curves {
 
 struct SplineOptions {
 
-  constexpr SplineOptions(double tf, double pos0, double posT, double vel0,
-                          double velT, double acc0, double accT)
-      : tf_(tf),
-        pos0_(pos0),
-        posT_(posT),
-        vel0_(vel0),
-        velT_(velT),
-        acc0_(acc0),
-        accT_(accT)
+  SplineOptions()
+      : tf_(0.0),
+        pos0_(0.0), posT_(0.0),
+        vel0_(0.0), velT_(0.0),
+        acc0_(0.0), accT_(0.0)
   {
 
   }
 
+  constexpr SplineOptions(double tf, double pos0, double posT, double vel0,
+                          double velT, double acc0, double accT)
+      : tf_(tf),
+        pos0_(pos0), posT_(posT),
+        vel0_(vel0), velT_(velT),
+        acc0_(acc0), accT_(accT)
+  {
+
+  }
+
+  //! The total duration of the spline in seconds.
   double tf_;
+
+  //! The scalar position at time 0.
   double pos0_;
+
+  //! The scalar position at time tf.
   double posT_;
+
+  //! The scalar velocity at time 0.
   double vel0_;
+
+  //! The scalar velocity at time tf.
   double velT_;
+
+  //! The scalar acceleration at time 0.
   double acc0_;
+
+  //! The scalar acceleration at time tf.
   double accT_;
 };
 

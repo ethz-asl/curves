@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "curves/PolynomialSplineQuintic.hpp"
+#include "curves/polynomial_splines.hpp"
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <limits>
@@ -51,7 +51,7 @@ class PolynomialSplineContainer {
                        double finalVelocity,
                        double finalAcceleration);
 
-  PolynomialSplineBase* getSpline(int splineIndex);
+  PolynomialSplineQuintic* getSpline(int splineIndex);
 
   void setContainerTime(double t);
 

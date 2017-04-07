@@ -99,8 +99,8 @@ class PolynomialSpline {
   bool didEvaluateCoeffs_;
 
   /*
-   * s(t) = a5*t^5 + a4*t^5 + a3*t^3 + a2*t^2 + a1*t + a0
-   * splineCoeff_ = [a0 a1 a2 a3 a4 a5]
+   * s(t) = an*t^n + ... + a1*t + a0
+   * splineCoeff_ = [an ... a1 a0]
    */
   SplineCoefficients coefficients_;
 };

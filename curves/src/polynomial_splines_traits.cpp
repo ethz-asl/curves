@@ -21,6 +21,7 @@ constexpr std::array<double, spline3::numCoefficients> spline3::dtauZero;
 using spline5 = spline_rep<double, 5>;
 constexpr std::array<double, spline5::numCoefficients> spline5::tauZero;
 constexpr std::array<double, spline5::numCoefficients> spline5::dtauZero;
+constexpr std::array<double, spline5::numCoefficients> spline5::ddtauZero;
 
 }
 }
