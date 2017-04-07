@@ -9,147 +9,148 @@
 
 // stl
 #include <vector>
+#include <iostream>
 
 // eigen
 #include <Eigen/Core>
+#include <Eigen/QR>
 
 // boost
 #include <boost/math/special_functions/pow.hpp>
 
-
 namespace curves {
 
-struct SplineOpts {
-  double tf = 0.0;
-  double pos0 = 0.0;
-  double posT = 1.0;
-  double vel0 = 0.0;
-  double velT = 0.0;
-  double acc0 = 0.0;
-  double accT = 0.0;
+struct SplineOptions {
+
+  constexpr SplineOptions(double tf, double pos0, double posT, double vel0,
+                          double velT, double acc0, double accT)
+      : tf_(tf),
+        pos0_(pos0),
+        posT_(posT),
+        vel0_(vel0),
+        velT_(velT),
+        acc0_(acc0),
+        accT_(accT)
+  {
+
+  }
+
+  double tf_;
+  double pos0_;
+  double posT_;
+  double vel0_;
+  double velT_;
+  double acc0_;
+  double accT_;
 };
 
 namespace spline_traits {
 
 // Main struct template.
-template<typename Core_, unsigned int SplineOrder_>
-struct time_vector {
-  const Eigen::Matrix<Core_, SplineOrder_+1, 1> tau(Core_ time);
-  const Eigen::Matrix<Core_, SplineOrder_+1, 1> dtau(Core_ time);
-  const Eigen::Matrix<Core_, SplineOrder_+1, 1> ddtau(Core_ time);
+template<typename Core_, int SplineOrder_>
+struct spline_rep {
 
-  const Eigen::Matrix<Core_, SplineOrder_+1, 1> tauZero();
-  const Eigen::Matrix<Core_, SplineOrder_+1, 1> dtauZero();
-  const Eigen::Matrix<Core_, SplineOrder_+1, 1> ddtauZero();
+  static constexpr unsigned int splineOrder = SplineOrder_;
+  static constexpr unsigned int numCoefficients = SplineOrder_+1;
 
-  bool compute(const SplineOpts& opts, std::vector<Core_>& coefficients);
+  using TimeVectorType = std::array<Core_, numCoefficients>;
+  using SplineCoefficients = std::array<double, numCoefficients>;
+
+  static inline TimeVectorType tau(Core_ tk) noexcept;
+  static inline TimeVectorType dtau(Core_ tk) noexcept;
+  static inline TimeVectorType ddtau(Core_ tk) noexcept;
+
+  static bool compute(const SplineOptions& opts, SplineCoefficients& coefficients);
 };
 
 // Specialization for third order splines.
 template<>
-struct time_vector<double, 3> {
+struct spline_rep<double, 3> {
 
-  static constexpr unsigned int numCoefficients = 4;
+  static constexpr unsigned int splineOrder = 3;
+  static constexpr unsigned int numCoefficients = splineOrder+1;
 
-  inline const std::vector<double> tau(double time) {
-    return { boost::math::pow<3>(time),
-             boost::math::pow<2>(time),
-             time,
-             1.0 };
+  using TimeVectorType = std::array<double, numCoefficients>;
+  using SplineCoefficients = std::array<double, numCoefficients>;
+
+  static inline TimeVectorType tau(double tk) noexcept {
+    return { boost::math::pow<3>(tk), boost::math::pow<2>(tk), tk, 1.0 };
   }
 
-  inline const std::vector<double> dtau(double time) {
-    return { 3.0*boost::math::pow<2>(time),
-             2.0*time,
-             1.0,
-             0.0 };
+  static inline TimeVectorType dtau(double tk) noexcept {
+    return { 3.0*boost::math::pow<2>(tk), 2.0*tk, 1.0, 0.0 };
   }
 
-  inline const std::vector<double> ddtau(double time) {
-    return { 6.0*time,
-             2.0,
-             0.0,
-             0.0 };
+  static inline TimeVectorType ddtau(double tk) noexcept {
+    return { 6.0*tk, 2.0, 0.0, 0.0 };
   }
 
-  inline const std::vector<double> tauZero()   { return { 0.0, 0.0, 0.0, 1.0 }; }
-  inline const std::vector<double> dtauZero()  { return { 0.0, 0.0, 1.0, 0.0 }; }
-  inline const std::vector<double> ddtauZero() { return { 0.0, 2.0, 0.0, 0.0 }; }
+  static constexpr TimeVectorType   tauZero{{ 0.0, 0.0, 0.0, 1.0 }};
+  static constexpr TimeVectorType  dtauZero{{ 0.0, 0.0, 1.0, 0.0 }};
+  static constexpr TimeVectorType ddtauZero{{ 0.0, 2.0, 0.0, 0.0 }};
 
-  bool compute(const SplineOpts& opts, std::vector<double>& coefficients) {
-    const Eigen::Matrix<double, numCoefficients, 1> b = Eigen::Matrix<double, numCoefficients, 1>(opts.pos0, opts.vel0, opts.posT, opts.velT);
+  static bool compute(const SplineOptions& opts, SplineCoefficients& coefficients) {
+
+    Eigen::Matrix<double, numCoefficients, 1> b;
+    b << opts.pos0_, opts.vel0_, opts.posT_, opts.velT_;
+
     Eigen::Matrix<double, numCoefficients, numCoefficients> A;
-    A.row(0).data() = tauZero().data();
-    A.row(1).data() = dtauZero().data();
-    A.row(2).data() = tau(opts.tf).data();
-    A.row(3).data() = dtau(opts.tf).data();
+    A << Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(spline_rep<double, 3>::tauZero.data()),
+         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>((dtau(0.0)).data()),
+         Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((tau(opts.tf_)).data()),
+         Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((dtau(opts.tf_)).data());
+
     const Eigen::VectorXd& coeffs = A.colPivHouseholderQr().solve(b);
-
-    coefficients.data();
-
-    for (int k=0; k<numCoefficients; k++) {
-      coefficients[k] = coeffs(numCoefficients-1-k);
-    }
+    Eigen::Map<Eigen::VectorXd>( coefficients.data(), coeffs.rows(), coeffs.cols() ) = coeffs;
 
     return true;
   }
 };
 
 
-
 // Specialization for fifth order splines.
 template<>
-struct time_vector<double, 5> {
+struct spline_rep<double, 5> {
 
-  static constexpr unsigned int numCoefficients = 6;
+  static constexpr unsigned int splineOrder = 5;
+  static constexpr unsigned int numCoefficients = splineOrder+1;
 
-  inline const std::vector<double> tau(double time) {
-    return { boost::math::pow<5>(time),
-             boost::math::pow<4>(time),
-             boost::math::pow<3>(time),
-             boost::math::pow<2>(time),
-             time,
-             1.0};
+  using TimeVectorType = std::array<double, numCoefficients>;
+  using SplineCoefficients = std::array<double, numCoefficients>;
+
+  static inline TimeVectorType tau(double tk) noexcept {
+    return { boost::math::pow<5>(tk), boost::math::pow<4>(tk), boost::math::pow<3>(tk),
+             boost::math::pow<2>(tk), tk, 1.0};
   }
 
-  inline const std::vector<double> dtau(double time) {
-    return { 5.0*boost::math::pow<4>(time),
-             4.0*boost::math::pow<3>(time),
-             3.0*boost::math::pow<2>(time),
-             2.0*time,
-             1.0,
-             0.0};
+  static inline TimeVectorType dtau(double tk) noexcept {
+    return { 5.0*boost::math::pow<4>(tk), 4.0*boost::math::pow<3>(tk), 3.0*boost::math::pow<2>(tk),
+             2.0*tk, 1.0, 0.0};
   }
 
-  inline const std::vector<double> ddtau(double time) {
-    return { 20.0*boost::math::pow<3>(time),
-             12.0*boost::math::pow<2>(time),
-              6.0*time,
-              2.0,
-              0.0,
-              0.0};
+  static inline TimeVectorType ddtau(double tk) noexcept {
+    return { 20.0*boost::math::pow<3>(tk), 12.0*boost::math::pow<2>(tk), 6.0*tk,
+              2.0, 0.0, 0.0};
   }
 
-  inline const std::vector<double> tauZero()   { return { 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 }; }
-  inline const std::vector<double> dtauZero()  { return { 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 }; }
-  inline const std::vector<double> ddtauZero() { return { 0.0, 0.0, 0.0, 2.0, 0.0, 0.0 }; }
+  static constexpr TimeVectorType   tauZero{{ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 }};
+  static constexpr TimeVectorType  dtauZero{{ 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 }};
+  static constexpr TimeVectorType ddtauZero{{ 0.0, 0.0, 0.0, 2.0, 0.0, 0.0 }};
 
-  bool compute(const SplineOpts& opts, std::vector<double>& coefficients) {
-    const Eigen::Matrix<double, numCoefficients, 1> b = Eigen::Matrix<double, numCoefficients, 1>(opts.pos0, opts.vel0, opts.acc0, opts.posT, opts.velT, opts.accT);
+  static bool compute(const SplineOptions& opts, SplineCoefficients& coefficients) {
+    Eigen::Matrix<double, numCoefficients, 1> b;
+    b << opts.pos0_, opts.vel0_, opts.acc0_, opts.posT_, opts.velT_, opts.accT_;
+
     Eigen::Matrix<double, numCoefficients, numCoefficients> A;
-    A.row(0) = Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>(tauZero());
-    A.row(1) = Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>(dtauZero());
-    A.row(2) = Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>(ddtauZero());
-    A.row(3) = Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>(tau(opts.tf));
-    A.row(4) = Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>(dtau(opts.tf));
-    A.row(5) = Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>(ddtau(opts.tf));
+    A << Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(spline_rep<double, 5>::tauZero.data()),
+         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(spline_rep<double, 5>::dtauZero.data()),
+         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(spline_rep<double, 5>::ddtauZero.data()),
+         Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((tau(opts.tf_)).data()),
+         Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((dtau(opts.tf_)).data()),
+         Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((ddtau(opts.tf_)).data());
+
     const Eigen::VectorXd& coeffs = A.colPivHouseholderQr().solve(b);
-
-    coefficients.data();
-
-    for (int k=0; k<numCoefficients; k++) {
-      coefficients[k] = coeffs(5-k);
-    }
+    Eigen::Map<Eigen::VectorXd>( coefficients.data(), coeffs.rows(), coeffs.cols() ) = coeffs;
 
     return true;
   }

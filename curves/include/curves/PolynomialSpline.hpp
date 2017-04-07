@@ -11,30 +11,40 @@
 #include <Eigen/Core>
 
 // curves
-#include "curves/polynomial_splines.hpp"
 #include "curves/polynomial_splines_traits.hpp"
 
 namespace curves {
 
-template <unsigned int splineOrder_>
+template <int splineOrder_>
 class PolynomialSpline {
  public:
 
-  constexpr unsigned int splineOrder = splineOrder_;
-  constexpr unsigned int coefficientCount = splineOrder + 1;
+  static constexpr unsigned int splineOrder = splineOrder_;
+  static constexpr unsigned int coefficientCount = splineOrder + 1;
 
-  using SplineCoefficients = std::vector<double, coefficientCount>;
+  using SplineImplementation = spline_traits::spline_rep<double, splineOrder>;
+  using SplineCoefficients = typename SplineImplementation::SplineCoefficients;
 
-  using TimeVector = spline_traits::time_vector<double, this->splineOrder>;
+  PolynomialSpline() :
+    currentTime_(0.0),
+    duration_(0.0),
+    didEvaluateCoeffs_(false),
+    coefficients_()
+  {
 
-  PolynomialSpline();
-  virtual ~PolynomialSpline();
+  }
 
-  const SplineCoefficients& getCoeffs() const {
+  virtual ~PolynomialSpline() {
+
+  }
+
+  const SplineCoefficients& getCoefficients() const {
     return coefficients_;
   }
 
   bool computeCoefficients(const SplineOptions& options) {
+    SplineImplementation::compute(options, coefficients_);
+    duration_ = options.tf_;
     return true;
   }
 
@@ -50,16 +60,16 @@ class PolynomialSpline {
     duration_ = duration;
   }
 
-  double getPositionAtTime(double tk) const {
-    return std::inner_product(coefficients_.begin(), coefficients_.end(), TimeVector::tau(tk).begin(), 0.0);
+  constexpr double getPositionAtTime(double tk) const {
+    return std::inner_product(coefficients_.begin(), coefficients_.end(), SplineImplementation::tau(tk).begin(), 0.0);
   }
 
-  double getVelocityAtTime(double tk) const {
-    return std::inner_product(coefficients_.begin(), coefficients_.end(), TimeVector::dtau(tk).begin(), 0.0);
+  constexpr double getVelocityAtTime(double tk) const {
+    return std::inner_product(coefficients_.begin(), coefficients_.end(), SplineImplementation::dtau(tk).begin(), 0.0);
   }
 
-  double getAccelerationAtTime(double tk) const {
-    return std::inner_product(coefficients_.begin(), coefficients_.end(), TimeVector::ddtau(tk).begin(), 0.0);
+  constexpr double getAccelerationAtTime(double tk) const {
+    return std::inner_product(coefficients_.begin(), coefficients_.end(), SplineImplementation::ddtau(tk).begin(), 0.0);
   }
 
   void advanceTime(double dt) {
@@ -94,8 +104,5 @@ class PolynomialSpline {
    */
   SplineCoefficients coefficients_;
 };
-
-using PolynomialSplineThird = PolynomialSpline<3>;
-using PolynomialSplineFifth = PolynomialSpline<5>;
 
 } /* namespace */
