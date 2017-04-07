@@ -169,7 +169,7 @@ struct spline_rep<double, 5> {
          Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((ddtau(opts.tf_)).data());
 
     const Eigen::VectorXd& coeffs = A.colPivHouseholderQr().solve(b);
-    Eigen::Map<Eigen::VectorXd>( coefficients.data(), coeffs.rows(), coeffs.cols() ) = coeffs;
+    Eigen::Map<Eigen::VectorXd>(coefficients.data(), coeffs.rows(), coeffs.cols()) = coeffs;
 
     return true;
   }

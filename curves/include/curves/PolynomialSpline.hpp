@@ -24,6 +24,8 @@ class PolynomialSpline {
 
   using SplineImplementation = spline_traits::spline_rep<double, splineOrder>;
   using SplineCoefficients = typename SplineImplementation::SplineCoefficients;
+  using EigenTimeVectorType = Eigen::Matrix<double, 1, coefficientCount>;
+  using EigenCoefficientVectorType = Eigen::Matrix<double, coefficientCount, 1>;
 
   PolynomialSpline() :
     currentTime_(0.0),
@@ -53,7 +55,7 @@ class PolynomialSpline {
     duration_ = duration;
   }
 
-  void setCoefficientsAndDuration(const Eigen::Matrix<double, coefficientCount, 1>& coefficients, double duration) {
+  void setCoefficientsAndDuration(const EigenCoefficientVectorType& coefficients, double duration) {
     for (unsigned int k=0; k<coefficientCount; k++) {
       coefficients_[k] = coefficients(k);
     }
@@ -61,15 +63,42 @@ class PolynomialSpline {
   }
 
   constexpr double getPositionAtTime(double tk) const {
-    return std::inner_product(coefficients_.begin(), coefficients_.end(), SplineImplementation::tau(tk).begin(), 0.0);
+    return std::inner_product(coefficients_.begin(), coefficients_.end(),
+                              SplineImplementation::tau(std::max(0.0, std::min(tk, duration_))).begin(), 0.0);
   }
 
   constexpr double getVelocityAtTime(double tk) const {
-    return std::inner_product(coefficients_.begin(), coefficients_.end(), SplineImplementation::dtau(tk).begin(), 0.0);
+    return std::inner_product(coefficients_.begin(), coefficients_.end(),
+                              SplineImplementation::dtau(std::max(0.0, std::min(tk, duration_))).begin(), 0.0);
   }
 
   constexpr double getAccelerationAtTime(double tk) const {
-    return std::inner_product(coefficients_.begin(), coefficients_.end(), SplineImplementation::ddtau(tk).begin(), 0.0);
+    return std::inner_product(coefficients_.begin(), coefficients_.end(),
+                              SplineImplementation::ddtau(std::max(0.0, std::min(tk, duration_))).begin(), 0.0);
+  }
+
+  static inline void getTimeVector(Eigen::Ref<EigenTimeVectorType> timeVec, double tk) {
+    timeVec = Eigen::Map<EigenTimeVectorType>(SplineImplementation::tau(tk).data());
+  }
+
+  static inline void getdTimeVector(Eigen::Ref<EigenTimeVectorType> dtimeVec, double tk) {
+    dtimeVec = Eigen::Map<EigenTimeVectorType>(SplineImplementation::dtau(tk).data());
+  }
+
+  static inline void getddTimeVector(Eigen::Ref<EigenTimeVectorType> ddtimeVec, double tk) {
+    ddtimeVec = Eigen::Map<EigenTimeVectorType>(SplineImplementation::ddtau(tk).data());
+  }
+
+  static inline void getTimeVectorAtZero(Eigen::Ref<EigenTimeVectorType> timeVec) {
+    timeVec = Eigen::Map<EigenTimeVectorType>(SplineImplementation::tauZero.data());
+  }
+
+  static inline void getdTimeVectorAtZero(Eigen::Ref<EigenTimeVectorType> dtimeVec) {
+    dtimeVec = Eigen::Map<EigenTimeVectorType>(SplineImplementation::dtauZero.data());
+  }
+
+  static inline void getddTimeVectorAtZero(Eigen::Ref<EigenTimeVectorType> ddtimeVec) {
+    ddtimeVec = Eigen::Map<EigenTimeVectorType>(SplineImplementation::ddtauZero.data());
   }
 
   void advanceTime(double dt) {

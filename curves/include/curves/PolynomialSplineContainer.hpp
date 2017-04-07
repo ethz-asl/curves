@@ -16,11 +16,15 @@ namespace curves {
 
 class PolynomialSplineContainer {
  public:
+
+  using SplineType = PolynomialSplineQuintic;
+  using SplineList = std::vector<SplineType>;
+
   PolynomialSplineContainer();
   virtual ~PolynomialSplineContainer();
 
   bool advance(double dt);
-  bool addSpline(const PolynomialSplineQuintic& spline);
+  bool addSpline(const SplineType& spline);
   bool reset();
   bool resetTime();
 
@@ -51,23 +55,19 @@ class PolynomialSplineContainer {
                        double finalVelocity,
                        double finalAcceleration);
 
-  PolynomialSplineQuintic* getSpline(int splineIndex);
+  SplineType* getSpline(int splineIndex);
 
   void setContainerTime(double t);
 
-  const std::vector<PolynomialSplineQuintic>& getSplines() const;
+  const SplineList& getSplines() const;
 
   static constexpr double undefinedValue = std::numeric_limits<double>::quiet_NaN();
 
  protected:
-  void getTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k) const;
-  void getdTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k) const;
-  void getddTimeVector(Eigen::Matrix<double, 1, 6>& timeVec, double t_k) const;
-
   int getCoeffIndex(int splineIdx, int aIdx) const;
   int getSplineColumnIndex(int splineIdx) const;
 
-  std::vector<PolynomialSplineQuintic> splines_;
+  SplineList splines_;
   double timeOffset_;
   double containerTime_;
   double containerDuration_;
