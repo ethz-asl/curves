@@ -17,6 +17,7 @@ constexpr unsigned int spline_rep<Core_, SplineOrder_>::numCoefficients;
 using spline3 = spline_rep<double, 3>;
 constexpr std::array<double, spline3::numCoefficients> spline3::tauZero;
 constexpr std::array<double, spline3::numCoefficients> spline3::dtauZero;
+constexpr std::array<double, spline3::numCoefficients> spline3::ddtauZero;
 
 using spline5 = spline_rep<double, 5>;
 constexpr std::array<double, spline5::numCoefficients> spline5::tauZero;

@@ -17,7 +17,7 @@ namespace curves {
 
 constexpr double PolynomialSplineContainer::undefinedValue;
 
-// Import spline type from class.
+// Import spline types from class.
 using SplineType = PolynomialSplineContainer::SplineType;
 using SplineList = PolynomialSplineContainer::SplineList;
 
@@ -100,29 +100,22 @@ int PolynomialSplineContainer::getSplineColumnIndex(int splineIdx) const
 void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions,
                                         const std::vector<double>& knotValues,
                                         double initialVelocity, double initialAcceleration,
-                                        double finalVelocity, double finalAcceleration)
-{
-//  for (int k =0; k< knotPositions.size(); k++) {
-//    std::cout << "pos: " << knotPositions[k] << " val: " << knotValues[k] << std::endl;
-//  }
+                                        double finalVelocity, double finalAcceleration) {
   reset();
 
-  unsigned int num_splines = knotPositions.size()-1;
-  unsigned int num_coeffs_spline = 6;
-  unsigned int num_coeffs = num_splines*num_coeffs_spline;
-  unsigned int num_knots = knotPositions.size();
-//  int num_constraints = knotPositions.size()*3+(knotPositions.size()-1);
+  const unsigned int num_splines = knotPositions.size()-1;
+  constexpr auto num_coeffs_spline = SplineType::coefficientCount;
+  const unsigned int num_coeffs = num_splines*num_coeffs_spline;
+  const unsigned int num_knots = knotPositions.size();
 
-  unsigned int num_initial_constraints = 3;
-  unsigned int num_final_constraints = 3;
+  const unsigned int num_initial_constraints = 3;
+  const unsigned int num_final_constraints = 3;
 
-  unsigned int num_constraints = (num_splines-1)*4 + num_initial_constraints + num_final_constraints;
+  const unsigned int num_constraints = (num_splines-1)*4 + num_initial_constraints + num_final_constraints;
 
   std::vector<double> tfs;// (num_splines);
   for (unsigned int i=0; i<num_splines; i++) {
     tfs.push_back(knotPositions[i+1]-knotPositions[i]);
-//    tfs[k] = knotPositions[k+1]-knotPositions[k];
-//    std::cout << "duration: " << tfs[i] << " knot: " << i << std::endl;
   }
 
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(num_constraints, num_coeffs);
@@ -161,7 +154,7 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
 
   // Final conditions
 //  int lastSplineId = num_splines; // doesnt have to be -1
-  double tf = tfs.back();
+  const double tf = tfs.back();
 //  int rows = A.rows();
 
   SplineType::getTimeVector(timeVec, tf);
@@ -187,10 +180,10 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
    **********************************/
   for (size_t k=0; k<num_splines-1; k++) {
 
-    int prevSplineId = k;
-    int nextSplineId = k+1;
+    const int prevSplineId = k;
+    const int nextSplineId = k+1;
 
-    double tf = tfs[k];
+    const double tf = tfs[k];
 
     SplineType::getTimeVector(timeVec, 0.0);
     SplineType::getdTimeVector(dTimeVec, 0.0);
@@ -202,7 +195,6 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
 
     A.block(constraintIdx, getSplineColumnIndex(prevSplineId), 1, num_coeffs_spline) = timeVecTf;
     b(constraintIdx) = knotValues[k+1];
-//    std::cout << "knot val: " << knotValues[k] << std::endl;
     constraintIdx++;
 
     A.block(constraintIdx, getSplineColumnIndex(nextSplineId), 1, num_coeffs_spline) = timeVec;
@@ -226,19 +218,11 @@ void PolynomialSplineContainer::setData(const std::vector<double>& knotPositions
   SplineType spline;
   SplineType::SplineCoefficients coefficients;
 
-//  std::cout << "number of splines: " << num_splines << std::endl;
   for (unsigned int i = 0; i <num_splines; i++) {
-    for (int k = num_coeffs_spline-1; k >= 0; k--) {
-      coefficients[k] = ( static_cast<double>(coeffs( getSplineColumnIndex(i)+k ) ));
-    }
+    Eigen::Map<Eigen::VectorXd>(coefficients.data(), num_coeffs_spline, 1) = coeffs.segment<num_coeffs_spline>(getSplineColumnIndex(i));
     spline.setCoefficientsAndDuration(coefficients, tfs[i]);
     this->addSpline(spline);
   }
-
-//  Eigen::IOFormat CleanFmt(2, 0, ",","\n", "[", "]");
-//  std::cout  << "A:\n"  << A.format(CleanFmt) << std::endl;
-//  std::cout  << "b:\n"  << b.format(CleanFmt) << std::endl;
-//  std::cout << "coeffs: " << coeffs << std::endl;
 
 }
 
@@ -293,7 +277,6 @@ bool PolynomialSplineContainer::isEmpty() const
 
 double PolynomialSplineContainer::getPosition() const
 {
-//  std::cout << "splineIdx: " << activeSplineIdx_ << std::endl;
   if (splines_.empty()) return 0.0;
   if (activeSplineIdx_ == splines_.size())
     return splines_.at(activeSplineIdx_ - 1).getPositionAtTime(containerTime_ - timeOffset_);

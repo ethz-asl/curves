@@ -2,7 +2,7 @@
  * polynomial_splines.hpp
  *
  *  Created on: Mar 7, 2017
- *      Author: dbellicoso
+ *      Author: Dario Bellicoso
  */
 
 #pragma once
@@ -73,7 +73,7 @@ struct spline_rep {
   static constexpr unsigned int numCoefficients = SplineOrder_+1;
 
   using TimeVectorType = std::array<Core_, numCoefficients>;
-  using SplineCoefficients = std::array<double, numCoefficients>;
+  using SplineCoefficients = std::array<Core_, numCoefficients>;
 
   static inline TimeVectorType tau(Core_ tk) noexcept;
   static inline TimeVectorType dtau(Core_ tk) noexcept;
@@ -119,8 +119,7 @@ struct spline_rep<double, 3> {
          Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((tau(opts.tf_)).data()),
          Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((dtau(opts.tf_)).data());
 
-    const Eigen::VectorXd& coeffs = A.colPivHouseholderQr().solve(b);
-    Eigen::Map<Eigen::VectorXd>( coefficients.data(), coeffs.rows(), coeffs.cols() ) = coeffs;
+    Eigen::Map<Eigen::VectorXd>(coefficients.data(), numCoefficients, 1) = A.colPivHouseholderQr().solve(b);
 
     return true;
   }
@@ -168,8 +167,7 @@ struct spline_rep<double, 5> {
          Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((dtau(opts.tf_)).data()),
          Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((ddtau(opts.tf_)).data());
 
-    const Eigen::VectorXd& coeffs = A.colPivHouseholderQr().solve(b);
-    Eigen::Map<Eigen::VectorXd>(coefficients.data(), coeffs.rows(), coeffs.cols()) = coeffs;
+    Eigen::Map<Eigen::VectorXd>(coefficients.data(), numCoefficients, 1) = A.colPivHouseholderQr().solve(b);
 
     return true;
   }
