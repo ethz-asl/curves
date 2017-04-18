@@ -238,6 +238,12 @@ bool PolynomialSplineContainer::addSpline(const SplineType& spline)
   return true;
 }
 
+bool PolynomialSplineContainer::addSpline(SplineType&& spline) {
+  containerDuration_ += spline.getSplineDuration();
+  splines_.emplace_back(spline);
+  return true;
+}
+
 bool PolynomialSplineContainer::reset()
 {
   splines_.clear();

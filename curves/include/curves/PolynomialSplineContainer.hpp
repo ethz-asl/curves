@@ -25,6 +25,7 @@ class PolynomialSplineContainer {
 
   bool advance(double dt);
   bool addSpline(const SplineType& spline);
+  bool addSpline(SplineType&& spline);
   bool reset();
   bool resetTime();
 
