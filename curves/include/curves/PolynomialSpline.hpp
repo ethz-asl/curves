@@ -51,6 +51,14 @@ class PolynomialSpline {
 
   }
 
+  PolynomialSpline(SplineCoefficients&& coefficients, double duration) :
+    duration_(duration),
+    didEvaluateCoeffs_(true),
+    coefficients_(std::forward<SplineCoefficients>(coefficients))
+  {
+
+  }
+
   virtual ~PolynomialSpline() {
 
   }
