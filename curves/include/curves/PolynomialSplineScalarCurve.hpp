@@ -15,9 +15,6 @@
 #include "curves/Curve.hpp"
 #include "curves/ScalarCurveConfig.hpp"
 #include "curves/PolynomialSplineContainer.hpp"
-#include "curves/PolynomialSplineBase.hpp"
-#include "curves/PolynomialSplineQuintic.hpp"
-#include "curves/PolynomialSplineCubic.hpp"
 
 namespace curves {
 
@@ -120,12 +117,12 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
     minTime_ = times.front();
   }
 
-  virtual void fitCurve(const std::vector<PolynomialSplineBase::SplineOpts>& values,
+  virtual void fitCurve(const std::vector<SplineOptions>& optionList,
                         std::vector<Key>* outKeys = NULL)
   {
-    for (auto& value : values) {
+    for (const auto& options : optionList) {
       PolynomialSplineQuintic spline;
-      spline.evalCoeffs(value);
+      spline.computeCoefficients(options);
       container_.addSpline(spline);
     }
     minTime_ = 0.0;

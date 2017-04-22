@@ -49,10 +49,8 @@ add_library(${PROJECT_NAME}
   src/CubicHermiteE3Curve.cpp
   src/SlerpSE3Curve.cpp
   src/SE3Curve.cpp
-  src/PolynomialSplineBase.cpp
-  src/PolynomialSplineQuintic.cpp
-  src/PolynomialSplineCubic.cpp
   src/PolynomialSplineContainer.cpp
+  src/polynomial_splines_traits.cpp
 #  src/SE2Curve.cpp
 #  src/SlerpSE2Curve.cpp
 #  src/DiscreteSE3Curve.cpp
@@ -76,6 +74,7 @@ catkin_add_gtest(${PROJECT_NAME}_tests
   test/PolynomialSplineContainerTest.cpp
   test/PolynomialSplineVectorSpaceCurveTest.cpp
   test/PolynomialSplineQuinticScalarCurveTest.cpp
+  test/PolynomialSplinesTest.cpp
 #  test/test_LocalSupport2CoefficientManager.cpp
 #  test/test_Hermite.cpp
 #  test/test_MITb_dataset.cpp

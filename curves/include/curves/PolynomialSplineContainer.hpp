@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "curves/PolynomialSplineQuintic.hpp"
+#include "curves/polynomial_splines.hpp"
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <limits>
@@ -16,11 +16,16 @@ namespace curves {
 
 class PolynomialSplineContainer {
  public:
+
+  using SplineType = PolynomialSplineQuintic;
+  using SplineList = std::vector<SplineType>;
+
   PolynomialSplineContainer();
   virtual ~PolynomialSplineContainer();
 
   bool advance(double dt);
-  bool addSpline(const PolynomialSplineQuintic& spline);
+  bool addSpline(const SplineType& spline);
+  bool addSpline(SplineType&& spline);
   bool reset();
   bool resetTime();
 
@@ -51,14 +56,19 @@ class PolynomialSplineContainer {
                        double finalVelocity,
                        double finalAcceleration);
 
-  PolynomialSplineBase* getSpline(int splineIndex);
+  SplineType* getSpline(int splineIndex);
 
   void setContainerTime(double t);
+
+  const SplineList& getSplines() const;
 
   static constexpr double undefinedValue = std::numeric_limits<double>::quiet_NaN();
 
  protected:
-  std::vector<PolynomialSplineQuintic> splines_;
+  int getCoeffIndex(int splineIdx, int aIdx) const;
+  int getSplineColumnIndex(int splineIdx) const;
+
+  SplineList splines_;
   double timeOffset_;
   double containerTime_;
   double containerDuration_;

@@ -16,9 +16,6 @@
 #include "curves/Curve.hpp"
 #include "curves/VectorSpaceCurve.hpp"
 #include "curves/PolynomialSplineContainer.hpp"
-#include "curves/PolynomialSplineBase.hpp"
-#include "curves/PolynomialSplineQuintic.hpp"
-#include "curves/PolynomialSplineCubic.hpp"
 
 namespace curves {
 
@@ -137,7 +134,7 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
   }
 
 
-  virtual void fitCurve(const std::vector<PolynomialSplineBase::SplineOpts>& values,
+  virtual void fitCurve(const std::vector<SplineOptions>& values,
                         std::vector<Key>* outKeys = NULL)
   {
     // TODO
