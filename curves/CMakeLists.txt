@@ -71,6 +71,7 @@ add_dependencies(${PROJECT_NAME}
 catkin_add_gtest(${PROJECT_NAME}_tests
   test/test_main.cpp
   test/CubicHermiteSE3CurveTest.cpp
+  test/CubicHermiteE3CurveTest.cpp
   test/PolynomialSplineContainerTest.cpp
   test/PolynomialSplineVectorSpaceCurveTest.cpp
   test/PolynomialSplineQuinticScalarCurveTest.cpp
