@@ -16,6 +16,7 @@
 #include "curves/Curve.hpp"
 #include "curves/VectorSpaceCurve.hpp"
 #include "curves/PolynomialSplineContainer.hpp"
+#include "curves/polynomial_splines_containers.hpp"
 
 namespace curves {
 
@@ -154,7 +155,7 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
   }
 
  private:
-  std::vector<PolynomialSplineContainer> containers_;
+  std::vector<PolynomialSplineContainerQuintic> containers_;
   Time minTime_;
 };
 

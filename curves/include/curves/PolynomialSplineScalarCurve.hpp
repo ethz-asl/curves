@@ -15,6 +15,7 @@
 #include "curves/Curve.hpp"
 #include "curves/ScalarCurveConfig.hpp"
 #include "curves/PolynomialSplineContainer.hpp"
+#include "curves/polynomial_splines_containers.hpp"
 
 namespace curves {
 
@@ -140,7 +141,7 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
   }
 
  private:
-  PolynomialSplineContainer container_;
+  PolynomialSplineContainerQuintic container_;
   Time minTime_;
 };
 

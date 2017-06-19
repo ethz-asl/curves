@@ -12,7 +12,12 @@
 
 namespace curves {
 
-using PolynomialSplineCubic   = PolynomialSpline<3>;
-using PolynomialSplineQuintic = PolynomialSpline<5>;
+using PolynomialSplineConstant = PolynomialSpline<1>;
+using PolynomialSplineLinear   = PolynomialSpline<2>;
+using PolynomialSplineCubic    = PolynomialSpline<3>;
+using PolynomialSplineQuartic  = PolynomialSpline<4>;
+using PolynomialSplineQuintic  = PolynomialSpline<5>;
+using PolynomialSplineSextic   = PolynomialSpline<6>;
+using PolynomialSplineSeptic   = PolynomialSpline<7>;
 
 }

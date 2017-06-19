@@ -16,7 +16,7 @@
 namespace curves {
 
 /*
- * This class is the implementation of a scalar polinomial spline s(t) function of a scalar t.
+ * This class is the implementation of a scalar polynomial spline s(t) function of a scalar t.
  * The spline is define as
  *    s(t) = an*t^n + ... + a1*t + a0 = sum(ai*t^i)
  *
