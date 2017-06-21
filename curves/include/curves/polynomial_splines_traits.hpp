@@ -82,7 +82,79 @@ struct spline_rep {
   static bool compute(const SplineOptions& opts, SplineCoefficients& coefficients);
 };
 
-// Specialization for third order splines.
+// Specialization for linear splines.
+template<>
+struct spline_rep<double, 1> {
+
+  static constexpr unsigned int splineOrder = 1;
+  static constexpr unsigned int numCoefficients = splineOrder+1;
+
+  using TimeVectorType = std::array<double, numCoefficients>;
+  using SplineCoefficients = std::array<double, numCoefficients>;
+
+  static inline TimeVectorType tau(double tk) noexcept {
+    return { tk, 1.0 };
+  }
+
+  static inline TimeVectorType dtau(double tk) noexcept {
+    return { 1.0, 0.0 };
+  }
+
+  static inline TimeVectorType ddtau(double tk) noexcept {
+    return { 0.0, 0.0 };
+  }
+
+  static constexpr TimeVectorType   tauZero{{ 0.0, 1.0 }};
+  static constexpr TimeVectorType  dtauZero{{ 1.0, 0.0 }};
+  static constexpr TimeVectorType ddtauZero{{ 0.0, 0.0 }};
+
+  //! Map initial pos and final pos to spline coefficients.
+  static bool compute(const SplineOptions& opts, SplineCoefficients& coefficients) {
+    coefficients[1] = opts.pos0_; //a0
+    coefficients[0] = (opts.posT_ - opts.pos0_) / opts.tf_; //a1
+
+    return true;
+  }
+};
+
+// Specialization for quadratic splines.
+template<>
+struct spline_rep<double, 2> {
+
+  static constexpr unsigned int splineOrder = 2;
+  static constexpr unsigned int numCoefficients = splineOrder+1;
+
+  using TimeVectorType = std::array<double, numCoefficients>;
+  using SplineCoefficients = std::array<double, numCoefficients>;
+
+  static inline TimeVectorType tau(double tk) noexcept {
+    return { boost::math::pow<2>(tk), tk, 1.0 };
+  }
+
+  static inline TimeVectorType dtau(double tk) noexcept {
+    return { 2.0*tk, 1.0, 0.0 };
+  }
+
+  static inline TimeVectorType ddtau(double tk) noexcept {
+    return { 2.0, 0.0, 0.0 };
+  }
+
+  static constexpr TimeVectorType   tauZero{{ 0.0, 0.0, 1.0 }};
+  static constexpr TimeVectorType  dtauZero{{ 0.0, 1.0, 0.0 }};
+  static constexpr TimeVectorType ddtauZero{{ 2.0, 0.0, 0.0 }};
+
+  //! Map initial pos, initial vel and final pos to spline coefficients.
+  static bool compute(const SplineOptions& opts, SplineCoefficients& coefficients) {
+
+    coefficients[2] = opts.pos0_; // a0
+    coefficients[1] = opts.vel0_; // a1
+    coefficients[0] = (opts.posT_ - opts.pos0_ - opts.vel0_*opts.tf_) / boost::math::pow<2>(opts.tf_); // a2
+
+    return true;
+  }
+};
+
+// Specialization for third order splines (cubic).
 template<>
 struct spline_rep<double, 3> {
 
@@ -108,6 +180,7 @@ struct spline_rep<double, 3> {
   static constexpr TimeVectorType  dtauZero{{ 0.0, 0.0, 1.0, 0.0 }};
   static constexpr TimeVectorType ddtauZero{{ 0.0, 2.0, 0.0, 0.0 }};
 
+  //! Map initial pos, initial vel, final pos and final vel to spline coefficients.
   static bool compute(const SplineOptions& opts, SplineCoefficients& coefficients) {
 
     Eigen::Matrix<double, numCoefficients, 1> b;
@@ -125,8 +198,53 @@ struct spline_rep<double, 3> {
   }
 };
 
+// Specialization for fourth order (quartic) splines.
+template<>
+struct spline_rep<double, 4> {
 
-// Specialization for fifth order splines.
+  static constexpr unsigned int splineOrder = 4;
+  static constexpr unsigned int numCoefficients = splineOrder+1;
+
+  using TimeVectorType = std::array<double, numCoefficients>;
+  using SplineCoefficients = std::array<double, numCoefficients>;
+
+  static inline TimeVectorType tau(double tk) noexcept {
+    return { boost::math::pow<4>(tk), boost::math::pow<3>(tk), boost::math::pow<2>(tk), tk, 1.0};
+  }
+
+  static inline TimeVectorType dtau(double tk) noexcept {
+    return { 4.0*boost::math::pow<3>(tk), 3.0*boost::math::pow<2>(tk), 2.0*tk, 1.0, 0.0};
+  }
+
+  static inline TimeVectorType ddtau(double tk) noexcept {
+    return { 12.0*boost::math::pow<2>(tk), 6.0*tk, 2.0, 0.0, 0.0};
+  }
+
+  static constexpr TimeVectorType   tauZero{{ 0.0, 0.0, 0.0, 0.0, 1.0 }};
+  static constexpr TimeVectorType  dtauZero{{ 0.0, 0.0, 0.0, 1.0, 0.0 }};
+  static constexpr TimeVectorType ddtauZero{{ 0.0, 0.0, 2.0, 0.0, 0.0 }};
+
+  //! Map initial pos/vel/accel and final pos/vel to spline coefficients.
+  static bool compute(const SplineOptions& opts, SplineCoefficients& coefficients) {
+    Eigen::Matrix<double, numCoefficients, 1> b;
+    b << opts.pos0_, opts.vel0_, opts.acc0_, opts.posT_, opts.velT_;
+
+    Eigen::Matrix<double, numCoefficients, numCoefficients> A;
+    A << Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(tauZero.data()),
+         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(dtauZero.data()),
+         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(ddtauZero.data()),
+         Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((tau(opts.tf_)).data()),
+         Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((dtau(opts.tf_)).data());
+
+    Eigen::Map<Eigen::VectorXd>(coefficients.data(), numCoefficients, 1) = A.colPivHouseholderQr().solve(b);
+
+    return true;
+  }
+
+};
+
+
+// Specialization for fifth order (quintic) splines.
 template<>
 struct spline_rep<double, 5> {
 
@@ -155,6 +273,7 @@ struct spline_rep<double, 5> {
   static constexpr TimeVectorType  dtauZero{{ 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 }};
   static constexpr TimeVectorType ddtauZero{{ 0.0, 0.0, 0.0, 2.0, 0.0, 0.0 }};
 
+  //! Map initial pos/vel/accel and final pos/vel/accel to spline coefficients.
   static bool compute(const SplineOptions& opts, SplineCoefficients& coefficients) {
     Eigen::Matrix<double, numCoefficients, 1> b;
     b << opts.pos0_, opts.vel0_, opts.acc0_, opts.posT_, opts.velT_, opts.accT_;
