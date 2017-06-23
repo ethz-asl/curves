@@ -215,6 +215,12 @@ class PolynomialSplineContainer {
   //! Equality target values of quatratic program (b in Ax=b).
   Eigen::VectorXd equalityConstraintTargetValues_;
 
+  //! Inequality matrix of quadratic program (A in Ax>=b).
+  Eigen::MatrixXd inequalityConstraintJacobian_;
+
+  //! Min values of quatratic program (b in Ax>=b).
+  Eigen::VectorXd inequalityConstraintMinValues_;
+
   //! QP problem.
   std::shared_ptr<numopt_common::QuadraticProblemSolver> minimizer_;
   std::shared_ptr<numopt_common::QuadraticObjectiveFunction> costFunction_;
@@ -232,7 +238,9 @@ PolynomialSplineContainer<splineOrder_>::PolynomialSplineContainer():
     hessian_(),
     linearTerm_(),
     equalityConstraintJacobian_(),
-    equalityConstraintTargetValues_()
+    equalityConstraintTargetValues_(),
+    inequalityConstraintJacobian_(),
+    inequalityConstraintMinValues_()
 {
   // Make sure that the container is correctly emptied
   reset();
@@ -484,7 +492,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>&
   // drop constraints if necessary
   if (num_constraints>num_coeffs) {
     MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Number of equality constraints is larger than number of coefficients. Drop acceleration constraints!");
-    return setData(knotDurations, knotPositions, initialVelocity, finalVelocity);
+    return setData(knotDurations, knotPositions, initialVelocity, finalVelocity, weightMinAccel);
   }
 
   // Vector containing durations of splines
@@ -881,18 +889,19 @@ bool PolynomialSplineContainer<splineOrder_>::addObjective(
 
 template <int splineOrder_>
 bool PolynomialSplineContainer<splineOrder_>::setUpOptimizationMatrices(unsigned int num_coeffs) {
+
   // Inequality constraints -> We don't use them
-  Eigen::MatrixXd ineqMat = Eigen::MatrixXd::Zero(0, num_coeffs);
-  Eigen::VectorXd ineqVec = Eigen::VectorXd::Zero(0);
+  inequalityConstraintJacobian_.setZero(0, num_coeffs);
+  inequalityConstraintMinValues_.setZero(0);
 
   // Add quadratic problem
   costFunction_->setGlobalHessian(hessian_.sparseView());
   costFunction_->setLinearTerm(linearTerm_);
   functionConstraints_->setGlobalEqualityConstraintJacobian(equalityConstraintJacobian_.sparseView());
   functionConstraints_->setEqualityConstraintTargetValues(equalityConstraintTargetValues_);
-  functionConstraints_->setGlobalInequalityConstraintJacobian(ineqMat.sparseView());
-  functionConstraints_->setInequalityConstraintMinValues(ineqVec);
-  functionConstraints_->setInequalityConstraintMaxValues(ineqVec);
+  functionConstraints_->setGlobalInequalityConstraintJacobian(inequalityConstraintJacobian_.sparseView());
+  functionConstraints_->setInequalityConstraintMinValues(inequalityConstraintMinValues_);
+  functionConstraints_->setInequalityConstraintMaxValues(inequalityConstraintMinValues_);
 
 
   return true;
