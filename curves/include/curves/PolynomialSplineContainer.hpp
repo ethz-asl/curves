@@ -59,9 +59,6 @@ class PolynomialSplineContainer {
   //! Jump to a specific point in time domain.
   void setContainerTime(double t);
 
-  //! Return spline index at current time validity.
-  int getActiveSplineIndex() const;
-
   //! Add (push back) a spline.
   bool addSpline(const SplineType& spline);
 
@@ -90,6 +87,9 @@ class PolynomialSplineContainer {
 
   //! Get currently active spline index of trajectory.
   int getActiveSplineIndexAtTime(double t, double& timeOffset) const;
+
+  //! Return spline index at current time validity.
+  int getActiveSplineIndex() const;
 
   //! Get pint in state-space at a specific time
   double getPositionAtTime(double t) const;
@@ -288,12 +288,6 @@ void PolynomialSplineContainer<splineOrder_>::setContainerTime(double t)
 }
 
 template <int splineOrder_>
-int PolynomialSplineContainer<splineOrder_>::getActiveSplineIndex() const
-{
-  return activeSplineIdx_;
-}
-
-template <int splineOrder_>
 bool PolynomialSplineContainer<splineOrder_>::addSpline(const SplineType& spline)
 {
   splines_.push_back(spline);
@@ -388,6 +382,12 @@ int PolynomialSplineContainer<splineOrder_>::getActiveSplineIndexAtTime(double t
   }
 
   return (splines_.size() - 1);
+}
+
+template <int splineOrder_>
+int PolynomialSplineContainer<splineOrder_>::getActiveSplineIndex() const
+{
+  return activeSplineIdx_;
 }
 
 template <int splineOrder_>
