@@ -501,7 +501,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>&
     splineDurations[splineId] = knotDurations[splineId+1]-knotDurations[splineId];
 
     if (splineDurations[splineId]<=0.0) {
-      MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Invalid spline duration!");
+      MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Invalid spline duration at index" << splineId << ": " << splineDurations[splineId]);
       return false;
     }
   }
@@ -586,7 +586,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>&
 
   // drop constraints if necessary
   if (num_constraints>num_coeffs) {
-    std::cout << "[PolynomialSplineContainer::setData] Number of equality constraints is larger than number of coefficients. Drop velocity constraints!\n";
+    MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Number of equality constraints is larger than number of coefficients. Drop velocity constraints!");
     return setData(knotDurations, knotPositions);
   }
 
@@ -596,7 +596,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>&
     splineDurations[splineId] = knotDurations[splineId+1]-knotDurations[splineId];
 
     if (splineDurations[splineId]<=0.0) {
-      std::cout << "[PolynomialSplineContainer::setData] Invalid spline duration!\n";
+      MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Invalid spline duration at index" << splineId << ": " << splineDurations[splineId]);
       return false;
     }
   }
