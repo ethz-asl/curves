@@ -81,14 +81,6 @@ class PolynomialSpline {
     duration_ = duration;
   }
 
-//  //! Set the coefficients and the duration of the spline.
-//  void setCoefficientsAndDuration(const EigenCoefficientVectorType& coefficients, double duration) {
-//    for (unsigned int k=0; k<coefficientCount; k++) {
-//      coefficients_[k] = coefficients(k);
-//    }
-//    duration_ = duration;
-//  }
-
   //! Get the spline evaluated at time tk.
   constexpr double getPositionAtTime(double tk) const {
     return std::inner_product(coefficients_.begin(), coefficients_.end(),

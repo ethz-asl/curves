@@ -274,19 +274,16 @@ struct spline_rep<double, 5> {
   static constexpr TimeVectorType ddtauZero{{ 0.0, 0.0, 0.0, 2.0, 0.0, 0.0 }};
 
   //! Map initial pos/vel/accel and final pos/vel/accel to spline coefficients.
-  static bool compute(const SplineOptions& opts, SplineCoefficients& coefficients) {
-    Eigen::Matrix<double, numCoefficients, 1> b;
-    b << opts.pos0_, opts.vel0_, opts.acc0_, opts.posT_, opts.velT_, opts.accT_;
-
-    Eigen::Matrix<double, numCoefficients, numCoefficients> A;
-    A << Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(tauZero.data()),
-         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(dtauZero.data()),
-         Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(ddtauZero.data()),
-         Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((tau(opts.tf_)).data()),
-         Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((dtau(opts.tf_)).data()),
-         Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((ddtau(opts.tf_)).data());
-
-    Eigen::Map<Eigen::VectorXd>(coefficients.data(), numCoefficients, 1) = A.colPivHouseholderQr().solve(b);
+  static inline bool compute(const SplineOptions& opts, SplineCoefficients& coefficients) {
+    Eigen::Map<Eigen::VectorXd>(coefficients.data(), numCoefficients, 1) =
+      (Eigen::Matrix<double, numCoefficients, numCoefficients>() << Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(tauZero.data()),
+               Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(dtauZero.data()),
+               Eigen::Map<const Eigen::Matrix<double, 1, numCoefficients>>(ddtauZero.data()),
+               Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((tau(opts.tf_)).data()),
+               Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((dtau(opts.tf_)).data()),
+               Eigen::Map<Eigen::Matrix<double, 1, numCoefficients>>((ddtau(opts.tf_)).data())).finished().
+                 colPivHouseholderQr().solve(
+                     (Eigen::Matrix<double, numCoefficients, 1>() << opts.pos0_, opts.vel0_, opts.acc0_, opts.posT_, opts.velT_, opts.accT_).finished());
 
     return true;
   }

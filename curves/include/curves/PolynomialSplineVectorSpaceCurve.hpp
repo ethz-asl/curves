@@ -122,6 +122,8 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
     for (size_t i = 0; i < N; ++i) {
       std::vector<double> scalarValues, scalarFirstDerivates, scalarSecondDerivates;
       scalarValues.reserve(times.size());
+      scalarFirstDerivates.reserve(times.size());
+      scalarSecondDerivates.reserve(times.size());
       for (size_t t = 0; t < times.size(); ++t) {
         scalarValues.push_back(values.at(t)(i));
         scalarFirstDerivates.push_back(firstDerivatives.at(t)(i));
