@@ -41,7 +41,7 @@ class PolynomialSplineContainer {
   PolynomialSplineContainer();
 
 
-  ~PolynomialSplineContainer();
+  virtual ~PolynomialSplineContainer();
 
 
   SplineType* getSpline(int splineIndex)
@@ -59,11 +59,13 @@ class PolynomialSplineContainer {
   //! Jump to a specific point in time domain.
   void setContainerTime(double t);
 
-  //! Add (push back) a spline.
-  bool addSpline(const SplineType& spline);
-
-  //! Add (push back) a spline.
-  bool addSpline(SplineType&& spline);
+  //! Add a spline to the container.
+  template<typename SplineType_>
+  bool addSpline(SplineType_&& spline) {
+    containerDuration_ += spline.getSplineDuration();
+    splines_.emplace_back(std::forward<SplineType_>(spline));
+    return true;
+  }
 
   //! Clear spline container
   bool reset();
@@ -218,7 +220,7 @@ class PolynomialSplineContainer {
   //! Inequality matrix of quadratic program (A in Ax>=b).
   Eigen::MatrixXd inequalityConstraintJacobian_;
 
-  //! Min values of quatratic program (b in Ax>=b).
+  //! Min values of quadratic program (b in Ax>=b).
   Eigen::VectorXd inequalityConstraintMinValues_;
 
   //! QP problem.
@@ -254,7 +256,7 @@ PolynomialSplineContainer<splineOrder_>::PolynomialSplineContainer():
 template <int splineOrder_>
 PolynomialSplineContainer<splineOrder_>::~PolynomialSplineContainer()
 {
-  // TODO Auto-generated destructor stub
+
 }
 
 
@@ -285,21 +287,6 @@ void PolynomialSplineContainer<splineOrder_>::setContainerTime(double t)
   containerTime_ = t;
   double timeOffset;
   activeSplineIdx_ = getActiveSplineIndexAtTime(t, timeOffset);
-}
-
-template <int splineOrder_>
-bool PolynomialSplineContainer<splineOrder_>::addSpline(const SplineType& spline)
-{
-  splines_.push_back(spline);
-  containerDuration_ += spline.getSplineDuration();
-  return true;
-}
-
-template <int splineOrder_>
-bool PolynomialSplineContainer<splineOrder_>::addSpline(SplineType&& spline) {
-  containerDuration_ += spline.getSplineDuration();
-  splines_.emplace_back(spline);
-  return true;
 }
 
 template <int splineOrder_>
@@ -731,31 +718,29 @@ void PolynomialSplineContainer<splineOrder_>::addFinalConditions(const Eigen::Ve
                         unsigned int& constraintIdx,
                         double lastSplineDuration,
                         unsigned int lastSplineId) {
-
   // time container
-  typename SplineType::EigenTimeVectorType timeVec0;
-
+  typename SplineType::EigenTimeVectorType timeVec;
 
   // initial position
   if (finalConditions.size()>0) {
-    SplineType::getTimeVector(timeVec0, lastSplineDuration);
-    equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(lastSplineId), 1, SplineType::coefficientCount) = timeVec0;
+    SplineType::getTimeVector(timeVec, lastSplineDuration);
+    equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(lastSplineId), 1, SplineType::coefficientCount) = timeVec;
     equalityConstraintTargetValues_(constraintIdx) = finalConditions(0);
     constraintIdx++;
   }
 
   // initial velocity
   if (finalConditions.size()>1) {
-    SplineType::getdTimeVector(timeVec0, lastSplineDuration);
-    equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(lastSplineId), 1, SplineType::coefficientCount) = timeVec0;
+    SplineType::getdTimeVector(timeVec, lastSplineDuration);
+    equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(lastSplineId), 1, SplineType::coefficientCount) = timeVec;
     equalityConstraintTargetValues_(constraintIdx) = finalConditions(1);
     constraintIdx++;
   }
 
   // initial acceleration
   if (finalConditions.size()>2) {
-    SplineType::getddTimeVector(timeVec0, lastSplineDuration);
-    equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(lastSplineId), 1, SplineType::coefficientCount) = timeVec0;
+    SplineType::getddTimeVector(timeVec, lastSplineDuration);
+    equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(lastSplineId), 1, SplineType::coefficientCount) = timeVec;
     equalityConstraintTargetValues_(constraintIdx) = finalConditions(2);
     constraintIdx++;
   }
@@ -772,9 +757,9 @@ void PolynomialSplineContainer<splineOrder_>::addJunctionsConditions(const std::
   typename SplineType::EigenTimeVectorType timeVecTf, dTimeVecTf, ddTimeVecTf;
 
   // get time container at zero time
-  SplineType::getTimeVector(timeVec0, 0.0);
-  SplineType::getdTimeVector(dTimeVec0, 0.0);
-  SplineType::getddTimeVector(ddTimeVec0, 0.0);
+  SplineType::getTimeVectorAtZero(timeVec0);
+  SplineType::getdTimeVectorAtZero(dTimeVec0);
+  SplineType::getddTimeVectorAtZero(ddTimeVec0);
 
 
   for (unsigned int splineId=0; splineId<num_junctions; splineId++) {
@@ -912,8 +897,7 @@ bool PolynomialSplineContainer<splineOrder_>::solveQP(Eigen::VectorXd& coeffs, u
   bool success = true;
 
   double cost = 0.0;
-  numopt_common::ParameterizationIdentity params(num_coeffs);
-  params.getParams() = coeffs;
+  numopt_common::ParameterizationIdentity params(coeffs);
   success &= minimizer_->minimize(quadraticProblem_.get(), params, cost);
 
   if (!success) {
@@ -932,13 +916,11 @@ bool PolynomialSplineContainer<splineOrder_>::extractSplineCoefficients(
                                const std::vector<double>& splineDurations,
                                unsigned int num_splines,
                                unsigned int num_coeffs_spline) {
-  SplineType spline;
   typename SplineType::SplineCoefficients coefficients;
 
   for (unsigned int splineId = 0; splineId<num_splines; splineId++) {
     Eigen::Map<Eigen::VectorXd>(coefficients.data(), num_coeffs_spline, 1) = coeffs.segment(getSplineColumnIndex(splineId), num_coeffs_spline);
-    spline.setCoefficientsAndDuration(coefficients, splineDurations[splineId]);
-    this->addSpline(spline);
+    this->addSpline(SplineType(coefficients, splineDurations[splineId]));
   }
 
   return true;

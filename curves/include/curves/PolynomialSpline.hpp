@@ -43,25 +43,20 @@ class PolynomialSpline {
 
   }
 
-  PolynomialSpline(const SplineCoefficients& coefficients, double duration) :
+  template<typename SplineCoeff_>
+  PolynomialSpline(SplineCoeff_&& coefficients, double duration) :
     duration_(duration),
     didEvaluateCoeffs_(true),
-    coefficients_(coefficients)
+    coefficients_(std::forward<SplineCoeff_>(coefficients))
   {
 
   }
 
-  PolynomialSpline(SplineCoefficients&& coefficients, double duration) :
-    duration_(duration),
-    didEvaluateCoeffs_(true),
-    coefficients_(std::forward<SplineCoefficients>(coefficients))
-  {
-
+  explicit PolynomialSpline(const SplineOptions& options) : duration_(options.tf_) {
+    computeCoefficients(options);
   }
 
-  virtual ~PolynomialSpline() {
-
-  }
+  virtual ~PolynomialSpline() { }
 
   PolynomialSpline(PolynomialSpline &&) = default;
   PolynomialSpline& operator=(PolynomialSpline &&) = default;
@@ -76,9 +71,8 @@ class PolynomialSpline {
 
   //! Compute the coefficients of the spline.
   bool computeCoefficients(const SplineOptions& options) {
-    SplineImplementation::compute(options, coefficients_);
     duration_ = options.tf_;
-    return true;
+    return SplineImplementation::compute(options, coefficients_);
   }
 
   //! Set the coefficients and the duration of the spline.
@@ -87,13 +81,13 @@ class PolynomialSpline {
     duration_ = duration;
   }
 
-  //! Set the coefficients and the duration of the spline.
-  void setCoefficientsAndDuration(const EigenCoefficientVectorType& coefficients, double duration) {
-    for (unsigned int k=0; k<coefficientCount; k++) {
-      coefficients_[k] = coefficients(k);
-    }
-    duration_ = duration;
-  }
+//  //! Set the coefficients and the duration of the spline.
+//  void setCoefficientsAndDuration(const EigenCoefficientVectorType& coefficients, double duration) {
+//    for (unsigned int k=0; k<coefficientCount; k++) {
+//      coefficients_[k] = coefficients(k);
+//    }
+//    duration_ = duration;
+//  }
 
   //! Get the spline evaluated at time tk.
   constexpr double getPositionAtTime(double tk) const {
