@@ -41,6 +41,9 @@ struct SplineOptions {
 
   }
 
+  SplineOptions (SplineOptions&&) = default;
+  SplineOptions& operator= (SplineOptions&&) = default;
+
   //! The total duration of the spline in seconds.
   double tf_;
 

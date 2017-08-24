@@ -56,6 +56,10 @@ class PolynomialSpline {
     computeCoefficients(options);
   }
 
+  explicit PolynomialSpline(SplineOptions&& options) : duration_(options.tf_) {
+    computeCoefficients(std::move(options));
+  }
+
   virtual ~PolynomialSpline() { }
 
   PolynomialSpline(PolynomialSpline &&) = default;
@@ -70,9 +74,10 @@ class PolynomialSpline {
   }
 
   //! Compute the coefficients of the spline.
-  bool computeCoefficients(const SplineOptions& options) {
+  template<typename SplineOptionsType_>
+  bool computeCoefficients(SplineOptionsType_&& options) {
     duration_ = options.tf_;
-    return SplineImplementation::compute(options, coefficients_);
+    return SplineImplementation::compute(std::forward<SplineOptionsType_>(options), coefficients_);
   }
 
   //! Set the coefficients and the duration of the spline.
