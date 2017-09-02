@@ -104,34 +104,174 @@ class PolynomialSpline {
                               SplineImplementation::ddtau(std::max(0.0, std::min(tk, duration_))).begin(), 0.0);
   }
 
+
+
+
   //! Get the time vector tau evaluated at time tk.
-  static inline void getTimeVector(Eigen::Ref<EigenTimeVectorType> timeVec, double tk) {
+  static inline void getTimeVector(Eigen::Ref<EigenTimeVectorType> timeVec, const double tk) {
     timeVec = Eigen::Map<EigenTimeVectorType>(SplineImplementation::tau(tk).data());
   }
 
+  //! Get the time vector tau evaluated at time tk.
+  template<typename Derived>
+  static inline void getTimeVector(Eigen::MatrixBase<Derived> const & timeVec, const double tk) {
+    assert(timeVec.rows() == EigenTimeVectorType::RowsAtCompileTime &&
+           timeVec.cols() == EigenTimeVectorType::ColsAtCompileTime);
+    // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
+    const_cast<Eigen::MatrixBase<Derived>&>(timeVec) =
+        Eigen::Map<const EigenTimeVectorType>((SplineImplementation::tau(tk)).data());
+  }
+
+  //! Get the time vector tau evaluated at time tk and add it to the input vector.
+  template<typename Derived>
+  static inline void addTimeVector(Eigen::MatrixBase<Derived> const & timeVec, const double tk) {
+    assert(timeVec.rows() == EigenTimeVectorType::RowsAtCompileTime &&
+           timeVec.cols() == EigenTimeVectorType::ColsAtCompileTime);
+    // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
+    const_cast<Eigen::MatrixBase<Derived>&>(timeVec) +=
+        Eigen::Map<const EigenTimeVectorType>((SplineImplementation::tau(tk)).data());
+  }
+
+
+
+
   //! Get the first derivative of the time vector tau evaluated at time tk.
-  static inline void getdTimeVector(Eigen::Ref<EigenTimeVectorType> dtimeVec, double tk) {
+  static inline void getdTimeVector(Eigen::Ref<EigenTimeVectorType> dtimeVec, const double tk) {
     dtimeVec = Eigen::Map<EigenTimeVectorType>(SplineImplementation::dtau(tk).data());
   }
 
+  //! Get the first derivative of the time vector tau evaluated at time tk.
+  template<typename Derived>
+  static inline void getDiffTimeVector(Eigen::MatrixBase<Derived> const & dtimeVec, const double tk) {
+    assert(dtimeVec.rows() == EigenTimeVectorType::RowsAtCompileTime &&
+           dtimeVec.cols() == EigenTimeVectorType::ColsAtCompileTime);
+    // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
+    const_cast<Eigen::MatrixBase<Derived>&>(dtimeVec) =
+        Eigen::Map<const EigenTimeVectorType>((SplineImplementation::dtau(tk)).data());
+  }
+
+  //! Get the first derivative of the time vector tau evaluated at time tk and add it to the input vector.
+  template<typename Derived>
+  static inline void addDiffTimeVector(Eigen::MatrixBase<Derived> const & dtimeVec, const double tk) {
+    assert(dtimeVec.rows() == EigenTimeVectorType::RowsAtCompileTime &&
+           dtimeVec.cols() == EigenTimeVectorType::ColsAtCompileTime);
+    // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
+    const_cast<Eigen::MatrixBase<Derived>&>(dtimeVec) +=
+        Eigen::Map<const EigenTimeVectorType>((SplineImplementation::dtau(tk)).data());
+  }
+
+
+
   //! Get the second derivative of the time vector tau evaluated at time tk.
-  static inline void getddTimeVector(Eigen::Ref<EigenTimeVectorType> ddtimeVec, double tk) {
+  static inline void getddTimeVector(Eigen::Ref<EigenTimeVectorType> ddtimeVec, const double tk) {
     ddtimeVec = Eigen::Map<EigenTimeVectorType>(SplineImplementation::ddtau(tk).data());
   }
+
+  //! Get the second derivative of the time vector tau evaluated at time tk.
+  template<typename Derived>
+  static inline void getDDiffTimeVector(Eigen::MatrixBase<Derived> const & ddtimeVec, const double tk) {
+    assert(ddtimeVec.rows() == EigenTimeVectorType::RowsAtCompileTime &&
+           ddtimeVec.cols() == EigenTimeVectorType::ColsAtCompileTime);
+    // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
+    const_cast<Eigen::MatrixBase<Derived>&>(ddtimeVec) =
+        Eigen::Map<const EigenTimeVectorType>((SplineImplementation::dtau(tk)).data());
+  }
+
+  //! Get the second derivative of the time vector tau evaluated at time tk and add it to the input vector.
+  template<typename Derived>
+  static inline void addDDiffTimeVector(Eigen::MatrixBase<Derived> const & ddtimeVec, const double tk) {
+    assert(ddtimeVec.rows() == EigenTimeVectorType::RowsAtCompileTime &&
+           ddtimeVec.cols() == EigenTimeVectorType::ColsAtCompileTime);
+    // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
+    const_cast<Eigen::MatrixBase<Derived>&>(ddtimeVec) +=
+        Eigen::Map<const EigenTimeVectorType>((SplineImplementation::ddtau(tk)).data());
+  }
+
+
 
   //! Get the time vector tau evaluated at zero.
   static inline void getTimeVectorAtZero(Eigen::Ref<EigenTimeVectorType> timeVec) {
     timeVec = Eigen::Map<const EigenTimeVectorType>((SplineImplementation::tauZero).data());
   }
 
+  //! Get the time vector tau evaluated at zero.
+  template<typename Derived>
+  static inline void getTimeVectorAtZero(
+      Eigen::MatrixBase<Derived> const & timeVec) {
+    assert(timeVec.rows() == EigenTimeVectorType::RowsAtCompileTime &&
+           timeVec.cols() == EigenTimeVectorType::ColsAtCompileTime);
+    // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
+    const_cast<Eigen::MatrixBase<Derived>&>(timeVec) =
+        Eigen::Map<const EigenTimeVectorType>((SplineImplementation::tauZero).data());
+  }
+
+  //! Get the time vector tau evaluated at zero.
+  template<typename Derived>
+  static inline void addTimeVectorAtZero(
+      Eigen::MatrixBase<Derived> const & timeVec) {
+    assert(timeVec.rows() == EigenTimeVectorType::RowsAtCompileTime &&
+           timeVec.cols() == EigenTimeVectorType::ColsAtCompileTime);
+    // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
+    const_cast<Eigen::MatrixBase<Derived>&>(timeVec) +=
+        Eigen::Map<const EigenTimeVectorType>((SplineImplementation::tauZero).data());
+  }
+
+
+
+
   //! Get the first derivative of the time vector tau evaluated at zero.
   static inline void getdTimeVectorAtZero(Eigen::Ref<EigenTimeVectorType> dtimeVec) {
     dtimeVec = Eigen::Map<const EigenTimeVectorType>((SplineImplementation::dtauZero).data());
   }
 
+  //! Get the time vector tau evaluated at zero.
+  template<typename Derived>
+  static inline void getDiffTimeVectorAtZero(
+      Eigen::MatrixBase<Derived> const & dtimeVec) {
+    assert(dtimeVec.rows() == EigenTimeVectorType::RowsAtCompileTime &&
+           dtimeVec.cols() == EigenTimeVectorType::ColsAtCompileTime);
+    // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
+    const_cast<Eigen::MatrixBase<Derived>&>(dtimeVec) =
+        Eigen::Map<const EigenTimeVectorType>((SplineImplementation::dtauZero).data());
+  }
+
+  //! Get the time vector tau evaluated at zero.
+  template<typename Derived>
+  static inline void addDiffTimeVectorAtZero(
+      Eigen::MatrixBase<Derived> const & dtimeVec) {
+    assert(dtimeVec.rows() == EigenTimeVectorType::RowsAtCompileTime &&
+           dtimeVec.cols() == EigenTimeVectorType::ColsAtCompileTime);
+    // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
+    const_cast<Eigen::MatrixBase<Derived>&>(dtimeVec) +=
+        Eigen::Map<const EigenTimeVectorType>((SplineImplementation::dtauZero).data());
+  }
+
+
   //! Get the second derivative of the time vector tau evaluated at zero.
   static inline void getddTimeVectorAtZero(Eigen::Ref<EigenTimeVectorType> ddtimeVec) {
     ddtimeVec = Eigen::Map<const EigenTimeVectorType>((SplineImplementation::ddtauZero).data());
+  }
+
+  //! Get the time vector tau evaluated at zero.
+  template<typename Derived>
+  static inline void getDDiffTimeVectorAtZero(
+      Eigen::MatrixBase<Derived> const & ddtimeVec) {
+    assert(ddtimeVec.rows() == EigenTimeVectorType::RowsAtCompileTime &&
+           ddtimeVec.cols() == EigenTimeVectorType::ColsAtCompileTime);
+    // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
+    const_cast<Eigen::MatrixBase<Derived>&>(ddtimeVec) =
+        Eigen::Map<const EigenTimeVectorType>((SplineImplementation::ddtauZero).data());
+  }
+
+  //! Get the time vector tau evaluated at zero.
+  template<typename Derived>
+  static inline void addDDiffTimeVectorAtZero(
+      Eigen::MatrixBase<Derived> const & ddtimeVec) {
+    assert(ddtimeVec.rows() == EigenTimeVectorType::RowsAtCompileTime &&
+           ddtimeVec.cols() == EigenTimeVectorType::ColsAtCompileTime);
+    // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
+    const_cast<Eigen::MatrixBase<Derived>&>(ddtimeVec) +=
+        Eigen::Map<const EigenTimeVectorType>((SplineImplementation::ddtauZero).data());
   }
 
   //! Get the duration of the spline in seconds.

@@ -157,9 +157,13 @@ class PolynomialSplineContainer {
    * Coefficient vector is:
    *    q = [a15x a14x ... a10x a15y ... a10y a25x ... a20y ... an5x ... an0y]
    */
-  inline int getCoeffIndex(const int splineIdx, const int aIdx) const;
+  inline int getCoeffIndex(const int splineIdx, const int aIdx) const {
+    return splineIdx*(splineOrder_+1) + aIdx;
+  }
 
-  inline int getSplineColumnIndex(const int splineIdx) const;
+  inline int getSplineColumnIndex(const int splineIdx) const {
+    return getCoeffIndex(splineIdx, 0);
+  }
 
   void addInitialConditions(
       const Eigen::VectorXd& initialConditions,

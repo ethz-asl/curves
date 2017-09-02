@@ -303,14 +303,14 @@ bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>&
 
 
   // Initial conditions
-  addInitialConditions(
-      (Eigen::VectorXd() << knotPositions.front(), initialVelocity, initialAcceleration).finished(),
-      constraintIdx);
+  Eigen::VectorXd initialConditions(3);
+  initialConditions << knotPositions.front(), initialVelocity, initialAcceleration;
+  addInitialConditions(initialConditions, constraintIdx);
 
   // Final conditions
-  addFinalConditions(
-      (Eigen::VectorXd() << knotPositions.back(), finalVelocity, finalAcceleration).finished(),
-      constraintIdx,  splineDurations.back(), num_junctions);
+  Eigen::VectorXd finalConditions(3);
+  finalConditions << knotPositions.back(), finalVelocity, finalAcceleration;
+  addFinalConditions(finalConditions, constraintIdx, splineDurations.back(), num_junctions);
 
   // Junction conditions
   addJunctionsConditions(splineDurations, knotPositions, constraintIdx, num_junctions);
@@ -466,47 +466,31 @@ bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>&
 
 }
 
-
-template <int splineOrder_>
-int PolynomialSplineContainer<splineOrder_>::getCoeffIndex(int splineIdx, int aIdx) const {
-  return splineIdx*(splineOrder_+1) + aIdx;
-}
-
-template <int splineOrder_>
-int PolynomialSplineContainer<splineOrder_>::getSplineColumnIndex(int splineIdx) const
-{
-  return getCoeffIndex(splineIdx, 0);
-}
-
 template <int splineOrder_>
 void PolynomialSplineContainer<splineOrder_>::addInitialConditions(const Eigen::VectorXd& initialConditions,
                           unsigned int& constraintIdx) {
-
-  // time container
-  typename SplineType::EigenTimeVectorType timeVec;
-
   // initial position
   if (initialConditions.size()>0) {
-    SplineType::getTimeVector(timeVec, 0.0);
-    equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(0), 1, SplineType::coefficientCount) = timeVec;
+    SplineType::getTimeVectorAtZero(
+        equalityConstraintJacobian_.block<1, SplineType::coefficientCount>(constraintIdx, getSplineColumnIndex(0)));
     equalityConstraintTargetValues_(constraintIdx) = initialConditions(0);
-    constraintIdx++;
+    ++constraintIdx;
   }
 
   // initial velocity
   if (initialConditions.size()>1) {
-    SplineType::getdTimeVector(timeVec, 0.0);
-    equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(0), 1, SplineType::coefficientCount) = timeVec;
+    SplineType::getDiffTimeVectorAtZero(
+        equalityConstraintJacobian_.block<1, SplineType::coefficientCount>(constraintIdx, getSplineColumnIndex(0)));
     equalityConstraintTargetValues_(constraintIdx) = initialConditions(1);
-    constraintIdx++;
+    ++constraintIdx;
   }
 
   // initial acceleration
   if (initialConditions.size()>2) {
-    SplineType::getddTimeVector(timeVec, 0.0);
-    equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(0), 1, SplineType::coefficientCount) = timeVec;
+    SplineType::getDDiffTimeVectorAtZero(
+        equalityConstraintJacobian_.block<1, SplineType::coefficientCount>(constraintIdx, getSplineColumnIndex(0)));
     equalityConstraintTargetValues_(constraintIdx) = initialConditions(2);
-    constraintIdx++;
+    ++constraintIdx;
   }
 }
 
@@ -589,55 +573,6 @@ void PolynomialSplineContainer<splineOrder_>::addJunctionsConditions(const std::
     constraintIdx++;
   }
 }
-
-template <int splineOrder_>
-bool PolynomialSplineContainer<splineOrder_>::getAccelerationMinimizerBlock(MinAccMat& mat, double tf) const {
-  if (splineOrder_ == 5) {
-    const double tf2 = boost::math::pow<2>(tf);
-    const double tf3 = tf2*tf;
-    const double tf4 = tf3*tf;
-    const double tf5 = tf4*tf;
-    const double tf6 = tf5*tf;
-    const double tf7 = tf6*tf;
-
-    mat << 400.0/7.0*tf7, 40.0*tf6,       24.0*tf5,       10.0*tf4,
-           40.0*tf6,      28.8*tf5,       18.0*tf4,       8.0*tf3,
-           24.0*tf5,      18.0*tf4,       12.0*tf3,       6.0*tf2,
-           10.0*tf4,      8.0*tf3,        6.0*tf2,        4.0*tf;
-  }
-
-  else if (splineOrder_ == 4) {
-    const double tf2 = boost::math::pow<2>(tf);
-    const double tf3 = tf2*tf;
-    const double tf4 = tf3*tf;
-    const double tf5 = tf4*tf;
-
-    mat << 28.8*tf5,       18.0*tf4,       8.0*tf3,
-           18.0*tf4,       12.0*tf3,       6.0*tf2,
-           8.0*tf3,        6.0*tf2,        4.0*tf;
-
-  }
-
-  else if (splineOrder_ == 3) {
-    const double tf2 = boost::math::pow<2>(tf);
-    const double tf3 = tf2*tf;
-
-    mat << 12.0*tf3,       6.0*tf2,
-           6.0*tf2,        4.0*tf;
-  }
-
-  else if (splineOrder_ == 2) {
-    mat << 4.0*tf;
-  }
-
-  else {
-    MELO_WARN_STREAM("[PolynomialSplineContainer::setData::getAccelerationMinimizerBlock] Function has not been implemented so far.");
-    return false;
-  }
-
-  return true;
-}
-
 
 template <int splineOrder_>
 bool PolynomialSplineContainer<splineOrder_>::addObjective(
