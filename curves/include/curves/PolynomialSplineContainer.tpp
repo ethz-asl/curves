@@ -53,7 +53,7 @@ bool PolynomialSplineContainer<splineOrder_>::advance(double dt)
     if (activeSplineIdx_ < (splines_.size() - 1)) {
       timeOffset_ += splines_[activeSplineIdx_].getSplineDuration();
     }
-    activeSplineIdx_++;
+    ++activeSplineIdx_;
   }
 
   return true;
