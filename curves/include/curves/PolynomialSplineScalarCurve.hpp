@@ -8,10 +8,15 @@
 
 #pragma once
 
+
+// stl
 #include <string>
 #include <vector>
+
+// glog
 #include <glog/logging.h>
 
+// curves
 #include "curves/Curve.hpp"
 #include "curves/ScalarCurveConfig.hpp"
 #include "curves/PolynomialSplineContainer.hpp"
@@ -30,7 +35,7 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
   using SplineContainerType = SplineContainerType_;
 
   PolynomialSplineScalarCurve()
-      : Curve<ScalarCurveConfig>(),
+      : Parent(),
         container_(),
         minTime_(0.0)
   {
