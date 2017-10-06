@@ -19,7 +19,7 @@
 
 namespace curves {
 
-template<typename SplineType>
+template<typename SplineContainerType_>
 class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
 {
  public:
@@ -27,13 +27,18 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
   typedef typename Parent::ValueType ValueType;
   typedef typename Parent::DerivativeType DerivativeType;
 
+  using SplineContainerType = SplineContainerType_;
+
   PolynomialSplineScalarCurve()
       : Curve<ScalarCurveConfig>(),
+        container_(),
         minTime_(0.0)
   {
   }
 
-  virtual ~PolynomialSplineScalarCurve() {}
+  virtual ~PolynomialSplineScalarCurve() {
+
+  }
 
   virtual void print(const std::string& str = "") const
   {
@@ -118,24 +123,12 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
     minTime_ = times.front();
   }
 
-  void fitCurveOptimized(const std::vector<Time>& times, const std::vector<ValueType>& values,
-                        double initialVelocity, double initialAcceleration,
-                        double finalVelocity, double finalAcceleration,
-                        double weightMinAccel,
-                        std::vector<Key>* outKeys = NULL)
-  {
-    container_.setData(times, values, initialVelocity, initialAcceleration, finalVelocity,
-                       finalAcceleration, weightMinAccel);
-    minTime_ = times.front();
-  }
-
   virtual void fitCurve(const std::vector<SplineOptions>& optionList,
                         std::vector<Key>* outKeys = NULL)
   {
+    container_.reserveSplines(optionList.size());
     for (const auto& options : optionList) {
-      PolynomialSplineQuintic spline;
-      spline.computeCoefficients(options);
-      container_.addSpline(spline);
+      container_.addSpline(PolynomialSplineQuintic(options));
     }
     minTime_ = 0.0;
   }
@@ -151,14 +144,12 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
     CHECK(false) << "Not implemented";
   }
 
- private:
-  PolynomialSplineContainerQuintic container_;
+ protected:
+  SplineContainerType container_;
   Time minTime_;
 };
 
-typedef PolynomialSplineScalarCurve<PolynomialSplineQuintic> PolynomialSplineQuinticScalarCurve;
-//typedef PolynomialSplineScalarCurve<PolynomialSplineCubic> PolynomialSplineCubicScalarCurve;
-//typedef PolynomialSplineScalarCurve<PolynomialSplineLinear> PolynomialSplineLinearScalarCurve;
+using PolynomialSplineQuinticScalarCurve = PolynomialSplineScalarCurve<PolynomialSplineContainerQuintic>;
 
-} // namespace
+} /* namespace curves */
 

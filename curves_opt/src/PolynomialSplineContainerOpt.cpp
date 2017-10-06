@@ -1,17 +1,18 @@
 /*
- * PolynomialSplineContainer.cpp
+ * PolynomialSplineContainerOpt.cpp
  *
  *  Created on: Sep 2, 2017
  *      Author: dbellicoso
  */
 
-#include <curves/PolynomialSplineContainer.hpp>
+// curves_opt
+#include <curves_opt/PolynomialSplineContainerOpt.hpp>
 
 namespace curves {
 
 template<>
-bool PolynomialSplineContainer<5>::getAccelerationMinimizerBlock(MinAccMat& mat, const double tf) const {
-  const double tf2 = boost::math::pow<2>(tf);
+bool PolynomialSplineContainerOpt<5>::getAccelerationMinimizerBlock(MinAccMat& mat, const double tf) const {
+  const double tf2 = tf*tf;
   const double tf3 = tf2*tf;
   const double tf4 = tf3*tf;
   const double tf5 = tf4*tf;
@@ -27,8 +28,8 @@ bool PolynomialSplineContainer<5>::getAccelerationMinimizerBlock(MinAccMat& mat,
 }
 
 template<>
-bool PolynomialSplineContainer<4>::getAccelerationMinimizerBlock(MinAccMat& mat, const double tf) const {
-  const double tf2 = boost::math::pow<2>(tf);
+bool PolynomialSplineContainerOpt<4>::getAccelerationMinimizerBlock(MinAccMat& mat, const double tf) const {
+  const double tf2 = tf*tf;
   const double tf3 = tf2*tf;
   const double tf4 = tf3*tf;
   const double tf5 = tf4*tf;
@@ -41,8 +42,8 @@ bool PolynomialSplineContainer<4>::getAccelerationMinimizerBlock(MinAccMat& mat,
 }
 
 template<>
-bool PolynomialSplineContainer<3>::getAccelerationMinimizerBlock(MinAccMat& mat, const double tf) const {
-  const double tf2 = boost::math::pow<2>(tf);
+bool PolynomialSplineContainerOpt<3>::getAccelerationMinimizerBlock(MinAccMat& mat, const double tf) const {
+  const double tf2 = tf*tf;
   const double tf3 = tf2*tf;
 
   mat << 12.0*tf3,       6.0*tf2,
@@ -52,14 +53,14 @@ bool PolynomialSplineContainer<3>::getAccelerationMinimizerBlock(MinAccMat& mat,
 }
 
 template<>
-bool PolynomialSplineContainer<2>::getAccelerationMinimizerBlock(MinAccMat& mat, const double tf) const {
+bool PolynomialSplineContainerOpt<2>::getAccelerationMinimizerBlock(MinAccMat& mat, const double tf) const {
   mat << 4.0*tf;
   return true;
 }
 
 template <int splineOrder_>
-bool PolynomialSplineContainer<splineOrder_>::getAccelerationMinimizerBlock(MinAccMat& mat, const double tf) const {
-  MELO_WARN_STREAM("[PolynomialSplineContainer::getAccelerationMinimizerBlock] Function has not been implemented so far. Spline order was: " << splineOrder_);
+bool PolynomialSplineContainerOpt<splineOrder_>::getAccelerationMinimizerBlock(MinAccMat& mat, const double tf) const {
+  MELO_WARN_STREAM("[PolynomialSplineContainerOpt::getAccelerationMinimizerBlock] Function has not been implemented so far. Spline order was: " << splineOrder_);
   return false;
 }
 

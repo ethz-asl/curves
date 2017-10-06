@@ -15,20 +15,11 @@ PolynomialSplineContainer<splineOrder_>::PolynomialSplineContainer():
     containerTime_(0.0),
     containerDuration_(0.0),
     activeSplineIdx_(0),
-    hessian_(),
-    linearTerm_(),
     equalityConstraintJacobian_(),
-    equalityConstraintTargetValues_(),
-    inequalityConstraintJacobian_(),
-    inequalityConstraintMinValues_()
+    equalityConstraintTargetValues_()
 {
   // Make sure that the container is correctly emptied
   reset();
-
-  minimizer_.reset(new numopt_quadprog::ActiveSetFunctionMinimizer());
-  costFunction_.reset(new numopt_common::QuadraticObjectiveFunction());
-  functionConstraints_.reset(new numopt_common::LinearFunctionConstraints());
-  quadraticProblem_.reset(new numopt_common::QuadraticProblem(costFunction_, functionConstraints_));
 }
 
 template <int splineOrder_>
@@ -36,7 +27,6 @@ PolynomialSplineContainer<splineOrder_>::~PolynomialSplineContainer()
 {
 
 }
-
 
 template <int splineOrder_>
 bool PolynomialSplineContainer<splineOrder_>::advance(double dt)
@@ -249,17 +239,13 @@ double PolynomialSplineContainer<splineOrder_>::getEndAcceleration() const {
 }
 
 template <int splineOrder_>
-bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>& knotDurations,
-             const std::vector<double>& knotPositions,
-             double initialVelocity,
-             double initialAcceleration,
-             double finalVelocity,
-             double finalAcceleration,
-             double weightMinAccel) {
+bool PolynomialSplineContainer<splineOrder_>::setData(
+    const std::vector<double>& knotDurations,
+    const std::vector<double>& knotPositions,
+    double initialVelocity, double initialAcceleration,
+    double finalVelocity, double finalAcceleration) {
 
-  bool success = true;
-
-  success &= reset();
+  bool success = reset();
 
   // Set up optimization parameters
   const unsigned int numSplines = knotDurations.size()-1;
@@ -268,7 +254,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>&
   const unsigned int num_junctions = numSplines-1;
 
   if (numSplines<1) {
-    MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Not sufficient knot points are available!");
+    MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Not enough knot points available!");
     return false;
   }
 
@@ -282,7 +268,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>&
   // drop constraints if necessary
   if (num_constraints>solutionSpaceDimension) {
     MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Number of equality constraints is larger than number of coefficients. Drop acceleration constraints!");
-    return setData(knotDurations, knotPositions, initialVelocity, finalVelocity, weightMinAccel);
+    return setData(knotDurations, knotPositions, initialVelocity, finalVelocity);
   }
 
   // Vector containing durations of splines
@@ -320,34 +306,21 @@ bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>&
     return false;
   }
 
-  Eigen::VectorXd coeffs = Eigen::VectorXd::Zero(solutionSpaceDimension);
+  // Find spline coefficients.
+  Eigen::VectorXd coeffs = equalityConstraintJacobian_.colPivHouseholderQr().solve(equalityConstraintTargetValues_);
 
-  // Minimize spline coefficients
-  if (weightMinAccel<=0.0 || num_constraints==solutionSpaceDimension) {
-    coeffs = equalityConstraintJacobian_.colPivHouseholderQr().solve(equalityConstraintTargetValues_);
-  }
-
-  // Minimize acceleration
-  else {
-    success &= addObjective(splineDurations, solutionSpaceDimension, numSplines, weightMinAccel);
-    success &= setUpOptimizationMatrices(solutionSpaceDimension);
-    success &= solveQP(coeffs);
-  }
-
-  // Extract spline coefficients and add splines
+  // Extract spline coefficients and add splines.
   success &= extractSplineCoefficients(coeffs, splineDurations, numSplines);
 
   return success;
-
 }
 
 
 template <int splineOrder_>
-bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>& knotDurations,
-             const std::vector<double>& knotPositions,
-             double initialVelocity,
-             double finalVelocity,
-             double weightMinAccel) {
+bool PolynomialSplineContainer<splineOrder_>::setData(
+    const std::vector<double>& knotDurations,
+    const std::vector<double>& knotPositions,
+    double initialVelocity, double finalVelocity) {
 
   bool success = true;
 
@@ -411,38 +384,27 @@ bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>&
     return false;
   }
 
-  Eigen::VectorXd coeffs = Eigen::VectorXd::Zero(num_coeffs);
+  // Find spline coefficients.
+  Eigen::VectorXd coeffs = equalityConstraintJacobian_.colPivHouseholderQr().solve(equalityConstraintTargetValues_);
 
-  // Minimize spline coefficients
-  if (weightMinAccel<=0.0 || num_constraints==num_coeffs) {
-    coeffs = equalityConstraintJacobian_.colPivHouseholderQr().solve(equalityConstraintTargetValues_);
-  }
-
-  // Minimize acceleration
-  else {
-    success &= addObjective(splineDurations, num_coeffs, num_splines, weightMinAccel);
-    success &= setUpOptimizationMatrices(num_coeffs);
-    success &= solveQP(coeffs);
-  }
-
-  // Extract spline coefficients and add splines
+  // Extract spline coefficients and add splines.
   success &= extractSplineCoefficients(coeffs, splineDurations, num_splines);
 
   return success;
-
 }
 
 
 template <int splineOrder_>
-bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>& knotDurations,
-             const std::vector<double>& knotPositions) {
+bool PolynomialSplineContainer<splineOrder_>::setData(
+    const std::vector<double>& knotDurations,
+    const std::vector<double>& knotPositions) {
 
   bool success = true;
-  const int num_splines = knotDurations.size()-1;
+  const int numSplines = knotDurations.size()-1;
   constexpr auto num_coeffs_spline = SplineType::coefficientCount;
   typename SplineType::SplineCoefficients coefficients;
 
-  if (splineOrder_==0 || num_splines<1) {
+  if (splineOrder_==0 || numSplines<1) {
     return false;
   }
 
@@ -450,7 +412,9 @@ bool PolynomialSplineContainer<splineOrder_>::setData(const std::vector<double>&
 
   success &= reset();
 
-  for (unsigned int splineId = 0; splineId<num_splines; splineId++) {
+  this->reserveSplines(numSplines);
+
+  for (unsigned int splineId = 0; splineId<numSplines; ++splineId) {
     const double duration = knotDurations[splineId+1]-knotDurations[splineId];
 
     if (duration<=0.0) {
@@ -575,77 +539,13 @@ void PolynomialSplineContainer<splineOrder_>::addJunctionsConditions(const std::
 }
 
 template <int splineOrder_>
-bool PolynomialSplineContainer<splineOrder_>::addObjective(
-    const std::vector<double>& splineDurations,
-    unsigned int num_coeffs,
-    unsigned int num_splines,
-    double weightMinAccel) {
-
-  bool success = true;
-
-  // Objective -> minimize acceleration along trajectory
-  hessian_ = Eigen::MatrixXd::Zero(num_coeffs,num_coeffs);
-  linearTerm_ = Eigen::VectorXd::Zero(num_coeffs);
-
-  for (unsigned int splineId=0; splineId<num_splines; splineId++) {
-
-    // Minimize acceleration
-    MinAccMat coreMatrix;
-    success &= getAccelerationMinimizerBlock(coreMatrix, splineDurations[splineId]);
-    hessian_.block<SplineType::coefficientCount-2, SplineType::coefficientCount-2>(
-        getSplineColumnIndex(splineId),  getSplineColumnIndex(splineId)) =
-            coreMatrix*weightMinAccel;
-
-    // Regularization for position and velocity -> cfMat must be positive definite.
-    const unsigned int accelIdx = getCoeffIndex(splineId, SplineType::coefficientCount-2);
-    hessian_.block<2,2>(accelIdx, accelIdx) += 1e-7*Eigen::Matrix2d::Identity();
-  }
-
-  return success;
-}
-
-template <int splineOrder_>
-bool PolynomialSplineContainer<splineOrder_>::setUpOptimizationMatrices(unsigned int num_coeffs) {
-  // Inequality constraints -> We don't use them
-  inequalityConstraintJacobian_.setZero(0, num_coeffs);
-  inequalityConstraintMinValues_.setZero(0);
-
-  // Add quadratic problem
-  costFunction_->setGlobalHessian(hessian_.sparseView());
-  costFunction_->setLinearTerm(linearTerm_);
-  functionConstraints_->setGlobalEqualityConstraintJacobian(equalityConstraintJacobian_.sparseView());
-  functionConstraints_->setEqualityConstraintTargetValues(equalityConstraintTargetValues_);
-  functionConstraints_->setGlobalInequalityConstraintJacobian(inequalityConstraintJacobian_.sparseView());
-  functionConstraints_->setInequalityConstraintMinValues(inequalityConstraintMinValues_);
-  functionConstraints_->setInequalityConstraintMaxValues(inequalityConstraintMinValues_);
-
-  return true;
-}
-
-template <int splineOrder_>
-bool PolynomialSplineContainer<splineOrder_>::solveQP(Eigen::VectorXd& coeffs) {
-  bool success = true;
-
-  double cost = 0.0;
-  numopt_common::ParameterizationIdentity params(coeffs);
-  success &= minimizer_->minimize(quadraticProblem_.get(), params, cost);
-
-  if (!success) {
-    MELO_WARN_STREAM("[PolynomialSplineContainer::setData::solveQP] Failed to solve optimization!");
-  } else {
-    coeffs = params.getParams();
-  }
-
-  return success;
-}
-
-
-template <int splineOrder_>
 bool PolynomialSplineContainer<splineOrder_>::extractSplineCoefficients(
     const Eigen::VectorXd& coeffs,
     const std::vector<double>& splineDurations,
     const unsigned int numSplines) {
   typename SplineType::SplineCoefficients coefficients;
+
+  this->reserveSplines(numSplines);
 
   for (unsigned int splineId = 0; splineId<numSplines; ++splineId) {
     Eigen::Map<Eigen::VectorXd>(coefficients.data(), SplineType::coefficientCount, 1) =
@@ -654,6 +554,11 @@ bool PolynomialSplineContainer<splineOrder_>::extractSplineCoefficients(
   }
 
   return true;
+}
+
+template<int splineOrder_>
+bool PolynomialSplineContainer<splineOrder_>::reserveSplines(const unsigned int numSplines) {
+  splines_.reserve(numSplines);
 }
 
 

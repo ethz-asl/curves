@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>curves_opt</name>
+  <version>0.0.1</version>
+  <description>ROS interface for curves library.</description>
+  <maintainer email="bellicoso@mavt.ethz.ch">Dario Bellicoso</maintainer>
+  <license>BSD</license>
+  <url type="website">https://github.com/ethz-asl/curves</url>
+  <author email="bellicoso@mavt.ethz.ch">Dario Bellicoso</author>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>curves</depend>
+  <depend>numopt_quadprog</depend>
+  <build_export_depend>eigen</build_export_depend>
+</package>
