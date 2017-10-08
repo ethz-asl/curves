@@ -4,7 +4,6 @@ project(curves)
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 find_package(catkin REQUIRED COMPONENTS
-    numopt_quadprog
     message_logger
 )
 
@@ -32,7 +31,6 @@ catkin_package(
   LIBRARIES
     ${PROJECT_NAME}
   CATKIN_DEPENDS
-    numopt_quadprog
     message_logger
   DEPENDS
     Boost
