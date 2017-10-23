@@ -6,9 +6,11 @@
  *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
+// gtest
 #include <gtest/gtest.h>
 
-#include "curves/PolynomialSplineContainer.hpp"
+// curves
+#include "curves/polynomial_splines_containers.hpp"
 
 TEST(PolynomialSplineContainer, getActiveSplineIndexAtTime)
 {
@@ -23,7 +25,7 @@ TEST(PolynomialSplineContainer, getActiveSplineIndexAtTime)
   knotVal.push_back(1.0);
   knotVal.push_back(2.0);
 
-  curves::PolynomialSplineContainer polyContainer;
+  curves::PolynomialSplineContainerQuintic polyContainer;
   polyContainer.setData(knotPos, knotVal, 0.0, 0.0, 0.0, 0.0);
 
   double timeOffset = 0.0;
@@ -63,7 +65,7 @@ TEST(PolynomialSplineContainer, eval) {
   double finalVelocity = 0.3;
   double finalAcceleration = 0.4;
 
-  curves::PolynomialSplineContainer polyContainer;
+  curves::PolynomialSplineContainerQuintic polyContainer;
   polyContainer.setData(knotPos, knotVal, initialVelocity, initialAcceleration, finalVelocity, finalAcceleration);
 
   for (int i=0; i<knotVal.size()-1; i++) {
