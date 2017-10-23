@@ -20,9 +20,6 @@
 // boost
 #include <boost/math/special_functions/pow.hpp>
 
-// logger
-#include "message_logger/message_logger.hpp"
-
 namespace curves {
 
 template <int splineOrder_>

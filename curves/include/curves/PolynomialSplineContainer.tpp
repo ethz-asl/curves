@@ -254,7 +254,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
   const unsigned int num_junctions = numSplines-1;
 
   if (numSplines<1) {
-    MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Not enough knot points available!");
+    std::cout << "[PolynomialSplineContainer::setData] Not enough knot points available!" << std::endl;
     return false;
   }
 
@@ -267,7 +267,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
 
   // drop constraints if necessary
   if (num_constraints>solutionSpaceDimension) {
-    MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Number of equality constraints is larger than number of coefficients. Drop acceleration constraints!");
+    std::cout << "[PolynomialSplineContainer::setData] Number of equality constraints is larger than number of coefficients. Drop acceleration constraints!" << std::endl;
     return setData(knotDurations, knotPositions, initialVelocity, finalVelocity);
   }
 
@@ -277,7 +277,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
     splineDurations[splineId] = knotDurations[splineId+1]-knotDurations[splineId];
 
     if (splineDurations[splineId]<=0.0) {
-      MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Invalid spline duration at index" << splineId << ": " << splineDurations[splineId]);
+      std::cout << "[PolynomialSplineContainer::setData] Invalid spline duration at index" << splineId << ": " << splineDurations[splineId] << std::endl;
       return false;
     }
   }
@@ -302,7 +302,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
   addJunctionsConditions(splineDurations, knotPositions, constraintIdx, num_junctions);
 
   if (num_constraints != constraintIdx) {
-    MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Wrong number of equality constraints!");
+    std::cout << "[PolynomialSplineContainer::setData] Wrong number of equality constraints!" << std::endl;
     return false;
   }
 
@@ -333,7 +333,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
   const unsigned int num_junctions = num_splines-1;
 
   if (num_splines<1) {
-    MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Not sufficient knot points are available!");
+    std::cout << "[PolynomialSplineContainer::setData] Not sufficient knot points are available!" << std::endl;
     return false;
   }
 
@@ -346,7 +346,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
 
   // drop constraints if necessary
   if (num_constraints>num_coeffs) {
-    MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Number of equality constraints is larger than number of coefficients. Drop velocity constraints!");
+    std::cout << "[PolynomialSplineContainer::setData] Number of equality constraints is larger than number of coefficients. Drop velocity constraints!" << std::endl;
     return setData(knotDurations, knotPositions);
   }
 
@@ -356,7 +356,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
     splineDurations[splineId] = knotDurations[splineId+1]-knotDurations[splineId];
 
     if (splineDurations[splineId]<=0.0) {
-      MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Invalid spline duration at index" << splineId << ": " << splineDurations[splineId]);
+      std::cout << "[PolynomialSplineContainer::setData] Invalid spline duration at index" << splineId << ": " << splineDurations[splineId] << std::endl;
       return false;
     }
   }
@@ -380,7 +380,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
   addJunctionsConditions(splineDurations, knotPositions, constraintIdx, num_junctions);
 
   if (num_constraints!=constraintIdx) {
-    MELO_WARN_STREAM("[PolynomialSplineContainer::setData] Wrong number of equality constraints!");
+    std::cout << "[PolynomialSplineContainer::setData] Wrong number of equality constraints!" << std::endl;
     return false;
   }
 
