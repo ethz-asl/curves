@@ -564,6 +564,7 @@ bool PolynomialSplineContainer<splineOrder_>::extractSplineCoefficients(
 template<int splineOrder_>
 bool PolynomialSplineContainer<splineOrder_>::reserveSplines(const unsigned int numSplines) {
   splines_.reserve(numSplines);
+  return true;
 }
 
 

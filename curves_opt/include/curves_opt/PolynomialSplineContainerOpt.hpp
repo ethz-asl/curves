@@ -17,7 +17,7 @@
 #include <numopt_common/numopt_common.hpp>
 #include <numopt_quadprog/ActiveSetFunctionMinimizer.hpp>
 #include <numopt_common/ParameterizationIdentity.hpp>
-#include "numopt_common/QuadraticProblem.hpp"
+#include <numopt_common/QuadraticProblem.hpp>
 
 
 namespace curves {
