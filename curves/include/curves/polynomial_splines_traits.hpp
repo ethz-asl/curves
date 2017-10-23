@@ -8,7 +8,7 @@
 #pragma once
 
 // stl
-#include <vector>
+#include <array>
 #include <iostream>
 
 // eigen
