@@ -10,9 +10,6 @@
 // std
 #include <vector>
 
-// message logger
-#include <message_logger/message_logger.hpp>
-
 // curves
 #include "curves/PolynomialSplineContainer.hpp"
 
@@ -35,14 +32,9 @@ class PolynomialSplineContainerOpt : public PolynomialSplineContainer<splineOrde
   PolynomialSplineContainerOpt();
   virtual ~PolynomialSplineContainerOpt();
 
-  /*
-   * !Minimize spline coefficients s.t. position, velocity and acceleration constraints are satisfied
+  /*!
+   * Minimize spline coefficients s.t. position, velocity and acceleration constraints are satisfied
    * (i.e., s.t. the spline conjunction is smooth up the second derivative).
-   * If the spline order is smaller than 5, some boundary constraints are dropped.
-   * Notice that the number of junction constraints (and thereby the degree of smoothness at the transition
-   * between two adjacent splines) decreases with decreasing spline order.
-   * If weightMinAccel is > 0, then the acceleration of the spline segments are minimized. Otherwise, the coefficients
-   * spline coefficients are minimized
    */
   bool setDataOptimized(
       const std::vector<double>& knotDurations,
@@ -51,14 +43,9 @@ class PolynomialSplineContainerOpt : public PolynomialSplineContainer<splineOrde
       double finalVelocity, double finalAcceleration,
       double weightMinAccel);
 
-  /*
-   * !Minimize spline coefficients s.t. position and velocity constraints are satisfied
+  /*!
+   * Minimize spline coefficients s.t. position and velocity constraints are satisfied
    * (i.e., s.t. the spline conjunction is smooth up the first derivative).
-   * If the spline order is smaller than 3, some boundary constraints are dropped.
-   * Notice that the number of junction constraints (and thereby the degree of smoothness at the transition
-   * between two adjacent splines) decreases with decreasing spline order.
-   * If weightMinAccel is > 0, then the acceleration of the spline segments are minimized. Otherwise, the coefficients
-   * spline coefficients are minimized
    */
   bool setDataOptimized(
       const std::vector<double>& knotDurations,

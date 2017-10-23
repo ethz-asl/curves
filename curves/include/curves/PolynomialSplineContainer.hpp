@@ -42,7 +42,7 @@ class PolynomialSplineContainer {
     return splines_;
   }
 
-  //! move along the trajectory for one sample time.
+  //! Update the spline internal time by dt [seconds].
   bool advance(double dt);
 
   //! Jump to a specific point in time domain.
@@ -59,10 +59,10 @@ class PolynomialSplineContainer {
   //! Reserve memory for the spline container.
   bool reserveSplines(const unsigned int numSplines);
 
-  //! Clear spline container
+  //! Clear spline container.
   bool reset();
 
-  //! Set container
+  //! Set container.
   bool resetTime();
 
   //! Get total trajectory duration.
@@ -74,7 +74,7 @@ class PolynomialSplineContainer {
   //! True if splines are empty.
   bool isEmpty() const;
 
-  //! Get point in state-space at current time
+  //! Get point in state-space at current time.
   double getPosition() const;
   double getVelocity() const;
   double getAcceleration() const;
@@ -85,7 +85,7 @@ class PolynomialSplineContainer {
   //! Return spline index at current time validity.
   int getActiveSplineIndex() const;
 
-  //! Get pint in state-space at a specific time
+  //! Get pint in state-space at a specific time.
   double getPositionAtTime(double t) const;
   double getVelocityAtTime(double t) const;
   double getAccelerationAtTime(double t) const;
@@ -95,12 +95,9 @@ class PolynomialSplineContainer {
   double getEndVelocity() const;
   double getEndAcceleration() const;
 
-  /*
-   * !Minimize spline coefficients s.t. position, velocity and acceleration constraints are satisfied
+  /*!
+   * Minimize spline coefficients s.t. position, velocity and acceleration constraints are satisfied
    * (i.e., s.t. the spline conjunction is smooth up the second derivative).
-   * If the spline order is smaller than 5, some boundary constraints are dropped.
-   * Notice that the number of junction constraints (and thereby the degree of smoothness at the transition
-   * between two adjacent splines) decreases with decreasing spline order.
    */
   bool setData(
       const std::vector<double>& knotDurations,
@@ -108,20 +105,17 @@ class PolynomialSplineContainer {
       double initialVelocity, double initialAcceleration,
       double finalVelocity, double finalAcceleration);
 
-  /*
-   * !Minimize spline coefficients s.t. position and velocity constraints are satisfied
+  /*!
+   * Minimize spline coefficients s.t. position and velocity constraints are satisfied
    * (i.e., s.t. the spline conjunction is smooth up the first derivative).
-   * If the spline order is smaller than 3, some boundary constraints are dropped.
-   * Notice that the number of junction constraints (and thereby the degree of smoothness at the transition
-   * between two adjacent splines) decreases with decreasing spline order.
    */
   bool setData(
       const std::vector<double>& knotDurations,
       const std::vector<double>& knotPositions,
       double initialVelocity, double finalVelocity);
 
-  /*
-   * ! Find linear part of the spline coefficients (a0, a1) s.t. position constraints are satisfied.
+  /*!
+   * Find linear part of the spline coefficients (a0, a1) s.t. position constraints are satisfied.
    * If the spline order is larger than 1, the remaining spline coefficients are set to zero.
    */
   virtual bool setData(
@@ -131,7 +125,7 @@ class PolynomialSplineContainer {
   static constexpr double undefinedValue = std::numeric_limits<double>::quiet_NaN();
 
  protected:
-  /*
+  /*!
    * aijh:
    *  i --> spline id (1,...,n)
    *  j --> spline coefficient aj (a5,...,a1,a0)

@@ -18,7 +18,7 @@ PolynomialSplineContainer<splineOrder_>::PolynomialSplineContainer():
     equalityConstraintJacobian_(),
     equalityConstraintTargetValues_()
 {
-  // Make sure that the container is correctly emptied
+  // Make sure that the container is correctly emptied.
   reset();
 }
 
@@ -35,10 +35,10 @@ bool PolynomialSplineContainer<splineOrder_>::advance(double dt)
     return false;
   }
 
-  // advance in time.
+  // Advance in time.
   containerTime_ += dt;
 
-  // check if spline index needs to be increased.
+  // Check if spline index needs to be increased.
   if ((containerTime_ - timeOffset_ >= splines_[activeSplineIdx_].getSplineDuration())) {
     if (activeSplineIdx_ < (splines_.size() - 1)) {
       timeOffset_ += splines_[activeSplineIdx_].getSplineDuration();
@@ -247,7 +247,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
 
   bool success = reset();
 
-  // Set up optimization parameters
+  // Set up optimization parameters.
   const unsigned int numSplines = knotDurations.size()-1;
   constexpr auto num_coeffs_spline = SplineType::coefficientCount;
   const unsigned int solutionSpaceDimension = numSplines*num_coeffs_spline;
@@ -258,20 +258,20 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
     return false;
   }
 
-  // total number of constraints
+  // Total number of constraints.
   constexpr unsigned int num_initial_constraints = 3;   // pos, vel, accel
   constexpr unsigned int num_final_constraints = 3;     // pos, vel, accel
   constexpr unsigned int num_constraint_junction = 4;   // pos (2x), vel, accel
   const unsigned int num_junction_constraints = num_junctions*num_constraint_junction;
   const unsigned int num_constraints = num_junction_constraints + num_initial_constraints + num_final_constraints;
 
-  // drop constraints if necessary
+  // Drop constraints if necessary.
   if (num_constraints>solutionSpaceDimension) {
     std::cout << "[PolynomialSplineContainer::setData] Number of equality constraints is larger than number of coefficients. Drop acceleration constraints!" << std::endl;
     return setData(knotDurations, knotPositions, initialVelocity, finalVelocity);
   }
 
-  // Vector containing durations of splines
+  // Vector containing durations of splines.
   std::vector<double> splineDurations(numSplines);
   for (unsigned int splineId=0; splineId<numSplines; splineId++) {
     splineDurations[splineId] = knotDurations[splineId+1]-knotDurations[splineId];
@@ -282,23 +282,23 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
     }
   }
 
-  // Initialize Equality matrices
+  // Initialize Equality matrices.
   equalityConstraintJacobian_.setZero(num_constraints, solutionSpaceDimension);
   equalityConstraintTargetValues_.setZero(num_constraints);
   unsigned int constraintIdx = 0;
 
 
-  // Initial conditions
+  // Initial conditions.
   Eigen::VectorXd initialConditions(3);
   initialConditions << knotPositions.front(), initialVelocity, initialAcceleration;
   addInitialConditions(initialConditions, constraintIdx);
 
-  // Final conditions
+  // Final conditions.
   Eigen::VectorXd finalConditions(3);
   finalConditions << knotPositions.back(), finalVelocity, finalAcceleration;
   addFinalConditions(finalConditions, constraintIdx, splineDurations.back(), num_junctions);
 
-  // Junction conditions
+  // Junction conditions.
   addJunctionsConditions(splineDurations, knotPositions, constraintIdx, num_junctions);
 
   if (num_constraints != constraintIdx) {
@@ -326,31 +326,31 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
 
   success &= reset();
 
-  // Set up optimization parameters
+  // Set up optimization parameters.
   const unsigned int num_splines = knotDurations.size()-1;
   constexpr auto num_coeffs_spline = SplineType::coefficientCount;
   const unsigned int num_coeffs = num_splines*num_coeffs_spline;
   const unsigned int num_junctions = num_splines-1;
 
   if (num_splines<1) {
-    std::cout << "[PolynomialSplineContainer::setData] Not sufficient knot points are available!" << std::endl;
+    std::cout << "[PolynomialSplineContainer::setData] Not enough knot points are available!" << std::endl;
     return false;
   }
 
-  // total number of constraints
+  // Total number of constraints.
   constexpr unsigned int num_initial_constraints = 2;   // pos, vel
   constexpr unsigned int num_final_constraints = 2;     // pos, vel
   constexpr unsigned int num_constraint_junction = 3;   // pos (2x), vel
   const unsigned int num_junction_constraints = num_junctions*num_constraint_junction;
   const unsigned int num_constraints = num_junction_constraints + num_initial_constraints + num_final_constraints;
 
-  // drop constraints if necessary
+  // Drop constraints if necessary.
   if (num_constraints>num_coeffs) {
     std::cout << "[PolynomialSplineContainer::setData] Number of equality constraints is larger than number of coefficients. Drop velocity constraints!" << std::endl;
     return setData(knotDurations, knotPositions);
   }
 
-  // Vector containing durations of splines
+  // Vector containing durations of splines.
   std::vector<double> splineDurations(num_splines);
   for (unsigned int splineId=0; splineId<num_splines; splineId++) {
     splineDurations[splineId] = knotDurations[splineId+1]-knotDurations[splineId];
@@ -361,22 +361,22 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
     }
   }
 
-  // Initialize Equality matrices
+  // Initialize Equality matrices.
   equalityConstraintJacobian_.setZero(num_constraints, num_coeffs);
   equalityConstraintTargetValues_.setZero(num_constraints);
   unsigned int constraintIdx = 0;
 
-  // Initial conditions
+  // Initial conditions.
   addInitialConditions(
       (Eigen::VectorXd() << knotPositions.front(), initialVelocity).finished(),
       constraintIdx);
 
-  // Final conditions
+  // Final conditions.
   addFinalConditions(
       (Eigen::VectorXd() << knotPositions.back(), finalVelocity).finished(),
       constraintIdx,  splineDurations.back(), num_junctions);
 
-  // Junction conditions
+  // Junction conditions.
   addJunctionsConditions(splineDurations, knotPositions, constraintIdx, num_junctions);
 
   if (num_constraints!=constraintIdx) {
@@ -433,7 +433,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
 template <int splineOrder_>
 void PolynomialSplineContainer<splineOrder_>::addInitialConditions(const Eigen::VectorXd& initialConditions,
                           unsigned int& constraintIdx) {
-  // initial position
+  // Initial position.
   if (initialConditions.size()>0) {
     SplineType::getTimeVectorAtZero(
         equalityConstraintJacobian_.block<1, SplineType::coefficientCount>(constraintIdx, getSplineColumnIndex(0)));
@@ -441,7 +441,7 @@ void PolynomialSplineContainer<splineOrder_>::addInitialConditions(const Eigen::
     ++constraintIdx;
   }
 
-  // initial velocity
+  // Initial velocity.
   if (initialConditions.size()>1) {
     SplineType::getDiffTimeVectorAtZero(
         equalityConstraintJacobian_.block<1, SplineType::coefficientCount>(constraintIdx, getSplineColumnIndex(0)));
@@ -449,7 +449,7 @@ void PolynomialSplineContainer<splineOrder_>::addInitialConditions(const Eigen::
     ++constraintIdx;
   }
 
-  // initial acceleration
+  // Initial acceleration.
   if (initialConditions.size()>2) {
     SplineType::getDDiffTimeVectorAtZero(
         equalityConstraintJacobian_.block<1, SplineType::coefficientCount>(constraintIdx, getSplineColumnIndex(0)));
@@ -463,10 +463,10 @@ void PolynomialSplineContainer<splineOrder_>::addFinalConditions(const Eigen::Ve
                         unsigned int& constraintIdx,
                         double lastSplineDuration,
                         unsigned int lastSplineId) {
-  // time container
+  // Time container
   typename SplineType::EigenTimeVectorType timeVec;
 
-  // initial position
+  // Initial position.
   if (finalConditions.size()>0) {
     SplineType::getTimeVector(timeVec, lastSplineDuration);
     equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(lastSplineId), 1, SplineType::coefficientCount) = timeVec;
@@ -474,17 +474,17 @@ void PolynomialSplineContainer<splineOrder_>::addFinalConditions(const Eigen::Ve
     constraintIdx++;
   }
 
-  // initial velocity
+  // Initial velocity.
   if (finalConditions.size()>1) {
-    SplineType::getdTimeVector(timeVec, lastSplineDuration);
+    SplineType::getDTimeVector(timeVec, lastSplineDuration);
     equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(lastSplineId), 1, SplineType::coefficientCount) = timeVec;
     equalityConstraintTargetValues_(constraintIdx) = finalConditions(1);
     constraintIdx++;
   }
 
-  // initial acceleration
+  // Initial acceleration.
   if (finalConditions.size()>2) {
-    SplineType::getddTimeVector(timeVec, lastSplineDuration);
+    SplineType::getDDTimeVector(timeVec, lastSplineDuration);
     equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(lastSplineId), 1, SplineType::coefficientCount) = timeVec;
     equalityConstraintTargetValues_(constraintIdx) = finalConditions(2);
     constraintIdx++;
@@ -497,25 +497,25 @@ void PolynomialSplineContainer<splineOrder_>::addJunctionsConditions(const std::
                             unsigned int& constraintIdx,
                             unsigned int num_junctions) {
 
-  // time containers
+  // Time containers.
   typename SplineType::EigenTimeVectorType timeVec0, dTimeVec0, ddTimeVec0;
   typename SplineType::EigenTimeVectorType timeVecTf, dTimeVecTf, ddTimeVecTf;
 
-  // get time container at zero time
+  // Get time container at zero time.
   SplineType::getTimeVectorAtZero(timeVec0);
-  SplineType::getdTimeVectorAtZero(dTimeVec0);
-  SplineType::getddTimeVectorAtZero(ddTimeVec0);
+  SplineType::getDTimeVectorAtZero(dTimeVec0);
+  SplineType::getDDTimeVectorAtZero(ddTimeVec0);
 
 
   for (unsigned int splineId=0; splineId<num_junctions; splineId++) {
     const unsigned int nextSplineId = splineId+1;
 
-    // get time container at spline duration
+    // Get time container at spline duration.
     SplineType::getTimeVector(timeVecTf, splineDurations[splineId]);
-    SplineType::getdTimeVector(dTimeVecTf, splineDurations[splineId]);
-    SplineType::getddTimeVector(ddTimeVecTf, splineDurations[splineId]);
+    SplineType::getDTimeVector(dTimeVecTf, splineDurations[splineId]);
+    SplineType::getDDTimeVector(ddTimeVecTf, splineDurations[splineId]);
 
-    // smooth position transition with fixed positions
+    // Smooth position transition with fixed positions.
     equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(splineId),     1, SplineType::coefficientCount) =  timeVecTf;
     equalityConstraintTargetValues_(constraintIdx) = knotPositions[nextSplineId];
     constraintIdx++;
@@ -524,13 +524,13 @@ void PolynomialSplineContainer<splineOrder_>::addJunctionsConditions(const std::
     equalityConstraintTargetValues_(constraintIdx) = knotPositions[nextSplineId];
     constraintIdx++;
 
-    // smooth velocity transition
+    // Smooth velocity transition.
     equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(splineId),     1, SplineType::coefficientCount) =  dTimeVecTf;
     equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(nextSplineId), 1, SplineType::coefficientCount) = -dTimeVec0;
     equalityConstraintTargetValues_(constraintIdx) = 0.0;
     constraintIdx++;
 
-    // smooth acceleration transition
+    // Smooth acceleration transition.
     equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(splineId),     1, SplineType::coefficientCount) =  ddTimeVecTf;
     equalityConstraintJacobian_.block(constraintIdx, getSplineColumnIndex(nextSplineId), 1, SplineType::coefficientCount) = -ddTimeVec0;
     equalityConstraintTargetValues_(constraintIdx) = 0.0;

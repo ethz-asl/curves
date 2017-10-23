@@ -44,62 +44,62 @@ bool PolynomialSplineContainerOpt<splineOrder_>::setDataOptimized(
 
   success &= this->reset();
 
-  // Set up optimization parameters
+  // Set up optimization parameters.
   const unsigned int numSplines = knotDurations.size()-1;
   constexpr auto num_coeffs_spline = SplineType::coefficientCount;
   const unsigned int solutionSpaceDimension = numSplines*num_coeffs_spline;
   const unsigned int num_junctions = numSplines-1;
 
   if (numSplines<1) {
-    MELO_WARN_STREAM("[PolynomialSplineContainerOpt::setDataOptimized] Not sufficient knot points are available!");
+    std::cout << "[PolynomialSplineContainerOpt::setDataOptimized] Not sufficient knot points are available!" << std::endl;
     return false;
   }
 
-  // total number of constraints
+  // total number of constraints.
   constexpr unsigned int num_initial_constraints = 3;   // pos, vel, accel
   constexpr unsigned int num_final_constraints = 3;     // pos, vel, accel
   constexpr unsigned int num_constraint_junction = 4;   // pos (2x), vel, accel
   const unsigned int num_junction_constraints = num_junctions*num_constraint_junction;
   const unsigned int num_constraints = num_junction_constraints + num_initial_constraints + num_final_constraints;
 
-  // drop constraints if necessary
+  // Drop constraints if necessary.
   if (num_constraints>solutionSpaceDimension) {
-    MELO_WARN_STREAM("[PolynomialSplineContainerOpt::setDataOptimized] Number of equality constraints is larger than number of coefficients. Drop acceleration constraints!");
+    std::cout << "[PolynomialSplineContainerOpt::setDataOptimized] Number of equality constraints is larger than number of coefficients. Drop acceleration constraints!" << std::endl;
     return setDataOptimized(knotDurations, knotPositions, initialVelocity, finalVelocity, weightMinAccel);
   }
 
-  // Vector containing durations of splines
+  // Vector containing durations of splines.
   std::vector<double> splineDurations(numSplines);
   for (unsigned int splineId=0; splineId<numSplines; splineId++) {
     splineDurations[splineId] = knotDurations[splineId+1]-knotDurations[splineId];
 
     if (splineDurations[splineId]<=0.0) {
-      MELO_WARN_STREAM("[PolynomialSplineContainerOpt::setDataOptimized] Invalid spline duration at index" << splineId << ": " << splineDurations[splineId]);
+      std::cout << "[PolynomialSplineContainerOpt::setDataOptimized] Invalid spline duration at index" << splineId << ": " << splineDurations[splineId] << std::endl;
       return false;
     }
   }
 
-  // Initialize Equality matrices
+  // Initialize Equality matrices.
   this->equalityConstraintJacobian_.setZero(num_constraints, solutionSpaceDimension);
   this->equalityConstraintTargetValues_.setZero(num_constraints);
   unsigned int constraintIdx = 0;
 
 
-  // Initial conditions
+  // Initial conditions.
   Eigen::VectorXd initialConditions(3);
   initialConditions << knotPositions.front(), initialVelocity, initialAcceleration;
   this->addInitialConditions(initialConditions, constraintIdx);
 
-  // Final conditions
+  // Final conditions.
   Eigen::VectorXd finalConditions(3);
   finalConditions << knotPositions.back(), finalVelocity, finalAcceleration;
   this->addFinalConditions(finalConditions, constraintIdx, splineDurations.back(), num_junctions);
 
-  // Junction conditions
+  // Junction conditions.
   this->addJunctionsConditions(splineDurations, knotPositions, constraintIdx, num_junctions);
 
   if (num_constraints != constraintIdx) {
-    MELO_WARN_STREAM("[PolynomialSplineContainerOpt::setDataOptimized] Wrong number of equality constraints!");
+    std::cout << "[PolynomialSplineContainerOpt::setDataOptimized] Wrong number of equality constraints!" << std::endl;
     return false;
   }
 
@@ -115,7 +115,7 @@ bool PolynomialSplineContainerOpt<splineOrder_>::setDataOptimized(
     success &= solveQP(coeffs);
   }
 
-  // Extract spline coefficients and add splines
+  // Extract spline coefficients and add splines.
   success &= this->extractSplineCoefficients(coeffs, splineDurations, numSplines);
 
   return success;
@@ -134,61 +134,61 @@ bool PolynomialSplineContainerOpt<splineOrder_>::setDataOptimized(
 
   success &= this->reset();
 
-  // Set up optimization parameters
+  // Set up optimization parameters.
   const unsigned int num_splines = knotDurations.size()-1;
   constexpr auto num_coeffs_spline = SplineType::coefficientCount;
   const unsigned int num_coeffs = num_splines*num_coeffs_spline;
   const unsigned int num_junctions = num_splines-1;
 
   if (num_splines<1) {
-    MELO_WARN_STREAM("[PolynomialSplineContainerOpt::setDataOptimized] Not sufficient knot points are available!");
+    std::cout << "[PolynomialSplineContainerOpt::setDataOptimized] Not sufficient knot points are available!" << std::endl;
     return false;
   }
 
-  // total number of constraints
+  // Total number of constraints.
   constexpr unsigned int num_initial_constraints = 2;   // pos, vel
   constexpr unsigned int num_final_constraints = 2;     // pos, vel
   constexpr unsigned int num_constraint_junction = 3;   // pos (2x), vel
   const unsigned int num_junction_constraints = num_junctions*num_constraint_junction;
   const unsigned int num_constraints = num_junction_constraints + num_initial_constraints + num_final_constraints;
 
-  // drop constraints if necessary
+  // Drop constraints if necessary.
   if (num_constraints>num_coeffs) {
-    MELO_WARN_STREAM("[PolynomialSplineContainerOpt::setDataOptimized] Number of equality constraints is larger than number of coefficients. Drop velocity constraints!");
+    std::cout << "[PolynomialSplineContainerOpt::setDataOptimized] Number of equality constraints is larger than number of coefficients. Drop velocity constraints!" << std::endl;
     return this->setData(knotDurations, knotPositions);
   }
 
-  // Vector containing durations of splines
+  // Vector containing durations of splines.
   std::vector<double> splineDurations(num_splines);
   for (unsigned int splineId=0; splineId<num_splines; splineId++) {
     splineDurations[splineId] = knotDurations[splineId+1]-knotDurations[splineId];
 
     if (splineDurations[splineId]<=0.0) {
-      MELO_WARN_STREAM("[PolynomialSplineContainerOpt::setDataOptimized] Invalid spline duration at index" << splineId << ": " << splineDurations[splineId]);
+      std::cout << "[PolynomialSplineContainerOpt::setDataOptimized] Invalid spline duration at index" << splineId << ": " << splineDurations[splineId] << std::endl;
       return false;
     }
   }
 
-  // Initialize Equality matrices
+  // Initialize Equality matrices.
   this->equalityConstraintJacobian_.setZero(num_constraints, num_coeffs);
   this->equalityConstraintTargetValues_.setZero(num_constraints);
   unsigned int constraintIdx = 0;
 
-  // Initial conditions
+  // Initial conditions.
   this->addInitialConditions(
       (Eigen::VectorXd() << knotPositions.front(), initialVelocity).finished(),
       constraintIdx);
 
-  // Final conditions
+  // Final conditions.
   this->addFinalConditions(
       (Eigen::VectorXd() << knotPositions.back(), finalVelocity).finished(),
       constraintIdx,  splineDurations.back(), num_junctions);
 
-  // Junction conditions
+  // Junction conditions.
   this->addJunctionsConditions(splineDurations, knotPositions, constraintIdx, num_junctions);
 
   if (num_constraints!=constraintIdx) {
-    MELO_WARN_STREAM("[PolynomialSplineContainerOpt::setDataOptimized] Wrong number of equality constraints!");
+    std::cout << "[PolynomialSplineContainerOpt::setDataOptimized] Wrong number of equality constraints!" << std::endl;
     return false;
   }
 
@@ -204,7 +204,7 @@ bool PolynomialSplineContainerOpt<splineOrder_>::setDataOptimized(
     success &= solveQP(coeffs);
   }
 
-  // Extract spline coefficients and add splines
+  // Extract spline coefficients and add splines.
   success &= this->extractSplineCoefficients(coeffs, splineDurations, num_splines);
 
   return success;
@@ -220,19 +220,19 @@ bool PolynomialSplineContainerOpt<splineOrder_>::addObjective(
 
   bool success = true;
 
-  // Objective -> minimize acceleration along trajectory
+  // Minimize acceleration along trajectory.
   hessian_ = Eigen::MatrixXd::Zero(num_coeffs,num_coeffs);
   linearTerm_ = Eigen::VectorXd::Zero(num_coeffs);
 
   for (unsigned int splineId=0; splineId<num_splines; ++splineId) {
-    // Minimize acceleration
+    // Minimize acceleration.
     MinAccMat coreMatrix;
     success &= getAccelerationMinimizerBlock(coreMatrix, splineDurations[splineId]);
     hessian_.block<SplineType::coefficientCount-2, SplineType::coefficientCount-2>(
         this->getSplineColumnIndex(splineId), this->getSplineColumnIndex(splineId)) =
             coreMatrix*weightMinAccel;
 
-    // Regularization for position and velocity -> cfMat must be positive definite.
+    // Regularization for position and velocity (cfMat must be positive definite).
     const unsigned int accelIdx = this->getCoeffIndex(splineId, SplineType::coefficientCount-2);
     hessian_.block<2,2>(accelIdx, accelIdx) += 1e-7*Eigen::Matrix2d::Identity();
   }
@@ -242,11 +242,11 @@ bool PolynomialSplineContainerOpt<splineOrder_>::addObjective(
 
 template <int splineOrder_>
 bool PolynomialSplineContainerOpt<splineOrder_>::setUpOptimizationMatrices(unsigned int num_coeffs) {
-  // Inequality constraints -> We don't use them
+  // Inequality constraints.
   inequalityConstraintJacobian_.setZero(0, num_coeffs);
   inequalityConstraintMinValues_.setZero(0);
 
-  // Add quadratic problem
+  // Add quadratic problem.
   costFunction_->setGlobalHessian(hessian_.sparseView());
   costFunction_->setLinearTerm(linearTerm_);
   functionConstraints_->setGlobalEqualityConstraintJacobian(this->equalityConstraintJacobian_.sparseView());
@@ -267,7 +267,7 @@ bool PolynomialSplineContainerOpt<splineOrder_>::solveQP(Eigen::VectorXd& coeffs
   success &= minimizer_->minimize(quadraticProblem_.get(), params, cost);
 
   if (!success) {
-    MELO_WARN_STREAM("[PolynomialSplineContainerOpt::solveQP] Failed to solve optimization!");
+    std::cout << "[PolynomialSplineContainerOpt::solveQP] Failed to solve optimization!" << std::endl;
   } else {
     coeffs = params.getParams();
   }

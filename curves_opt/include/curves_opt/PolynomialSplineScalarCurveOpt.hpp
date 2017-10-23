@@ -3,7 +3,6 @@
  *
  *  Created on: Mar 5, 2015
  *      Author: Péter Fankhauser, Dario Bellicoso
- *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
 #pragma once

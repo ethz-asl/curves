@@ -2,7 +2,7 @@
  * PolynomialSplineContainerOpt.cpp
  *
  *  Created on: Sep 2, 2017
- *      Author: dbellicoso
+ *      Author: Dario Bellicoso
  */
 
 // curves_opt
@@ -60,7 +60,7 @@ bool PolynomialSplineContainerOpt<2>::getAccelerationMinimizerBlock(MinAccMat& m
 
 template <int splineOrder_>
 bool PolynomialSplineContainerOpt<splineOrder_>::getAccelerationMinimizerBlock(MinAccMat& mat, const double tf) const {
-  MELO_WARN_STREAM("[PolynomialSplineContainerOpt::getAccelerationMinimizerBlock] Function has not been implemented so far. Spline order was: " << splineOrder_);
+  std::cout << "[PolynomialSplineContainerOpt::getAccelerationMinimizerBlock] Function has not been implemented so far. Spline order was: " << splineOrder_ << std::endl;
   return false;
 }
 
