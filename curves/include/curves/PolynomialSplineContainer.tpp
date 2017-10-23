@@ -23,9 +23,14 @@ PolynomialSplineContainer<splineOrder_>::PolynomialSplineContainer():
 }
 
 template <int splineOrder_>
-PolynomialSplineContainer<splineOrder_>::~PolynomialSplineContainer()
+typename PolynomialSplineContainer<splineOrder_>::SplineType* PolynomialSplineContainer<splineOrder_>::getSpline(int splineIndex)
 {
+  return &splines_.at(splineIndex);
+}
 
+template <int splineOrder_>
+const typename PolynomialSplineContainer<splineOrder_>::SplineList& PolynomialSplineContainer<splineOrder_>::getSplines() const {
+  return splines_;
 }
 
 template <int splineOrder_>

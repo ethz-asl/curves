@@ -31,16 +31,13 @@ class PolynomialSplineContainer {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   PolynomialSplineContainer();
-  virtual ~PolynomialSplineContainer();
+  virtual ~PolynomialSplineContainer() = default;
 
-  SplineType* getSpline(int splineIndex)
-  {
-    return &splines_.at(splineIndex);
-  }
+  //! Get a pointer to the spline with a given index.
+  SplineType* getSpline(int splineIndex);
 
-  const SplineList& getSplines() const {
-    return splines_;
-  }
+  //! Get a reference to the spline with a given index.
+  const SplineList& getSplines() const;
 
   //! Update the spline internal time by dt [seconds].
   bool advance(double dt);
@@ -74,25 +71,39 @@ class PolynomialSplineContainer {
   //! True if splines are empty.
   bool isEmpty() const;
 
-  //! Get point in state-space at current time.
+  //! Get the position evaluated at the internal time.
   double getPosition() const;
+
+  //! Get the velocity evaluated at the internal time.
   double getVelocity() const;
+
+  //! Get the acceleration evaluated at the internal time.
   double getAcceleration() const;
 
-  //! Get currently active spline index of trajectory.
+  /*! Get the index of the spline active at time t [seconds].
+   *  Update timeOffset with the duration of the container at the beginning of the active spline.
+   */
   int getActiveSplineIndexAtTime(double t, double& timeOffset) const;
 
   //! Return spline index at current time validity.
   int getActiveSplineIndex() const;
 
-  //! Get pint in state-space at a specific time.
+  //! Get position at time t[seconds];
   double getPositionAtTime(double t) const;
+
+  //! Get velocity at time t[seconds];
   double getVelocityAtTime(double t) const;
+
+  //! Get acceleration at time t[seconds];
   double getAccelerationAtTime(double t) const;
 
-  //! Get state-space at final time.
+  //! Get position at the end of the spline.
   double getEndPosition() const;
+
+  //! Get velocity at the end of the spline.
   double getEndVelocity() const;
+
+  //! Get acceleration at the end of the spline.
   double getEndAcceleration() const;
 
   /*!
