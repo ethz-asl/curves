@@ -13,6 +13,9 @@
 // curves
 #include "curves/polynomial_splines_traits.hpp"
 
+// stl
+#include <numeric>
+
 namespace curves {
 
 /*!
