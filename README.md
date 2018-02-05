@@ -10,7 +10,7 @@ The source code is released under a [BSD 3-Clause license](ros_package_template/
 
 ## Build status
 
-[![Build Status](http://rsl-ci.ethz.ch/buildStatus/icon?job=curves)](http://rsl-ci.ethz.ch/job/curves/)
+[![Build Status](https://ci.leggedrobotics.com/buildStatus/icon?job=github_ethz-asl/curves/master)](https://ci.leggedrobotics.com/job/github_ethz-asl/job/curves/job/master/)
 
 ## Installation
 

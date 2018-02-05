@@ -8,17 +8,23 @@
 
 #pragma once
 
+
+// stl
 #include <string>
 #include <vector>
+
+// glog
 #include <glog/logging.h>
 
+// curves
 #include "curves/Curve.hpp"
 #include "curves/ScalarCurveConfig.hpp"
 #include "curves/PolynomialSplineContainer.hpp"
+#include "curves/polynomial_splines_containers.hpp"
 
 namespace curves {
 
-template<typename SplineType>
+template<typename SplineContainerType_>
 class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
 {
  public:
@@ -26,13 +32,18 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
   typedef typename Parent::ValueType ValueType;
   typedef typename Parent::DerivativeType DerivativeType;
 
+  using SplineContainerType = SplineContainerType_;
+
   PolynomialSplineScalarCurve()
-      : Curve<ScalarCurveConfig>(),
+      : Parent(),
+        container_(),
         minTime_(0.0)
   {
   }
 
-  virtual ~PolynomialSplineScalarCurve() {}
+  virtual ~PolynomialSplineScalarCurve() {
+
+  }
 
   virtual void print(const std::string& str = "") const
   {
@@ -120,10 +131,9 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
   virtual void fitCurve(const std::vector<SplineOptions>& optionList,
                         std::vector<Key>* outKeys = NULL)
   {
+    container_.reserveSplines(optionList.size());
     for (const auto& options : optionList) {
-      PolynomialSplineQuintic spline;
-      spline.computeCoefficients(options);
-      container_.addSpline(spline);
+      container_.addSpline(PolynomialSplineQuintic(options));
     }
     minTime_ = 0.0;
   }
@@ -139,14 +149,12 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
     CHECK(false) << "Not implemented";
   }
 
- private:
-  PolynomialSplineContainer container_;
+ protected:
+  SplineContainerType container_;
   Time minTime_;
 };
 
-typedef PolynomialSplineScalarCurve<PolynomialSplineQuintic> PolynomialSplineQuinticScalarCurve;
-//typedef PolynomialSplineScalarCurve<PolynomialSplineCubic> PolynomialSplineCubicScalarCurve;
-//typedef PolynomialSplineScalarCurve<PolynomialSplineLinear> PolynomialSplineLinearScalarCurve;
+using PolynomialSplineQuinticScalarCurve = PolynomialSplineScalarCurve<PolynomialSplineContainerQuintic>;
 
-} // namespace
+} /* namespace curves */
 
