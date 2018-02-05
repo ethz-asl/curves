@@ -28,8 +28,8 @@ class SamplingPolicy {
     lastExtend_(0) {};
 
   SamplingPolicy(int minimumMeasurements, Time minSamplingPeriod) :
-    minimumMeasurements_(minimumMeasurements),
     measurementsSinceLastExtend_(0),
+    minimumMeasurements_(minimumMeasurements),
     minSamplingPeriod_(minSamplingPeriod),
     lastExtend_(0) {};
 
@@ -40,6 +40,7 @@ class SamplingPolicy {
                           const ValueType& value,
                           CurveType* curve) {
     CHECK(false) << "no interpolation extend policy implemented for " <<  typeid(CurveType).name();
+    return Key();
   }
 
   template<typename CurveType, typename ValueType>
@@ -47,6 +48,7 @@ class SamplingPolicy {
                     const ValueType& value,
                     CurveType* curve) {
     CHECK(false) << "no default extend policy implemented for " <<  typeid(CurveType).name();
+    return Key();
   }
 
   template<typename CurveType, typename ValueType>

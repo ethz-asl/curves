@@ -279,6 +279,7 @@ template <class C1, class C2>
 typename SE3CompositionCurve<C1, C2>::DerivativeType SE3CompositionCurve<C1, C2>::evaluateDerivative(Time time,
                                                                                                      unsigned derivativeOrder) const{
   //todo
+  return typename SE3CompositionCurve<C1, C2>::DerivativeType();
 }
 
 template <class C1, class C2>
@@ -289,61 +290,73 @@ void SE3CompositionCurve<C1, C2>::setTimeRange(Time minTime, Time maxTime){
 template <class C1, class C2>
 Eigen::Vector3d SE3CompositionCurve<C1, C2>::evaluateAngularVelocityA(Time time){
   //todo
+  return Eigen::Vector3d::Zero();
 }
 
 template <class C1, class C2>
 Eigen::Vector3d SE3CompositionCurve<C1, C2>::evaluateAngularVelocityB(Time time){
   //todo
+  return Eigen::Vector3d::Zero();
 }
 
 template <class C1, class C2>
 Eigen::Vector3d SE3CompositionCurve<C1, C2>::evaluateLinearVelocityA(Time time){
   //todo
+  return Eigen::Vector3d::Zero();
 }
 
 template <class C1, class C2>
 Eigen::Vector3d SE3CompositionCurve<C1, C2>::evaluateLinearVelocityB(Time time){
   //todo
+  return Eigen::Vector3d::Zero();
 }
 
 template <class C1, class C2>
 Vector6d SE3CompositionCurve<C1, C2>::evaluateTwistA(Time time){
   //todo
+  return Vector6d::Zero();
 }
 
 template <class C1, class C2>
 Vector6d SE3CompositionCurve<C1, C2>::evaluateTwistB(Time time){
   //todo
+  return Vector6d::Zero();
 }
 
 template <class C1, class C2>
 Eigen::Vector3d SE3CompositionCurve<C1, C2>::evaluateAngularDerivativeA(unsigned derivativeOrder, Time time){
   //todo
+  return Eigen::Vector3d::Zero();
 }
 
 template <class C1, class C2>
 Eigen::Vector3d SE3CompositionCurve<C1, C2>::evaluateAngularDerivativeB(unsigned derivativeOrder, Time time){
   //todo
+  return Eigen::Vector3d::Zero();
 }
 
 template <class C1, class C2>
 Eigen::Vector3d SE3CompositionCurve<C1, C2>::evaluateLinearDerivativeA(unsigned derivativeOrder, Time time){
   //todo
+  return Eigen::Vector3d::Zero();
 }
 
 template <class C1, class C2>
 Eigen::Vector3d SE3CompositionCurve<C1, C2>::evaluateLinearDerivativeB(unsigned derivativeOrder, Time time){
   //todo
+  return Eigen::Vector3d::Zero();
 }
 
 template <class C1, class C2>
 Vector6d SE3CompositionCurve<C1, C2>::evaluateDerivativeA(unsigned derivativeOrder, Time time){
   //todo
+  return Vector6d::Zero();
 }
 
 template <class C1, class C2>
 Vector6d SE3CompositionCurve<C1, C2>::evaluateDerivativeB(unsigned derivativeOrder, Time time){
   //todo
+  return Vector6d::Zero();
 }
 
 template <class C1, class C2>

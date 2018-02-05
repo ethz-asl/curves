@@ -343,7 +343,7 @@ inline Key SamplingPolicy::interpolationExtend<CubicHermiteSE3Curve, ValueType>(
   DerivativeType derivative;
   if (measurementsSinceLastExtend_ == 0) {
     // extend curve with new interpolation coefficient if necessary
-    CoefficientIter rValInterp = --curve->manager_.coefficientEnd();
+    --curve->manager_.coefficientEnd();
     CoefficientIter last = --curve->manager_.coefficientEnd();
     derivative = last->second.coefficient.getTransformationDerivative();
   } else {
@@ -371,7 +371,7 @@ inline void SamplingPolicy::extend<CubicHermiteSE3Curve, ValueType>(const std::v
                                                              const std::vector<ValueType>& values,
                                                              CubicHermiteSE3Curve* curve,
                                                              std::vector<Key>* outKeys) {
-  for (int i = 0; i < times.size(); ++i) {
+  for (std::size_t i = 0; i < times.size(); ++i) {
     // ensure time strictly increases
     CHECK((times[i] > curve->manager_.getMaxTime()) || curve->manager_.size() == 0) << "curve can only be extended into the future. Requested = "
         << times[i] << " < curve max time = " << curve->manager_.getMaxTime();
