@@ -5,11 +5,14 @@
  */
 
 #pragma once
-#include <curves/Curve.hpp>
+
 #include <stdlib.h>
 #include <vector>
 #include <iostream>
+
 #include <Eigen/Core>
+
+#include <curves/Curve.hpp>
 
 namespace curves {
 
