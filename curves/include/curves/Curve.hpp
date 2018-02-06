@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 namespace curves {
 
 typedef double Time;

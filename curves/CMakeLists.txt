@@ -50,6 +50,7 @@ add_library(${PROJECT_NAME}
   src/SlerpSE3Curve.cpp
   src/SE3Curve.cpp
   src/polynomial_splines_traits.cpp
+  src/helpers.cpp
 #  src/SE2Curve.cpp
 #  src/SlerpSE2Curve.cpp
 #  src/DiscreteSE3Curve.cpp
