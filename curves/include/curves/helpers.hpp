@@ -12,7 +12,7 @@
 
 #include <Eigen/Core>
 
-#include <curves/Curve.hpp>
+#include "curves/Curve.hpp"
 
 namespace curves {
 

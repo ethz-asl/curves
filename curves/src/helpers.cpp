@@ -24,7 +24,7 @@ std::vector<std::vector<std::string> > loadCSV(std::string fileName) {
   std::vector<std::vector<std::string> > strMatrix;
   // Loop over lines (rows) of CSV file
   std::string line;
-  while(std::getline(inFileStream, line) {
+  while(std::getline(inFileStream, line)) {
     // Make string stream out of line
     std::istringstream ss(line);
     std::vector<std::string> strRow;
