@@ -58,8 +58,7 @@ template <int splineOrder_>
 void PolynomialSplineContainer<splineOrder_>::setContainerTime(double t)
 {
   containerTime_ = t;
-  double timeOffset;
-  activeSplineIdx_ = getActiveSplineIndexAtTime(t, timeOffset);
+  activeSplineIdx_ = getActiveSplineIndexAtTime(t, timeOffset_);
 }
 
 template <int splineOrder_>
