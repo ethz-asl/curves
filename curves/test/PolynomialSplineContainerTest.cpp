@@ -85,3 +85,29 @@ TEST(PolynomialSplineContainer, eval) {
 //  EXPECT_NEAR(finalAcceleration, polyContainer.getSpline(knotVal.size()-2)->getAccelerationAtTime(knotPos[knotPos.size()-1]-knotPos[knotVal.size()-2]), 1e-2 );
 
 }
+
+TEST(PolynomialSplineContainer, getState)
+{
+  std::vector<double> knotPos;
+  std::vector<double> knotVal;
+
+  knotPos.push_back(0.0);
+  knotPos.push_back(1.0);
+  knotPos.push_back(2.0);
+
+  knotVal.push_back(0.0);
+  knotVal.push_back(1.0);
+  knotVal.push_back(2.0);
+
+  curves::PolynomialSplineContainerQuintic polyContainer;
+  polyContainer.setData(knotPos, knotVal, 0.0, 0.0, 0.0, 0.0);
+
+  constexpr double containerTime = 0.4;
+  polyContainer.setContainerTime(containerTime);
+
+  double timeOffset = 0.0;
+
+  EXPECT_EQ(polyContainer.getPosition(), polyContainer.getPositionAtTime(containerTime));
+  EXPECT_EQ(polyContainer.getVelocity(), polyContainer.getVelocityAtTime(containerTime));
+  EXPECT_EQ(polyContainer.getAcceleration(), polyContainer.getAccelerationAtTime(containerTime));
+}
