@@ -566,5 +566,46 @@ bool PolynomialSplineContainer<splineOrder_>::reserveSplines(const unsigned int 
   return true;
 }
 
+template<int splineOrder_>
+bool PolynomialSplineContainer<splineOrder_>::checkContainer() const {
+  if (containerTime_<0.0) {
+    std::cout << "[PolynomialSplineContainer::checkContainer] negative container time.\n";
+    return false;
+  }
+
+  if (containerDuration_<0.0) {
+    std::cout << "[PolynomialSplineContainer::checkContainer] negative container duration.\n";
+    return false;
+  }
+
+  if (containerTime_>containerDuration_) {
+    std::cout << "[PolynomialSplineContainer::checkContainer] container time is larger than container duration.\n";
+    return false;
+  }
+
+  if (activeSplineIdx_<0) {
+    std::cout << "[PolynomialSplineContainer::checkContainer] negative container index.\n";
+    return false;
+  }
+
+  for (const auto& spline : splines_) {
+    if(spline.getSplineDuration()<0.0) {
+      std::cout << "[PolynomialSplineContainer::checkContainer] negative spline duration.\n";
+      return false;
+    }
+
+    const auto& coeffs = spline.getCoefficients();
+
+    for(double coeff : coeffs) {
+      if (std::isnan(coeff)) {
+        std::cout << "[PolynomialSplineContainer::checkContainer] Spline coeff is nan.\n";
+        return false;
+      }
+    }
+
+  }
+  return true;
+}
+
 
 } /* namespace */
