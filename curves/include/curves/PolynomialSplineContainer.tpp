@@ -596,7 +596,7 @@ bool PolynomialSplineContainer<splineOrder_>::checkContainer() const {
 
     const auto& coeffs = spline.getCoefficients();
 
-    for(double coeff : coeffs) {
+    for (auto& coeff : coeffs) {
       if (std::isnan(coeff)) {
         std::cout << "[PolynomialSplineContainer::checkContainer] Spline coeff is nan.\n";
         return false;
