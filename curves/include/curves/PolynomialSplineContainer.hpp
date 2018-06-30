@@ -135,6 +135,8 @@ class PolynomialSplineContainer {
 
   static constexpr double undefinedValue = std::numeric_limits<double>::quiet_NaN();
 
+  bool checkContainer() const;
+
  protected:
   /*!
    * aijh:
