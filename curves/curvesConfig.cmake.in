@@ -1,0 +1,9 @@
+# - Config file for the curves package
+# It defines the following variables
+#  curves_INCLUDE_DIRS - include directories for curves
+#  curves_LIBRARIES    - libraries to link against
+
+# Compute paths
+get_filename_component(curves_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(curves_INCLUDE_DIRS "@curves_include_dirs@")
+set(curves_LIBRARIES "@curves_library@;@external_libs@")
