@@ -82,6 +82,11 @@ class PolynomialSpline {
     return coefficients_;
   }
 
+  //! Get the coefficients of the spline.
+  SplineCoefficients* getCoefficientsPtr() {
+    return &coefficients_;
+  }
+
   //! Compute the coefficients of the spline.
   template<typename SplineOptionsType_>
   bool computeCoefficients(SplineOptionsType_&& options) {
