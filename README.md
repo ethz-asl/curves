@@ -6,7 +6,7 @@ The source code is released under a [BSD 3-Clause license](ros_package_template/
 
 **Authors: Renaud Dubé, Abel Gawel, Péter Fankhauser, Dario Bellicoso, Christian Gehring, Mike Bosse, Paul Furgale, Gabriel Agamennoni**
 
-**Maintainer: Péter Fankhauser, pfankhauser@ethz.ch**
+**Maintainer: Péter Fankhauser, pfankhauser@anybotics.com**
 
 ## Build status
 
