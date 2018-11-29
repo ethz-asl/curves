@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>curves</name>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
   <description>Curves spline library.</description>
   <maintainer email="pfankhauser@anybotics.com">Peter Fankhauser</maintainer>
   <license>BSD</license>
