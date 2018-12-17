@@ -110,8 +110,8 @@ class CubicHermiteE3Curve  {
 
   virtual void fitCurveWithDerivatives(const std::vector<Time>& times,
                         const std::vector<ValueType>& values,
-                        const DerivativeType& initialDerivative = DerivativeType(),
-                        const DerivativeType& finalDerivative = DerivativeType(),
+                        const DerivativeType& initialDerivative = DerivativeType::Zero(),
+                        const DerivativeType& finalDerivative = DerivativeType::Zero(),
                         std::vector<Key>* outKeys = NULL);
 
 
