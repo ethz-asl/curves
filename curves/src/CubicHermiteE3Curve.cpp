@@ -124,7 +124,7 @@ void CubicHermiteE3Curve::extend(const std::vector<Time>& times,
 void CubicHermiteE3Curve::fitCurve(const std::vector<Time>& times,
                       const std::vector<ValueType>& values,
                       std::vector<Key>* outKeys) {
-  fitCurveWithDerivatives(times, values, DerivativeType(), DerivativeType(), outKeys);
+  fitCurveWithDerivatives(times, values, DerivativeType::Zero(), DerivativeType::Zero(), outKeys);
 }
 
 void CubicHermiteE3Curve::fitPeriodicCurve(const std::vector<Time>& times,
