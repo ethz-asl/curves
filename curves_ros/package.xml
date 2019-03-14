@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>curves_ros</name>
-  <version>0.3.0</version>
+  <version>0.4.0</version>
   <description>ROS interface for curves library.</description>
   <maintainer email="pfankhauser@anybotics.com">Peter Fankhauser</maintainer>
   <license>BSD</license>
