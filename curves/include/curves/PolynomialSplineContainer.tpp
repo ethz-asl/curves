@@ -165,7 +165,7 @@ double PolynomialSplineContainer<splineOrder_>::getPositionAtTime(double t) cons
     return 0.0;
   }
 
-  if (activeSplineIdx == splines_.size()) {
+  if (static_cast<unsigned int>(activeSplineIdx) == splines_.size()) {
     return splines_.back().getPositionAtTime(splines_.back().getSplineDuration());
   }
 
@@ -183,7 +183,7 @@ double PolynomialSplineContainer<splineOrder_>::getVelocityAtTime(double t) cons
     return 0.0;
   }
 
-  if (activeSplineIdx == splines_.size()) {
+  if (static_cast<unsigned int>(activeSplineIdx) == splines_.size()) {
     return splines_.back().getVelocityAtTime(splines_.back().getSplineDuration());
   }
 
@@ -202,7 +202,7 @@ double PolynomialSplineContainer<splineOrder_>::getAccelerationAtTime(double t) 
     return 0.0;
   }
 
-  if (activeSplineIdx == splines_.size()) {
+  if (static_cast<unsigned int>(activeSplineIdx) == splines_.size()) {
     return splines_.back().getAccelerationAtTime(splines_.back().getSplineDuration());
   }
 
@@ -417,7 +417,7 @@ bool PolynomialSplineContainer<splineOrder_>::setData(
 
   this->reserveSplines(numSplines);
 
-  for (unsigned int splineId = 0; splineId<numSplines; ++splineId) {
+  for (int splineId = 0; splineId<numSplines; ++splineId) {
     const double duration = knotDurations[splineId+1]-knotDurations[splineId];
 
     if (duration<=0.0) {

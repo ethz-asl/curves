@@ -2,7 +2,8 @@
 cmake_minimum_required (VERSION 2.8)
 project(curves_ros)
 
-add_definitions(--std=c++11)
+set(CMAKE_CXX_STANDARD 11)
+add_compile_options(-Wall -Wextra -Wpedantic)
 
 # Noisily default to Release build
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

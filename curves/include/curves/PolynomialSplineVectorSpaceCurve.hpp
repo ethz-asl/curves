@@ -39,7 +39,7 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
   {
   }
 
-  virtual void print(const std::string& str = "") const
+  virtual void print(const std::string& /*str*/) const
   {
   }
 
@@ -78,8 +78,8 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
     return true;
   }
 
-  virtual void extend(const std::vector<Time>& times, const std::vector<ValueType>& values,
-                      std::vector<Key>* outKeys)
+  virtual void extend(const std::vector<Time>& /*times*/, const std::vector<ValueType>& /*values*/,
+                      std::vector<Key>* /*outKeys*/)
   {
     throw std::runtime_error("PolynomialSplineVectorSpaceCurve::extend is not yet implemented!");
   }
@@ -137,8 +137,8 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
   }
 
 
-  virtual void fitCurve(const std::vector<SplineOptions>& values,
-                        std::vector<Key>* outKeys = NULL)
+  virtual void fitCurve(const std::vector<SplineOptions>& /*values*/,
+                        std::vector<Key>* /*outKeys*/)
   {
     // TODO
     throw std::runtime_error("PolynomialSplineVectorSpaceCurve::fitCurve is not yet implemented!");
@@ -151,7 +151,7 @@ class PolynomialSplineVectorSpaceCurve : public VectorSpaceCurve<N>
     }
   }
 
-  virtual void transformCurve(const ValueType T)
+  virtual void transformCurve(const ValueType /*T*/)
   {
     CHECK(false) << "Not implemented";
   }
