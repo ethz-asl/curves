@@ -114,9 +114,9 @@ CubicHermiteE3Curve::DerivativeType CubicHermiteE3Curve::calculateSlope(const Ti
 }
 
 
-void CubicHermiteE3Curve::extend(const std::vector<Time>& times,
-                    const std::vector<ValueType>& values,
-                    std::vector<Key>* outKeys) {
+void CubicHermiteE3Curve::extend(const std::vector<Time>& /*times*/,
+                    const std::vector<ValueType>& /*values*/,
+                    std::vector<Key>* /*outKeys*/) {
 
 }
 
@@ -262,7 +262,7 @@ bool CubicHermiteE3Curve::evaluateDerivative(DerivativeType& derivative, Time ti
         double alpha = double(time - a->first)/dt_sec;
 
         const double alpha2 = alpha * alpha;
-        const double alpha3 = alpha2 * alpha;
+        // const double alpha3 = alpha2 * alpha; // TODO(maintainer) This value is unused - maybe a bug?
 
         /**************************************************************************************
          *  Translational part:

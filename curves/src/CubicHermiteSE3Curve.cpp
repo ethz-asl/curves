@@ -171,9 +171,9 @@ CubicHermiteSE3Curve::DerivativeType CubicHermiteSE3Curve::calculateSlope(const 
   return DerivativeType(velocity_m_s, angularVelocity_rad_s);
 }
 
-void CubicHermiteSE3Curve::extend(const std::vector<Time>& times,
-                                  const std::vector<ValueType>& values,
-                                  std::vector<Key>* outKeys) {
+void CubicHermiteSE3Curve::extend(const std::vector<Time>& /*times*/,
+                                  const std::vector<ValueType>& /*values*/,
+                                  std::vector<Key>* /*outKeys*/) {
 
   // New values in extend first need to be checked if they can be added to curve
   // otherwise the most recent coefficient will be an interpolation based on the last
@@ -489,65 +489,65 @@ bool CubicHermiteSE3Curve::evaluateLinearAcceleration(kindr::Acceleration3D& lin
 //
 //}
 
-void CubicHermiteSE3Curve::setTimeRange(Time minTime, Time maxTime) {
+void CubicHermiteSE3Curve::setTimeRange(Time /*minTime*/, Time /*maxTime*/) {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
 
 /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
-Eigen::Vector3d CubicHermiteSE3Curve::evaluateAngularVelocityA(Time time) {
+Eigen::Vector3d CubicHermiteSE3Curve::evaluateAngularVelocityA(Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the angular velocity of Frame a as seen from Frame b, expressed in Frame b.
-Eigen::Vector3d CubicHermiteSE3Curve::evaluateAngularVelocityB(Time time) {
+Eigen::Vector3d CubicHermiteSE3Curve::evaluateAngularVelocityB(Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the velocity of Frame b as seen from Frame a, expressed in Frame a.
-Eigen::Vector3d CubicHermiteSE3Curve::evaluateLinearVelocityA(Time time) {
+Eigen::Vector3d CubicHermiteSE3Curve::evaluateLinearVelocityA(Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the velocity of Frame a as seen from Frame b, expressed in Frame b.
-Eigen::Vector3d CubicHermiteSE3Curve::evaluateLinearVelocityB(Time time) {
+Eigen::Vector3d CubicHermiteSE3Curve::evaluateLinearVelocityB(Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular velocity of Frame b as seen from Frame a,
 /// expressed in Frame a. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
-Vector6d CubicHermiteSE3Curve::evaluateTwistA(Time time) {
+Vector6d CubicHermiteSE3Curve::evaluateTwistA(Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular velocity of Frame a as seen from Frame b,
 /// expressed in Frame b. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
-Vector6d CubicHermiteSE3Curve::evaluateTwistB(Time time) {
+Vector6d CubicHermiteSE3Curve::evaluateTwistB(Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the angular derivative of Frame b as seen from Frame a, expressed in Frame a.
-Eigen::Vector3d CubicHermiteSE3Curve::evaluateAngularDerivativeA(unsigned derivativeOrder, Time time) {
+Eigen::Vector3d CubicHermiteSE3Curve::evaluateAngularDerivativeA(unsigned /*derivativeOrder*/, Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the angular derivative of Frame a as seen from Frame b, expressed in Frame b.
-Eigen::Vector3d CubicHermiteSE3Curve::evaluateAngularDerivativeB(unsigned derivativeOrder, Time time) {
+Eigen::Vector3d CubicHermiteSE3Curve::evaluateAngularDerivativeB(unsigned /*derivativeOrder*/, Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the derivative of Frame b as seen from Frame a, expressed in Frame a.
-Eigen::Vector3d CubicHermiteSE3Curve::evaluateLinearDerivativeA(unsigned derivativeOrder, Time time) {
+Eigen::Vector3d CubicHermiteSE3Curve::evaluateLinearDerivativeA(unsigned /*derivativeOrder*/, Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the derivative of Frame a as seen from Frame b, expressed in Frame b.
-Eigen::Vector3d CubicHermiteSE3Curve::evaluateLinearDerivativeB(unsigned derivativeOrder, Time time) {
+Eigen::Vector3d CubicHermiteSE3Curve::evaluateLinearDerivativeB(unsigned /*derivativeOrder*/, Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular derivative of Frame b as seen from Frame a,
 /// expressed in Frame a. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
-Vector6d CubicHermiteSE3Curve::evaluateDerivativeA(unsigned derivativeOrder, Time time) {
+Vector6d CubicHermiteSE3Curve::evaluateDerivativeA(unsigned /*derivativeOrder*/, Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular velocity of Frame a as seen from Frame b,
 /// expressed in Frame b. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
-Vector6d CubicHermiteSE3Curve::evaluateDerivativeB(unsigned derivativeOrder, Time time) {
+Vector6d CubicHermiteSE3Curve::evaluateDerivativeB(unsigned /*derivativeOrder*/, Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 
@@ -564,7 +564,7 @@ void CubicHermiteSE3Curve::clear() {
   manager_.clear();
 }
 
-void CubicHermiteSE3Curve::transformCurve(const ValueType T) {
+void CubicHermiteSE3Curve::transformCurve(const ValueType /*T*/) {
   //todo
 }
 
