@@ -155,7 +155,7 @@ class DiscreteSE3Curve : public SE3Curve {
 
   void saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const;
 
-  void saveCorrectionCurveAtTimes(const std::string& filename, std::vector<Time> times) const {};
+  void saveCorrectionCurveAtTimes(const std::string& /*filename*/, std::vector<Time> /*times*/) const {};
 
   void getCurveTimes(std::vector<Time>* outTimes) const;
 
@@ -170,36 +170,36 @@ class DiscreteSE3Curve : public SE3Curve {
   void foldInCorrections() {};
 
   /// \brief Add coefficients to the correction curve at given times.
-  void setCorrectionTimes(const std::vector<Time>& times) {};
+  void setCorrectionTimes(const std::vector<Time>& /*times*/) {};
 
   /// \brief Remove a correction coefficient at the specified time.
-  void removeCorrectionCoefficientAtTime(Time time) {};
+  void removeCorrectionCoefficientAtTime(Time /*time*/) {};
 
   /// \brief Set the correction coefficient value at the specified time.
-  void setCorrectionCoefficientAtTime(Time time, ValueType value) {};
+  void setCorrectionCoefficientAtTime(Time /*time*/, ValueType /*value*/) {};
 
   /// \brief Reset the correction curve to identity values with knots at desired times
-  void resetCorrectionCurve(const std::vector<Time>& times) {};
+  void resetCorrectionCurve(const std::vector<Time>& /*time*/) {};
 
   /// \brief Set the base curve to given values with knots at desired times
   /// Resets the curve beforehand.
-  void setBaseCurve(const std::vector<Time>& times, const std::vector<ValueType>& values) {};
+  void setBaseCurve(const std::vector<Time>& /*times*/, const std::vector<ValueType>& /*values*/) {};
 
   /// \brief Add / replace the given coefficients without resetting the curve.
-  void setBaseCurvePart(const std::vector<Time>& times, const std::vector<ValueType>& values) {};
+  void setBaseCurvePart(const std::vector<Time>& /*times*/, const std::vector<ValueType>& /*values*/) {};
 
   /// \brief Modifies values of the base coefficient in batch, starting at times[0] and assuming that
   /// a coefficient exists at all the specified times.
-  void modifyBaseCoefficientsValuesInBatch(const std::vector<Time>& times, const std::vector<ValueType>& values) {};
+  void modifyBaseCoefficientsValuesInBatch(const std::vector<Time>& /*times*/, const std::vector<ValueType>& /*values*/) {};
 
-  void getBaseCurveTimes(std::vector<Time>* outTimes) const {};
+  void getBaseCurveTimes(std::vector<Time>* /*outTimes*/) const {};
 
-  void getBaseCurveTimesInWindow(std::vector<Time>* outTimes, Time begTime, Time endTime) const {};
+  void getBaseCurveTimesInWindow(std::vector<Time>* /*outTimes*/, Time /*begTime*/, Time /*endTime*/) const {};
 
   // return number of coefficients curve is composed of
   int baseSize() const {return size();};
 
-  void saveCorrectionCurveTimesAndValues(const std::string& filename) const {};
+  void saveCorrectionCurveTimesAndValues(const std::string& /*filename*/) const {};
 
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;

@@ -50,16 +50,16 @@ struct HermiteTransformation {
 };
 
 template <typename Scalar>
-HermiteTransformation<Scalar>::HermiteTransformation() {};
+HermiteTransformation<Scalar>::HermiteTransformation() {}
 
 template <typename Scalar>
 HermiteTransformation<Scalar>::HermiteTransformation(const Transform& transform,
                                                      const Twist& derivatives) :
                                                      transformation_(transform),
-                                                     transformationDerivative_(derivatives) {};
+                                                     transformationDerivative_(derivatives) {}
 
 template <typename Scalar>
-HermiteTransformation<Scalar>::~HermiteTransformation() {};
+HermiteTransformation<Scalar>::~HermiteTransformation() {}
 
 }
 
@@ -224,7 +224,7 @@ class CubicHermiteSE3Curve : public SE3Curve {
 
   void saveCurveAtTimes(const std::string& filename, std::vector<Time> times) const;
 
-  void saveCorrectionCurveAtTimes(const std::string& filename, std::vector<Time> times) const {};
+  void saveCorrectionCurveAtTimes(const std::string& /*filename*/, std::vector<Time> /*times*/) const {}
 
   void getCurveTimes(std::vector<Time>* outTimes) const;
 
@@ -233,39 +233,39 @@ class CubicHermiteSE3Curve : public SE3Curve {
 
   /// \brief Fold in the correction curve into the base curve and reinitialize
   ///        correction curve coefficients to identity transformations.
-  void foldInCorrections() {};
+  void foldInCorrections() {}
 
   /// \brief Add coefficients to the correction curve at given times.
-  void setCorrectionTimes(const std::vector<Time>& times) {};
+  void setCorrectionTimes(const std::vector<Time>& /*times*/) {}
 
   /// \brief Remove a correction coefficient at the specified time.
-  void removeCorrectionCoefficientAtTime(Time time) {};
+  void removeCorrectionCoefficientAtTime(Time /*time*/) {}
 
   /// \brief Set the correction coefficient value at the specified time.
-  void setCorrectionCoefficientAtTime(Time time, ValueType value) {};
+  void setCorrectionCoefficientAtTime(Time /*time*/, ValueType /*value*/) {}
 
   /// \brief Reset the correction curve to identity values with knots at desired times
-  void resetCorrectionCurve(const std::vector<Time>& times) {};
+  void resetCorrectionCurve(const std::vector<Time>& /*times*/) {}
 
   /// \brief Set the base curve to given values with knots at desired times
   /// Resets the curve beforehand.
-  void setBaseCurve(const std::vector<Time>& times, const std::vector<ValueType>& values) {};
+  void setBaseCurve(const std::vector<Time>& /*times*/, const std::vector<ValueType>& /*values*/) {}
 
   /// \brief Add / replace the given coefficients without resetting the curve.
-  void setBaseCurvePart(const std::vector<Time>& times, const std::vector<ValueType>& values) {};
+  void setBaseCurvePart(const std::vector<Time>& /*times*/, const std::vector<ValueType>& /*values*/) {}
 
   /// \brief Modifies values of the base coefficient in batch, starting at times[0] and assuming that
   /// a coefficient exists at all the specified times.
-  void modifyBaseCoefficientsValuesInBatch(const std::vector<Time>& times, const std::vector<ValueType>& values) {};
+  void modifyBaseCoefficientsValuesInBatch(const std::vector<Time>& /*times*/, const std::vector<ValueType>& /*values*/) {}
 
-  void getBaseCurveTimes(std::vector<Time>* outTimes) const {};
+  void getBaseCurveTimes(std::vector<Time>* /*outTimes*/) const {}
 
-  void getBaseCurveTimesInWindow(std::vector<Time>* outTimes, Time begTime, Time endTime) const {};
+  void getBaseCurveTimesInWindow(std::vector<Time>* /*outTimes*/, Time /*begTime*/, Time /*endTime*/) const {}
 
   // return number of coefficients curve is composed of
   int baseSize() const {return size();};
 
-  void saveCorrectionCurveTimesAndValues(const std::string& filename) const {};
+  void saveCorrectionCurveTimesAndValues(const std::string& /*filename*/) const {}
  private:
   LocalSupport2CoefficientManager<Coefficient> manager_;
   SamplingPolicy hermitePolicy_;
@@ -370,7 +370,7 @@ template<>
 inline void SamplingPolicy::extend<CubicHermiteSE3Curve, ValueType>(const std::vector<Time>& times,
                                                              const std::vector<ValueType>& values,
                                                              CubicHermiteSE3Curve* curve,
-                                                             std::vector<Key>* outKeys) {
+                                                             std::vector<Key>* /*outKeys*/) {
   for (std::size_t i = 0; i < times.size(); ++i) {
     // ensure time strictly increases
     CHECK((times[i] > curve->manager_.getMaxTime()) || curve->manager_.size() == 0) << "curve can only be extended into the future. Requested = "
