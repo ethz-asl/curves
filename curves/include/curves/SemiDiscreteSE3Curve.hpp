@@ -163,7 +163,7 @@ class SemiDiscreteSE3Curve : public SE3Curve {
   // todo : tidy up
 
   /// \brief Returns the number of coefficients in the correction curve
-  int correctionSize() const {return 0;};
+  int correctionSize() const {return 0;}
 
   /// \brief Fold in the correction curve into the base curve and reinitialize
   ///        correction curve coefficients to identity transformations.
@@ -197,7 +197,7 @@ class SemiDiscreteSE3Curve : public SE3Curve {
   void getBaseCurveTimesInWindow(std::vector<Time>* /*outTimes*/, Time /*begTime*/, Time /*endTime*/) const {}
 
   // return number of coefficients curve is composed of
-  int baseSize() const {return size();};
+  int baseSize() const {return size();}
 
   void saveCorrectionCurveTimesAndValues(const std::string& /*filename*/) const {}
 
