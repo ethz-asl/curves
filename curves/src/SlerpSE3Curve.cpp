@@ -93,7 +93,7 @@ void SlerpSE3Curve::extend(const std::vector<Time>& times,
 
 typename SlerpSE3Curve::DerivativeType
 SlerpSE3Curve::evaluateDerivative(
-    Time time, unsigned derivativeOrder) const
+    Time /*time*/, unsigned /*derivativeOrder*/) const
 {
   CHECK(false) << "Not implemented";
 //  // time is out of bound --> error
@@ -120,7 +120,7 @@ SlerpSE3Curve::evaluateDerivative(
 }
 
 /// \brief \f[T^{\alpha}\f]
-SE3 transformationPower(SE3 T, double alpha)
+SE3 transformationPower(SE3 /*T*/, double /*alpha*/)
 {
   CHECK(false) << "Not implemented";
 //  SO3 R(T.getRotation());
@@ -141,7 +141,7 @@ SE3 composeTransformations(SE3 A, SE3 B)
 }
 
 /// \brief \f[T^{-1}\f]
-SE3 inverseTransformation(SE3 T)
+SE3 inverseTransformation(SE3 /*T*/)
 {
   CHECK(false) << "Not implemented";
 //  return T.inverted();
@@ -153,7 +153,7 @@ SE3 invertAndComposeImplementation(SE3 A, SE3 B)
   return result;
 }
 
-SE3 SlerpSE3Curve::evaluate(Time time) const
+SE3 SlerpSE3Curve::evaluate(Time /*time*/) const
 {
   CHECK(false) << "Not implemented";
 
@@ -183,65 +183,65 @@ SE3 SlerpSE3Curve::evaluate(Time time) const
 //  }
 }
 
-void SlerpSE3Curve::setTimeRange(Time minTime, Time maxTime) {
+void SlerpSE3Curve::setTimeRange(Time /*minTime*/, Time /*maxTime*/) {
   // \todo Abel and Renaud
   CHECK(false) << "Not implemented";
 }
 
 /// \brief Evaluate the angular velocity of Frame b as seen from Frame a, expressed in Frame a.
-Eigen::Vector3d SlerpSE3Curve::evaluateAngularVelocityA(Time time) {
+Eigen::Vector3d SlerpSE3Curve::evaluateAngularVelocityA(Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the angular velocity of Frame a as seen from Frame b, expressed in Frame b.
-Eigen::Vector3d SlerpSE3Curve::evaluateAngularVelocityB(Time time) {
+Eigen::Vector3d SlerpSE3Curve::evaluateAngularVelocityB(Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the velocity of Frame b as seen from Frame a, expressed in Frame a.
-Eigen::Vector3d SlerpSE3Curve::evaluateLinearVelocityA(Time time) {
+Eigen::Vector3d SlerpSE3Curve::evaluateLinearVelocityA(Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the velocity of Frame a as seen from Frame b, expressed in Frame b.
-Eigen::Vector3d SlerpSE3Curve::evaluateLinearVelocityB(Time time) {
+Eigen::Vector3d SlerpSE3Curve::evaluateLinearVelocityB(Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular velocity of Frame b as seen from Frame a,
 /// expressed in Frame a. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
-Vector6d SlerpSE3Curve::evaluateTwistA(Time time) {
+Vector6d SlerpSE3Curve::evaluateTwistA(Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular velocity of Frame a as seen from Frame b,
 /// expressed in Frame b. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
-Vector6d SlerpSE3Curve::evaluateTwistB(Time time) {
+Vector6d SlerpSE3Curve::evaluateTwistB(Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the angular derivative of Frame b as seen from Frame a, expressed in Frame a.
-Eigen::Vector3d SlerpSE3Curve::evaluateAngularDerivativeA(unsigned derivativeOrder, Time time) {
+Eigen::Vector3d SlerpSE3Curve::evaluateAngularDerivativeA(unsigned /*derivativeOrder*/, Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the angular derivative of Frame a as seen from Frame b, expressed in Frame b.
-Eigen::Vector3d SlerpSE3Curve::evaluateAngularDerivativeB(unsigned derivativeOrder, Time time) {
+Eigen::Vector3d SlerpSE3Curve::evaluateAngularDerivativeB(unsigned /*derivativeOrder*/, Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the derivative of Frame b as seen from Frame a, expressed in Frame a.
-Eigen::Vector3d SlerpSE3Curve::evaluateLinearDerivativeA(unsigned derivativeOrder, Time time) {
+Eigen::Vector3d SlerpSE3Curve::evaluateLinearDerivativeA(unsigned /*derivativeOrder*/, Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief Evaluate the derivative of Frame a as seen from Frame b, expressed in Frame b.
-Eigen::Vector3d SlerpSE3Curve::evaluateLinearDerivativeB(unsigned derivativeOrder, Time time) {
+Eigen::Vector3d SlerpSE3Curve::evaluateLinearDerivativeB(unsigned /*derivativeOrder*/, Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular derivative of Frame b as seen from Frame a,
 /// expressed in Frame a. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
-Vector6d SlerpSE3Curve::evaluateDerivativeA(unsigned derivativeOrder, Time time) {
+Vector6d SlerpSE3Curve::evaluateDerivativeA(unsigned /*derivativeOrder*/, Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 /// \brief evaluate the velocity/angular velocity of Frame a as seen from Frame b,
 /// expressed in Frame b. The return value has the linear velocity (0,1,2),
 /// and the angular velocity (3,4,5).
-Vector6d SlerpSE3Curve::evaluateDerivativeB(unsigned derivativeOrder, Time time) {
+Vector6d SlerpSE3Curve::evaluateDerivativeB(unsigned /*derivativeOrder*/, Time /*time*/) {
   CHECK(false) << "Not implemented";
 }
 

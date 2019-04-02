@@ -99,11 +99,11 @@ struct spline_rep<double, 1> {
     return { tk, 1.0 };
   }
 
-  static inline TimeVectorType dtau(double tk) noexcept {
+  static inline TimeVectorType dtau(double /*tk*/) noexcept {
     return { 1.0, 0.0 };
   }
 
-  static inline TimeVectorType ddtau(double tk) noexcept {
+  static inline TimeVectorType ddtau(double /*tk*/) noexcept {
     return { 0.0, 0.0 };
   }
 
@@ -138,7 +138,7 @@ struct spline_rep<double, 2> {
     return { 2.0*tk, 1.0, 0.0 };
   }
 
-  static inline TimeVectorType ddtau(double tk) noexcept {
+  static inline TimeVectorType ddtau(double /*tk*/) noexcept {
     return { 2.0, 0.0, 0.0 };
   }
 

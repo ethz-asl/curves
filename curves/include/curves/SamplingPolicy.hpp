@@ -25,15 +25,15 @@ class SamplingPolicy {
     measurementsSinceLastExtend_(0),
     minimumMeasurements_(1),
     minSamplingPeriod_(0),
-    lastExtend_(0) {};
+    lastExtend_(0) {}
 
   SamplingPolicy(int minimumMeasurements, Time minSamplingPeriod) :
     measurementsSinceLastExtend_(0),
     minimumMeasurements_(minimumMeasurements),
     minSamplingPeriod_(minSamplingPeriod),
-    lastExtend_(0) {};
+    lastExtend_(0) {}
 
-  ~SamplingPolicy() {};
+  ~SamplingPolicy() {}
 
   template<typename CurveType, typename ValueType>
   Key interpolationExtend(const Time& time,

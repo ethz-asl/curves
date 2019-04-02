@@ -21,8 +21,8 @@ class SE3CurveFactory {
 
  public:
 
-  SE3CurveFactory() {};
-  ~SE3CurveFactory() {};
+  SE3CurveFactory() {}
+  ~SE3CurveFactory() {}
 
   static std::shared_ptr<SE3Curve> create_curve(const std::string& curveType);
 

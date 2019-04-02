@@ -30,7 +30,7 @@ class LocalSupport2CoefficientManager {
     KeyCoefficient(const Key key, const Coefficient& coefficient) :
       key(key), coefficient(coefficient) {}
 
-    KeyCoefficient() {};
+    KeyCoefficient() {}
 
     bool equals(const KeyCoefficient& other) const {
       //todo Note: here we assume that == operator is implemented by the coefficient.

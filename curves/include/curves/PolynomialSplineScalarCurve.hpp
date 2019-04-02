@@ -45,7 +45,7 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
 
   }
 
-  virtual void print(const std::string& str = "") const
+  virtual void print(const std::string& /*str*/) const
   {
     const double minTime = getMinTime();
     const double maxTime = getMaxTime();
@@ -105,8 +105,8 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
     return true;
   }
 
-  virtual void extend(const std::vector<Time>& times, const std::vector<ValueType>& values,
-                      std::vector<Key>* outKeys)
+  virtual void extend(const std::vector<Time>& /*times*/, const std::vector<ValueType>& /*values*/,
+                      std::vector<Key>* /*outKeys*/)
   {
     throw std::runtime_error("extend is not yet implemented!");
   }
@@ -144,7 +144,7 @@ class PolynomialSplineScalarCurve : public Curve<ScalarCurveConfig>
     minTime_ = 0.0;
   }
 
-  virtual void transformCurve(const ValueType T)
+  virtual void transformCurve(const ValueType /*T*/)
   {
     CHECK(false) << "Not implemented";
   }
