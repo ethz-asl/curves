@@ -8,10 +8,6 @@ The source code is released under a [BSD 3-Clause license](ros_package_template/
 
 **Maintainer: Péter Fankhauser, pfankhauser@anybotics.com**
 
-## Build status
-
-[![Build Status](https://ci.leggedrobotics.com/buildStatus/icon?job=github_ethz-asl/curves/master)](https://ci.leggedrobotics.com/job/github_ethz-asl/job/curves/job/master/)
-
 ## Installation
 
 ### Installation from Packages
